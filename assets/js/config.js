@@ -31,7 +31,12 @@ const API_CONFIG = {
     BOOKINGS_BUSINESS_HOURS: '/bookings/business-hours',
     BOOKINGS_BUSINESS_EXCEPTIONS: '/bookings/business-exceptions',
     DISCOUNTS_VALIDATE: '/discounts/validate',
-    WALLET: '/wallet'
+    WALLET: '/wallet',
+    INFLUENCER: {
+      ME:      '/influencer/me',
+      CODES:   '/influencer/me/codes',
+      REWARDS: '/influencer/me/rewards'
+    }
   }
 };
 

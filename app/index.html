@@ -1255,6 +1255,7 @@
             <a href="address.html" aria-current="page" class="dropdown-link w-dropdown-link">My
               Addresses</a>
             <a href="referrals.html" class="dropdown-link w-dropdown-link">Referrals</a>
+            <a href="discounts.html" class="dropdown-link w-dropdown-link" data-influencer-only style="display:none;">Discount Rewards</a>
             <a href="profile.html" class="dropdown-link w-dropdown-link">My Profile</a>
             <a href="../log-in.html" data-logout="true" class="dropdown-link w-dropdown-link">Logout</a>
           </nav>
@@ -1397,6 +1398,7 @@
               <div class="bk-detail-row"><span>Notes</span><span id="dashBkNotes">-</span></div>
               <div class="bk-detail-row" id="dashBkGuestNameRow" style="display:none;"><span>Guest Name</span><span id="dashBkGuestName">-</span></div>
               <div class="bk-detail-row" id="dashBkGuestPhoneRow" style="display:none;"><span>Guest Phone</span><span id="dashBkGuestPhone">-</span></div>
+              <div class="bk-detail-row" id="dashBkGuestEmailRow" style="display:none;"><span>Guest Email</span><span id="dashBkGuestEmail">-</span></div>
             </div>
           </div>
           <div class="bk-detail-section">
@@ -1625,6 +1627,7 @@
       document.getElementById('dashBkCreated').textContent    = bk.createdAt ? fmtBkDate(bk.createdAt) : '-';
       _dbkSet('dashBkGuestName',    bk.guestName,    'dashBkGuestNameRow');
       _dbkSet('dashBkGuestPhone',   bk.guestPhone,   'dashBkGuestPhoneRow');
+      _dbkSet('dashBkGuestEmail',   bk.guestEmail,   'dashBkGuestEmailRow');
       _dbkSet('dashBkCancelReason', bk.cancelReason, 'dashBkCancelReasonRow');
       const user    = bk.user;
       const custSec = document.getElementById('dashBkCustomerSection');

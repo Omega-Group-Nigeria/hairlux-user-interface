@@ -79,6 +79,7 @@
   const guestFieldsWrap  = document.getElementById('guestFieldsWrap');
   const guestNameEl      = document.getElementById('guestName');
   const guestPhoneEl     = document.getElementById('guestPhone');
+  const guestEmailEl     = document.getElementById('guestEmail');
 
   // Booking type
   const homeServiceCard  = document.getElementById('homeServiceCard');
@@ -290,9 +291,10 @@
     const btBadge   = isHomeService
       ? '<span class="btype-badge home">🏠 Mobile Serivice</span>'
       : '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>';
+    const gEmail   = guestEmailEl ? guestEmailEl.value.trim() : '';
     const guestVal  = bookingForSelf
       ? 'Myself'
-      : (gName ? `${escHtml(gName)}${gPhone ? ' &middot; ' + escHtml(gPhone) : ''}` : '—');
+      : (gName ? `${escHtml(gName)}${gPhone ? ' &middot; ' + escHtml(gPhone) : ''}${gEmail ? '<br><span style="font-size:11px;color:var(--muted);font-weight:400;">' + escHtml(gEmail) + '</span>' : ''}` : '—');
     const payBadge  = 'Wallet';
 
     reviewContainer.innerHTML = `
@@ -545,6 +547,7 @@
     const addr          = getSelectedAddress();
     const gName         = guestNameEl && guestNameEl.value.trim();
     const gPhone        = guestPhoneEl && guestPhoneEl.value.trim();
+    const gEmail        = guestEmailEl && guestEmailEl.value.trim();
 
     modalService.textContent     = getServiceNames();
     modalDateTime.textContent    = `${bookingDateEl.value || '-'} at ${bookingTimeEl.value || '-'}`;
@@ -583,7 +586,7 @@
     // Guest row
     if (!bookingForSelf && gName) {
       modalGuestRow.style.display = '';
-      modalGuest.textContent = gName + (gPhone ? ` · ${gPhone}` : '');
+      modalGuest.textContent = gName + (gPhone ? ` · ${gPhone}` : '') + (gEmail ? ` · ${gEmail}` : '');
     } else {
       modalGuestRow.style.display = 'none';
     }
@@ -627,6 +630,7 @@
       addressId:     bType === 'HOME_SERVICE' ? (address ? address.id : undefined) : undefined,
       guestName:     gName  || undefined,
       guestPhone:    gPhone || undefined,
+      guestEmail:    guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
       paymentMethod: bMethod,
       notes:         notesEl.value.trim() || undefined,
       discountCode:  discountInfo ? discountInfo.code : undefined

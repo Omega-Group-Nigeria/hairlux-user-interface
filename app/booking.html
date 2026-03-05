@@ -1034,7 +1034,7 @@
       margin-top: 0;
     }
     .guest-fields.visible {
-      max-height: 220px;
+      max-height: 320px;
       opacity: 1;
       margin-top: 12px;
     }
@@ -1124,6 +1124,7 @@
             <a href="address.html" aria-current="page" class="dropdown-link w-dropdown-link">My
               Addresses</a>
             <a href="referrals.html" class="dropdown-link w-dropdown-link">Referrals</a>
+            <a href="discounts.html" class="dropdown-link w-dropdown-link" data-influencer-only style="display:none;">Discount Rewards</a>
             <a href="profile.html" class="dropdown-link w-dropdown-link">My Profile</a>
             <a href="../log-in.html" data-logout="true" class="dropdown-link w-dropdown-link">Logout</a>
           </nav>
@@ -1194,6 +1195,11 @@
                         <div class="field">
                           <label for="guestPhone">Guest Phone</label>
                           <input type="tel" id="guestPhone" placeholder="08031234567" maxlength="11" autocomplete="tel" />
+                        </div>
+                        <div class="field full">
+                          <label for="guestEmail">Guest Email <span style="font-weight:400;text-transform:none;color:var(--muted);">(optional)</span></label>
+                          <input type="email" id="guestEmail" placeholder="guest@example.com" autocomplete="email" />
+                          <div class="helper-text">We'll send the reservation code to this email.</div>
                         </div>
                       </div>
                     </div>
@@ -1272,7 +1278,7 @@
                     </div>
                   </div>
 
-                  <div class="field full">
+                  <div class="field full" style="display: none;">
                     <label for="notes">Notes for Stylist</label>
                     <textarea id="notes" placeholder="Add any extra information for your stylist..."></textarea>
                   </div>

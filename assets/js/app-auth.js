@@ -34,6 +34,17 @@
       var nameEl   = document.getElementById('navName');
       if (avatarEl) avatarEl.textContent = initials;
       if (nameEl)   nameEl.textContent   = fullName;
+
+      // Show influencer-only nav links if user is an active influencer.
+      var isInfluencer = !!(user.influencer && user.influencer.isActive === true);
+      document.querySelectorAll('[data-influencer-only]').forEach(function (el) {
+        el.style.display = isInfluencer ? '' : 'none';
+      });
+
+      // Guard: if this is the discounts page and user is not an influencer, redirect.
+      if (window.location.pathname.includes('discounts.html') && !isInfluencer) {
+        window.location.replace('index.html');
+      }
     })();
 
     const logoutLinks = document.querySelectorAll('[data-logout="true"], a[href="../log-in.html"], a[href="log-in.html"]');

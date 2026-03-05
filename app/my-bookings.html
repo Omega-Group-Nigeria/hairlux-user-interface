@@ -1008,6 +1008,7 @@
             <a href="address.html" aria-current="page" class="dropdown-link w-dropdown-link">My
               Addresses</a>
             <a href="referrals.html" class="dropdown-link w-dropdown-link">Referrals</a>
+            <a href="discounts.html" class="dropdown-link w-dropdown-link" data-influencer-only style="display:none;">Discount Rewards</a>
             <a href="profile.html" class="dropdown-link w-dropdown-link">My Profile</a>
             <a href="../log-in.html" data-logout="true" class="dropdown-link w-dropdown-link">Logout</a>
           </nav>
@@ -1101,9 +1102,10 @@
             <div class="bk-detail-row"><span>Time</span><span id="bkModalTime">-</span></div>
             <div class="bk-detail-row"><span>Booking Type</span><span id="bkModalBookingType">-</span></div>
             <div class="bk-detail-row"><span>Address</span><span id="bkModalAddress">-</span></div>
-            <div class="bk-detail-row"><span>Notes</span><span id="bkModalNotes">-</span></div>
+            <div class="bk-detail-row" style="display: none;"><span>Notes</span><span id="bkModalNotes">-</span></div>
             <div class="bk-detail-row" id="bkModalGuestNameRow" style="display:none;"><span>Guest Name</span><span id="bkModalGuestName">-</span></div>
             <div class="bk-detail-row" id="bkModalGuestPhoneRow" style="display:none;"><span>Guest Phone</span><span id="bkModalGuestPhone">-</span></div>
+            <div class="bk-detail-row" id="bkModalGuestEmailRow" style="display:none;"><span>Guest Email</span><span id="bkModalGuestEmail">-</span></div>
           </div>
         </div>
         <div class="bk-detail-section">
@@ -1241,7 +1243,9 @@
             : Array.isArray(data.items)   ? data.items
             : Array.isArray(data.results) ? data.results
             : Array.isArray(data)         ? data : [];
-          state.all = rows.map(normalizeTx);
+          state.all = rows.map(normalizeTx).sort((a, b) =>
+            new Date(b.createdAt || b.bookingDate || 0) - new Date(a.createdAt || a.bookingDate || 0)
+          );
         } catch (error) {
           state.all = [];
           if (typeof UIHelper !== 'undefined') {
@@ -1349,6 +1353,7 @@
         document.getElementById('bkModalCreated').textContent     = formatDate(tx.createdAt);
         _bkSet('bkModalGuestName',  _raw.guestName,    'bkModalGuestNameRow');
         _bkSet('bkModalGuestPhone', _raw.guestPhone,   'bkModalGuestPhoneRow');
+        _bkSet('bkModalGuestEmail', _raw.guestEmail,   'bkModalGuestEmailRow');
         _bkSet('bkModalCancelReason', _raw.cancelReason, 'bkModalCancelReasonRow');
         const _initUser = _raw.user;
         const _custSec  = document.getElementById('bkModalCustomerSection');
@@ -1398,6 +1403,7 @@
             document.getElementById('bkModalCreated').textContent     = formatDate(d.createdAt || tx.createdAt);
             _bkSet('bkModalGuestName',    d.guestName,    'bkModalGuestNameRow');
             _bkSet('bkModalGuestPhone',   d.guestPhone,   'bkModalGuestPhoneRow');
+            _bkSet('bkModalGuestEmail',   d.guestEmail,   'bkModalGuestEmailRow');
             _bkSet('bkModalCancelReason', d.cancelReason, 'bkModalCancelReasonRow');
             const freshUser = d.user;
             const custSec   = document.getElementById('bkModalCustomerSection');

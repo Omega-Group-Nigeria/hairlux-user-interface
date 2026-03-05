@@ -1629,6 +1629,11 @@ textarea.w-input, textarea.w-select {
   overflow: hidden;
 }
 
+@media screen and (min-width: 480px) {
+  .login-nav-mobile{
+    display: none;
+  }
+}
 @media (min-width: 768px) {
   .w-lightbox-content {
     height: 96vh;
@@ -9913,8 +9918,9 @@ figcaption {
   }
 
   .sub-hero-image {
-    background-position: 40% 40%;
+    background-position: 30% 40%;
     overflow: hidden;
+    background-image: url("img/luxury.webp") !important;
   }
 
   .hero-cards {
