@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html data-wf-domain="zuno-template.webflow.io" data-wf-page="681173e5045234e62ea0371e"
+  data-wf-site="675c8e48ca0e0fb5ab421239" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Hairlux – My Profile</title>
+  <meta content="Manage your Hairlux account details and security settings." name="description" />
+  <meta content="Hairlux – My Profile" property="og:title" />
+  <meta content="Hairlux – My Profile" property="twitter:title" />
+  <meta property="og:type" content="website" />
+  <meta content="summary_large_image" name="twitter:card" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <link href="../assets/style-main.css" rel="stylesheet" type="text/css" />
+  <link href="../assets/toast.css" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/" rel="preconnect" />
+  <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous" />
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <script type="text/javascript">WebFont.load({ google: { families: ["Merriweather:300,300italic,400,400italic,700,700italic,900,900italic", "Inter:100,200,300,regular", "IBM Plex Mono:regular,500,600"] } });</script>
+  <script type="text/javascript">!function (o, c) { var n = c.documentElement, t = " w-mod-"; n.className += t + "js", ("ontouchstart" in o || o.DocumentTouch && c instanceof DocumentTouch) && (n.className += t + "touch") }(window, document);</script>
+  <link href="../assets/img/logo-light.webp" rel="shortcut icon" type="image/x-icon" />
+  <link href="../assets/img/logo-light.webp" rel="apple-touch-icon" />
+  <style>
+    :root {
+      --card-bg:     #ffffff;
+      --surface:     #f8f9fa;
+      --surface-2:   #e9ecef;
+      --primary:     #000;
+      --muted:       #6c757d;
+      --border:      #edf0f2;
+      --shadow-soft: 0 6px 22px rgba(0,0,0,.06);
+      --radius-lg:   18px;
+      --radius-md:   14px;
+      --gold-dark:   #8c5e1a;
+      --gold-mid:    #b47d2d;
+      --gold-light:  #c9913c;
+      --danger:      #c0392b;
+      --danger-bg:   #fdf2f2;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%) !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .section { background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%); }
+
+    .dashboard-shell {
+      margin-top: 7em;
+      padding-bottom: 72px;
+    }
+
+    /* ── Navbar ─────────────────────────────────────────── */
+    .mobile-nav-tools { display: inline-flex; align-items: center; gap: 8px; }
+    .profile-dropdown { margin-left: 10px; }
+    .profile-toggle   { padding: 0; background: transparent; border: none; }
+    .profile-toggle .w-icon-dropdown-toggle { display: none; }
+
+    .profile-list {
+      left: auto; right: 0; min-width: 220px; padding: 8px;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: #fff; box-shadow: var(--shadow-soft);
+    }
+    .profile-list .dropdown-link { border-radius: 8px; margin-bottom: 2px; }
+    .profile-list .dropdown-link:last-child { margin-bottom: 0; }
+
+    .top-profile {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-left: 10px; padding: 6px 10px;
+      border-radius: 999px; border: 1px solid var(--border); background: #fff;
+    }
+
+    .top-profile-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #91621c, #c18a37);
+      color: #fff; display: inline-flex; align-items: center;
+      justify-content: center; font-size: 12px; font-weight: 700;
+    }
+
+    .top-profile-name { font-size: 12px; color: var(--primary); font-weight: 600; line-height: 1; }
+    .top-profile-link { font-size: 11px; color: var(--muted); text-decoration: none; line-height: 1; }
+
+    /* ── Page shell ──────────────────────────────────────── */
+    .profile-shell {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 clamp(14px, 3vw, 28px);
+    }
+
+    /* ── Hero ────────────────────────────────────────────── */
+    .profile-hero {
+      background: linear-gradient(135deg, #8c5e1a 0%, #b47d2d 55%, #c9913c 100%);
+      border-radius: var(--radius-lg);
+      padding: clamp(28px, 4vw, 40px);
+      margin: 28px 0 24px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      flex-wrap: wrap;
+      box-shadow: 0 14px 30px rgba(140,94,26,.3);
+      border: 1px solid rgba(255,255,255,.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 110% -10%, rgba(255,255,255,.08) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .profile-hero-avatar {
+      width: clamp(60px, 10vw, 80px);
+      height: clamp(60px, 10vw, 80px);
+      border-radius: 50%;
+      background: rgba(255,255,255,.22);
+      border: 2.5px solid rgba(255,255,255,.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      position: relative; z-index: 1;
+    }
+
+    .profile-hero-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+
+    .profile-hero-tag {
+      display: inline-block;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+      background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
+      border-radius: 999px; padding: 3px 10px; margin-bottom: 8px;
+    }
+
+    .profile-hero-name {
+      font-size: clamp(22px, 4vw, 30px); font-weight: 700; line-height: 1.1;
+      color: #fff; margin-bottom: 4px;
+    }
+
+    .profile-hero-email { font-size: 14px; color: rgba(255,255,255,.8); }
+
+    .profile-hero-status {
+      margin-top: 10px;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+      border-radius: 999px; padding: 4px 10px; color: #fff;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #a8f0c6;
+    }
+
+    /* ── Panels ──────────────────────────────────────────── */
+    .profile-panel {
+      background: var(--card-bg);
+      border: 1.5px solid #e8e2d8;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 22px 13px;
+      border-bottom: 1px solid #f0ece4;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .panel-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: #faf5ee;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+
+    .panel-title { font-size: 14px; font-weight: 700; color: var(--primary); margin: 0; }
+    .panel-subtitle { font-size: 11px; color: var(--muted); margin: 1px 0 0; }
+
+    .panel-body { padding: 20px 22px 24px; }
+
+    /* ── Form ────────────────────────────────────────────── */
+    .prof-form { display: flex; flex-direction: column; gap: 18px; }
+
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+
+    .form-group label {
+      font-size: 12px; font-weight: 600; color: #374151; letter-spacing: .01em;
+    }
+
+    .form-group input {
+      height: 44px;
+      padding: 0 13px;
+      border: 1.5px solid #dde3e9;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #111;
+      background: #fafafa;
+      outline: none;
+      transition: border-color .16s, box-shadow .16s, background .16s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      border-color: var(--gold-mid);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(180,125,45,.14);
+    }
+
+    .form-group input:read-only {
+      background: #f5f5f5;
+      color: var(--muted);
+      cursor: not-allowed;
+      border-color: #e5e9ec;
+    }
+
+    .form-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Password strength ───────────────────────────────── */
+    .pw-strength-bar {
+      height: 4px; border-radius: 2px; background: #eee;
+      margin-top: 6px; overflow: hidden;
+    }
+    .pw-strength-fill {
+      height: 100%; border-radius: 2px;
+      transition: width .3s ease, background .3s ease;
+      width: 0%;
+    }
+    .pw-strength-label { font-size: 11px; margin-top: 4px; font-weight: 600; }
+
+    /* ── Divider ─────────────────────────────────────────── */
+    .form-divider {
+      height: 1px; background: var(--border); margin: 4px 0;
+    }
+
+    /* ── Submit row ──────────────────────────────────────── */
+    .form-submit-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+      margin-top: 2px;
+    }
+
+    .btn-save-profile {
+      min-height: 42px;
+      padding: 9px 26px;
+      border-radius: 999px;
+      border: none;
+      background: #111;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .18s;
+      box-shadow: none;
+    }
+
+    .btn-save-profile:hover { opacity: .72; }
+    .btn-save-profile:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-cancel-edit {
+      min-height: 42px;
+      padding: 9px 20px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .16s;
+      display: none;
+    }
+
+    .btn-cancel-edit:hover { background: var(--surface); }
+
+    /* ── Info rows (read-only display) ───────────────────── */
+    .info-rows { display: flex; flex-direction: column; gap: 0; }
+
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-row .info-label { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+    .info-row .info-value { font-weight: 600; color: var(--primary); text-align: right; word-break: break-all; }
+
+    /* ── Edit toggle bar ─────────────────────────────────── */
+    .panel-edit-toggle {
+      display: flex; justify-content: flex-end; padding: 10px 24px 0;
+    }
+
+    .btn-edit-toggle {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 34px; padding: 6px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(140,94,26,.2);
+      background: #faf5ee;
+      color: var(--gold-dark);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+
+    .btn-edit-toggle:hover { background: #f0dfc0; border-color: rgba(140,94,26,.35); }
+
+    /* ── Security meta ────────────────────────────────────── */
+    .security-note {
+      font-size: 12px; color: var(--muted);
+      display: flex; align-items: center; gap: 5px;
+      margin-top: 2px;
+    }
+
+    /* ── Skeleton loading ────────────────────────────────── */
+    .skel-line {
+      background: linear-gradient(90deg, #e8eceb 25%, #f1f4f0 50%, #e8eceb 75%);
+      background-size: 400% 100%;
+      border-radius: 6px;
+      animation: skel-sweep 1.5s infinite ease-in-out;
+    }
+
+    @keyframes skel-sweep {
+      0%   { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .form-row-2 { grid-template-columns: 1fr; }
+      .profile-hero { flex-direction: column; align-items: flex-start; gap: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-shell { margin-top: 5em; }
+      .top-profile-name, .top-profile-link { display: none; }
+      .top-profile { padding: 0; border: none; background: transparent; }
+      .panel-body { padding: 18px 16px 20px; }
+      .panel-header { padding: 14px 16px 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ── Navbar ─────────────────────────────────────────────── -->
+  <div data-animation="default" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease"
+    role="banner" class="navbar w-nav">
+    <div class="container-nav">
+      <div class="brand-wrapper">
+        <a href="index.html" class="w-nav-brand">
+          <img src="../assets/img/logo-side-black.png" loading="lazy" alt="" class="image-brand" />
+        </a>
+      </div>
+      <nav role="navigation" class="nav-menu w-nav-menu">
+        <a href="../index.html" class="nav-link w-nav-link">Home</a>
+        <a href="../about.html" class="nav-link w-nav-link">About Us</a>
+        <a href="../contact.html" class="nav-link w-nav-link">Contact Us</a>
+      </nav>
+      <div class="mobile-nav-tools">
+        <div class="menu-button w-nav-button">
+          <div class="menu-mobile">
+            <div data-is-ix2-target="1" class="lottie-animation" data-w-id="9ddc847f-f377-4e52-c9e3-c93ed393def0"
+              data-animation-type="lottie"
+              data-src="https://cdn.prod.website-files.com/60cc0ce7858143ba7e80ab3c/61270db44a79a4716d7ead46_9789-burger-menu%20(1).json"
+              data-loop="0" data-direction="1" data-autoplay="0" data-renderer="svg" data-default-duration="3"
+              data-duration="0" data-ix2-initial-state="0"></div>
+          </div>
+        </div>
+        <div data-hover="false" data-delay="0" class="profile-dropdown w-dropdown">
+          <div class="profile-toggle w-dropdown-toggle">
+            <div class="top-profile">
+              <div class="top-profile-avatar" id="navAvatar">JD</div>
+              <div>
+                <div class="top-profile-name" id="navName">John Doe</div>
+                <div class="top-profile-link">View profile</div>
+              </div>
+            </div>
+          </div>
+          <nav class="profile-list w-dropdown-list">
+            <a href="index.html" class="dropdown-link w-dropdown-link">Dashboard</a>
+            <a href="services.html" class="dropdown-link w-dropdown-link">Services</a>
+            <a href="my-bookings.html" class="dropdown-link w-dropdown-link">My Bookings</a>
+            <a href="transactions.html" class="dropdown-link w-dropdown-link">Transactions</a>
+            <a href="address.html" class="dropdown-link w-dropdown-link">My Addresses</a>
+            <a href="referrals.html" class="dropdown-link w-dropdown-link">Referrals</a>
+            <a href="profile.html" aria-current="page" class="dropdown-link w-dropdown-link w--current">My Profile</a>
+            <a href="../log-in.html" data-logout="true" class="dropdown-link w-dropdown-link">Logout</a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page ───────────────────────────────────────────────── -->
+  <div class="page-wrapper dashboard-shell">
+    <section class="section">
+      <div class="profile-shell">
+
+        <!-- Hero -->
+        <div class="profile-hero">
+          <div class="profile-hero-avatar" id="heroAvatar">JD</div>
+          <div class="profile-hero-info">
+            <div class="profile-hero-tag">My Account</div>
+            <div class="profile-hero-name" id="heroName">
+              <span class="skel-line" style="display:inline-block;width:180px;height:28px;border-radius:6px;"></span>
+            </div>
+            <div class="profile-hero-email" id="heroEmail">
+              <span class="skel-line" style="display:inline-block;width:220px;height:16px;border-radius:4px;margin-top:6px;"></span>
+            </div>
+            <div class="profile-hero-status" id="heroStatus" style="display:none;">
+              <span class="status-dot"></span>
+              Active
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Profile info panel ─────────────────────────── -->
+        <div class="profile-panel">
+          <div class="panel-header">
+            <div class="panel-icon">
+              <svg width="15" height="15" fill="none" viewBox="0 0 15 15" aria-hidden="true"><circle cx="7.5" cy="5" r="3" stroke="#8c5e1a" stroke-width="1.4"/><path d="M1.5 13.5c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#8c5e1a" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <div class="panel-title">Personal Information</div>
+              <div class="panel-subtitle">Your account details</div>
+            </div>
+          </div>
+
+          <!-- Read-only view -->
+          <div id="profileViewMode" style="padding: 0 22px 6px;">
+            <div class="info-rows" id="profileInfoRows">
+              <!-- filled by JS -->
+              <div class="info-row">
+                <span class="info-label">First Name</span>
+                <span class="info-value skel-line" style="width:120px;height:16px;border-radius:4px;">&nbsp;</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Last Name</span>
+                <span class="info-value skel-line" style="width:120px;height:16px;border-radius:4px;">&nbsp;</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value skel-line" style="width:180px;height:16px;border-radius:4px;">&nbsp;</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Phone</span>
+                <span class="info-value skel-line" style="width:130px;height:16px;border-radius:4px;">&nbsp;</span>
+              </div>
+            </div>
+            <div class="panel-edit-toggle" style="padding: 14px 0 18px;">
+              <button class="btn-edit-toggle" id="btnEditProfile" type="button">
+                <svg width="13" height="13" fill="none" viewBox="0 0 13 13" aria-hidden="true">
+                  <path d="M9.5 1.5l2 2L5 10H3V8L9.5 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                </svg>
+                Edit Profile
+              </button>
+            </div>
+          </div>
+
+          <!-- Edit form (hidden by default) -->
+          <div id="profileEditMode" class="panel-body" style="display:none;">
+            <form class="prof-form" id="profileForm" novalidate>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="fieldFirstName">First Name</label>
+                  <input type="text" id="fieldFirstName" placeholder="First name" maxlength="60" />
+                </div>
+                <div class="form-group">
+                  <label for="fieldLastName">Last Name</label>
+                  <input type="text" id="fieldLastName" placeholder="Last name" maxlength="60" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="fieldEmail">Email Address</label>
+                <input type="email" id="fieldEmail" placeholder="Email" readonly />
+                <span class="form-hint">Email cannot be changed.</span>
+              </div>
+              <div class="form-group">
+                <label for="fieldPhone">Phone Number</label>
+                <input type="tel" id="fieldPhone" placeholder="+2348012345678" maxlength="20" />
+              </div>
+              <div class="form-submit-row">
+                <button type="submit" class="btn-save-profile" id="btnSaveProfile">Save Changes</button>
+                <button type="button" class="btn-cancel-edit" id="btnCancelEdit" style="display:inline-flex;">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ── Change password panel ──────────────────────── -->
+        <div class="profile-panel">
+          <div class="panel-header">
+            <div class="panel-icon">
+              <svg width="14" height="15" fill="none" viewBox="0 0 14 15" aria-hidden="true"><rect x="2" y="6.5" width="10" height="8" rx="2" stroke="#8c5e1a" stroke-width="1.4"/><path d="M4.5 6.5V4.5a2.5 2.5 0 0 1 5 0v2" stroke="#8c5e1a" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <div class="panel-title">Change Password</div>
+              <div class="panel-subtitle">Keep your account secure</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <form class="prof-form" id="passwordForm" novalidate>
+              <div class="form-group">
+                <label for="fieldCurrentPw">Current Password</label>
+                <input type="password" id="fieldCurrentPw" placeholder="Enter current password" autocomplete="current-password" />
+              </div>
+              <div class="form-divider"></div>
+              <div class="form-group">
+                <label for="fieldNewPw">New Password</label>
+                <input type="password" id="fieldNewPw" placeholder="At least 8 characters" autocomplete="new-password" />
+                <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+                <div class="pw-strength-label" id="pwStrengthLabel" style="color:var(--muted);"></div>
+              </div>
+              <div class="form-group">
+                <label for="fieldConfirmPw">Confirm New Password</label>
+                <input type="password" id="fieldConfirmPw" placeholder="Re-enter new password" autocomplete="new-password" />
+              </div>
+              <div class="security-note">
+                <svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M6.5 1L2 3.5v4c0 2.5 2 4.5 4.5 5 2.5-.5 4.5-2.5 4.5-5v-4L6.5 1z" stroke="#6c757d" stroke-width="1.3" stroke-linejoin="round"/></svg>
+                Use a mix of letters, numbers and symbols for a strong password.
+              </div>
+              <div class="form-submit-row">
+                <button type="submit" class="btn-save-profile" id="btnSavePw">Update Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- ── Scripts ──────────────────────────────────────────────── -->
+  <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=675c8e48ca0e0fb5ab421239"
+    type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/js/zuno-template.schunk.f3a08821b4e31f89.js"
+    type="text/javascript"></script>
+  <script src="../assets/schunk.js" type="text/javascript"></script>
+  <script src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/js/zuno-template.43895104.17a27cf99b30c8e2.js"
+    type="text/javascript"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth-api.js"></script>
+  <script src="../assets/js/ui-helper.js"></script>
+  <script src="../assets/js/app-auth.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+
+      // ── Refs ───────────────────────────────────────────────────────
+      const heroAvatar    = document.getElementById('heroAvatar');
+      const heroName      = document.getElementById('heroName');
+      const heroEmail     = document.getElementById('heroEmail');
+      const heroStatus    = document.getElementById('heroStatus');
+      const profileInfoRows = document.getElementById('profileInfoRows');
+
+      const profileViewMode = document.getElementById('profileViewMode');
+      const profileEditMode = document.getElementById('profileEditMode');
+      const btnEditProfile  = document.getElementById('btnEditProfile');
+      const btnCancelEdit   = document.getElementById('btnCancelEdit');
+      const profileForm     = document.getElementById('profileForm');
+      const btnSaveProfile  = document.getElementById('btnSaveProfile');
+
+      const fieldFirstName  = document.getElementById('fieldFirstName');
+      const fieldLastName   = document.getElementById('fieldLastName');
+      const fieldEmail      = document.getElementById('fieldEmail');
+      const fieldPhone      = document.getElementById('fieldPhone');
+
+      const passwordForm    = document.getElementById('passwordForm');
+      const btnSavePw       = document.getElementById('btnSavePw');
+      const fieldCurrentPw  = document.getElementById('fieldCurrentPw');
+      const fieldNewPw      = document.getElementById('fieldNewPw');
+      const fieldConfirmPw  = document.getElementById('fieldConfirmPw');
+      const pwStrengthFill  = document.getElementById('pwStrengthFill');
+      const pwStrengthLabel = document.getElementById('pwStrengthLabel');
+
+      let currentProfile = null;
+
+      // ── Utilities ──────────────────────────────────────────────────
+      function initials(first, last, email) {
+        const f = (first  || '')[0] || '';
+        const l = (last   || '')[0] || '';
+        return (f + l).toUpperCase() || (email || '?')[0].toUpperCase();
+      }
+
+      function setButtonLoading(btn, loading, loadingText) {
+        if (loading) {
+          btn._origText = btn.querySelector('div') ? btn.querySelector('div').textContent : btn.textContent;
+          if (btn.querySelector('div')) btn.querySelector('div').textContent = loadingText || 'Saving…';
+          else btn.textContent = loadingText || 'Saving…';
+          btn.disabled = true;
+        } else {
+          if (btn.querySelector('div')) btn.querySelector('div').textContent = btn._origText || btn.querySelector('div').textContent;
+          else btn.textContent = btn._origText || btn.textContent;
+          btn.disabled = false;
+        }
+      }
+
+      // ── Password strength ──────────────────────────────────────────
+      fieldNewPw.addEventListener('input', function () {
+        const pw = this.value;
+        let score = 0;
+        if (pw.length >= 8)  score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+        const configs = [
+          { pct: '0%',   color: '#e5e5e5', label: '',        tColor: 'var(--muted)' },
+          { pct: '25%',  color: '#dc3545', label: 'Weak',    tColor: '#dc3545' },
+          { pct: '50%',  color: '#fd7e14', label: 'Fair',    tColor: '#fd7e14' },
+          { pct: '75%',  color: '#ffc107', label: 'Good',    tColor: '#8a6208' },
+          { pct: '100%', color: '#28a745', label: 'Strong',  tColor: '#28a745' },
+        ];
+
+        const cfg = pw.length === 0 ? configs[0] : configs[score] || configs[score - 1];
+        pwStrengthFill.style.width      = cfg.pct;
+        pwStrengthFill.style.background = cfg.color;
+        pwStrengthLabel.textContent     = cfg.label;
+        pwStrengthLabel.style.color     = cfg.tColor;
+      });
+
+      // ── Render profile view ────────────────────────────────────────
+      function renderProfileView(user) {
+        // Hero
+        const inits = initials(user.firstName, user.lastName, user.email);
+        heroAvatar.textContent = inits;
+        heroName.textContent   = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+        heroEmail.textContent  = user.email || '';
+        heroStatus.style.display = 'inline-flex';
+
+        // Info rows
+        profileInfoRows.innerHTML = [
+          { label: 'First Name', value: user.firstName || '—' },
+          { label: 'Last Name',  value: user.lastName  || '—' },
+          { label: 'Email',      value: user.email     || '—' },
+          { label: 'Phone',      value: user.phone     || '—' },
+        ].map(r => `
+          <div class="info-row">
+            <span class="info-label">${r.label}</span>
+            <span class="info-value">${r.value}</span>
+          </div>`).join('');
+
+        // Populate edit fields
+        fieldFirstName.value = user.firstName || '';
+        fieldLastName.value  = user.lastName  || '';
+        fieldEmail.value     = user.email     || '';
+        fieldPhone.value     = user.phone     || '';
+      }
+
+      // ── Load profile ───────────────────────────────────────────────
+      async function loadProfile() {
+        try {
+          const res  = await APIHelper.request(API_CONFIG.ENDPOINTS.USER.PROFILE);
+          const user = (res && res.data) ? res.data : res;
+          currentProfile = user;
+          renderProfileView(user);
+          // Update cached user data so the navbar initials are fresh
+          try { localStorage.setItem(API_CONFIG.STORAGE_KEYS.USER_DATA, JSON.stringify(user)); } catch (_) {}
+        } catch (err) {
+          const msg = Array.isArray(err && err.message) ? err.message.join(', ') : ((err && err.message) || 'Could not load profile.');
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast(msg, 'error');
+        }
+      }
+
+      // ── Edit toggle ────────────────────────────────────────────────
+      btnEditProfile.addEventListener('click', function () {
+        profileViewMode.style.display = 'none';
+        profileEditMode.style.display = 'block';
+      });
+
+      btnCancelEdit.addEventListener('click', function () {
+        profileEditMode.style.display = 'none';
+        profileViewMode.style.display = 'block';
+        if (currentProfile) renderProfileView(currentProfile);
+      });
+
+      // ── Save profile ───────────────────────────────────────────────
+      profileForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const firstName = fieldFirstName.value.trim();
+        const lastName  = fieldLastName.value.trim();
+        const phone     = fieldPhone.value.trim();
+
+        if (!firstName || !lastName) {
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast('First and last name are required.', 'error');
+          return;
+        }
+
+        btnSaveProfile.disabled = true;
+        btnSaveProfile.textContent = 'Saving…';
+
+        try {
+          const res  = await APIHelper.request(API_CONFIG.ENDPOINTS.USER.PROFILE, {
+            method: 'PUT',
+            body: JSON.stringify({ firstName, lastName, phone: phone || undefined })
+          });
+          const updated = (res && res.data) ? res.data : res;
+          currentProfile = { ...currentProfile, ...updated };
+          renderProfileView(currentProfile);
+          try { localStorage.setItem(API_CONFIG.STORAGE_KEYS.USER_DATA, JSON.stringify(currentProfile)); } catch (_) {}
+
+          profileEditMode.style.display = 'none';
+          profileViewMode.style.display = 'block';
+
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast('Profile updated successfully.', 'success');
+        } catch (err) {
+          const msg = Array.isArray(err && err.message) ? err.message.join(', ') : ((err && err.message) || 'Could not update profile.');
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast(msg, 'error');
+        } finally {
+          btnSaveProfile.disabled = false;
+          btnSaveProfile.textContent = 'Save Changes';
+        }
+      });
+
+      // ── Change password ────────────────────────────────────────────
+      passwordForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const currentPassword     = fieldCurrentPw.value;
+        const newPassword         = fieldNewPw.value;
+        const confirmPassword     = fieldConfirmPw.value;
+
+        if (!currentPassword) {
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast('Please enter your current password.', 'error');
+          return;
+        }
+        if (newPassword.length < 8) {
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast('New password must be at least 8 characters.', 'error');
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast('Passwords do not match.', 'error');
+          return;
+        }
+
+        btnSavePw.disabled = true;
+        btnSavePw.textContent = 'Updating…';
+
+        try {
+          await APIHelper.request(API_CONFIG.ENDPOINTS.USER.PASSWORD, {
+            method: 'PUT',
+            body: JSON.stringify({ currentPassword, newPassword })
+          });
+
+          passwordForm.reset();
+          pwStrengthFill.style.width = '0%';
+          pwStrengthLabel.textContent = '';
+
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast('Password updated successfully.', 'success');
+        } catch (err) {
+          const msg = Array.isArray(err && err.message) ? err.message.join(', ') : ((err && err.message) || 'Could not update password.');
+          if (typeof UIHelper !== 'undefined') UIHelper.showToast(msg, 'error');
+        } finally {
+          btnSavePw.disabled = false;
+          btnSavePw.textContent = 'Update Password';
+        }
+      });
+
+      // ── Init ───────────────────────────────────────────────────────
+      await loadProfile();
+    });
+  </script>
+</body>
+
+</html>
