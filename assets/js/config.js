@@ -1,6 +1,6 @@
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:3000',
+  BASE_URL: 'https://hairlux-api.up.railway.app',
   
   // Local storage keys
   STORAGE_KEYS: {
