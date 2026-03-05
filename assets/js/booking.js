@@ -230,7 +230,7 @@
     const serviceLabel = services.length > 1
       ? `${services.length} services`
       : (services[0] ? services[0].name : '-');
-    const btLabel = bookingType === 'HOME_SERVICE' ? '🏠 Home Service' : '🏪 Walk-In (Store)';
+    const btLabel = bookingType === 'HOME_SERVICE' ? '🏠 Mobile Serivice' : '🏪 Walk-In (Store)';
     const addrLabel = bookingType === 'HOME_SERVICE'
       ? (address ? escHtml(address.addressLine) : '-')
       : 'At the salon';
@@ -288,7 +288,7 @@
       ? (address ? `${escHtml(address.addressLine)}, ${escHtml(address.city)}` : '-')
       : '<span class="btype-badge walkin">🏪 Walk-In at salon</span>';
     const btBadge   = isHomeService
-      ? '<span class="btype-badge home">🏠 Home Service</span>'
+      ? '<span class="btype-badge home">🏠 Mobile Serivice</span>'
       : '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>';
     const guestVal  = bookingForSelf
       ? 'Myself'
@@ -569,7 +569,7 @@
 
     // Booking type
     modalBookingType.innerHTML = isHomeService
-      ? '<span class="btype-badge home">🏠 Home Service</span>'
+      ? '<span class="btype-badge home">🏠 Mobile Serivice</span>'
       : '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>';
 
     // Address row
@@ -769,7 +769,7 @@
     });
   });
 
-  // Booking-type cards (Home Service / Walk-In)
+  // Booking-type cards (Mobile Serivice / Walk-In)
   [homeServiceCard, walkInCard].forEach(card => {
     if (!card) return;
     card.addEventListener('click', function () {

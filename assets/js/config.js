@@ -31,11 +31,7 @@ const API_CONFIG = {
     BOOKINGS_BUSINESS_HOURS: '/bookings/business-hours',
     BOOKINGS_BUSINESS_EXCEPTIONS: '/bookings/business-exceptions',
     DISCOUNTS_VALIDATE: '/discounts/validate',
-    WALLET: '/wallet',
-    REFERRALS: '/referrals/me',
-    REFERRALS_HISTORY: '/referrals/me/history',
-    JOBS: '/jobs',
-    JOB_SINGLE: '/jobs'
+    WALLET: '/wallet'
   }
 };
 
