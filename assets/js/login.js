@@ -98,7 +98,16 @@
         let errorMessage = 'Login failed. Please try again.';
         
         if (error.status === 401) {
-          errorMessage = 'Invalid email or password';
+          // Check for specific inactive account message
+          if (error.message === 'Your account is inactive. Please contact support.') {
+            errorMessage = error.message;
+          } else if (error.message === 'Please verify your email before logging in. Check your email for the OTP code.') {
+             // Show OTP modal and stop error flow
+             showOtpModal(email);
+             return; 
+          } else {
+            errorMessage = 'Invalid email or password';
+          }
         } else if (error.status === 0) {
           errorMessage = 'Network error. Please check your connection.';
         } else if (error.message) {
@@ -112,6 +121,143 @@
         UIHelper.setButtonLoading(submitButton, false);
       }
     });
+
+    /* ── OTP Modal Logic ───────────────────────────────────────────────────── */
+    const otpModal      = document.getElementById('hl-otp-modal');
+    const otpCloseBtn   = document.getElementById('hl-otp-close-btn');
+    const otpVerifyBtn  = document.getElementById('hl-otp-verify-btn');
+    const otpResendBtn  = document.getElementById('hl-otp-resend-btn');
+    const otpCodeInput  = document.getElementById('hl-otp-code');
+    const otpEmailDisp  = document.getElementById('hl-otp-email-display');
+    const otpMsg        = document.getElementById('hl-otp-msg');
+    const otpCountdown  = document.getElementById('hl-otp-countdown');
+
+    var _otpEmail        = '';
+    var _otpTimerHandle  = null;
+    var _otpSecondsLeft  = 60;
+
+    if (otpModal) {
+      otpModal.addEventListener('click', function(e) { e.stopPropagation(); });
+    }
+
+    if (otpCloseBtn) {
+      otpCloseBtn.addEventListener('click', function() {
+        closeOtpModal();
+      });
+    }
+
+    if (otpCodeInput) {
+      otpCodeInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        setOtpMsg('', '');
+      });
+      otpCodeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') otpVerifyBtn && otpVerifyBtn.click();
+      });
+    }
+
+    if (otpVerifyBtn) {
+      otpVerifyBtn.addEventListener('click', async function() {
+        const code = (otpCodeInput ? otpCodeInput.value : '').trim();
+        if (!code || code.length < 4) {
+          setOtpMsg('Please enter the OTP code from your email.', 'error');
+          return;
+        }
+
+        otpVerifyBtn.disabled    = true;
+        otpVerifyBtn.textContent = 'Verifying…';
+        setOtpMsg('', '');
+
+        try {
+          await AuthAPI.verifyOtp({ email: _otpEmail, otpCode: code });
+          setOtpMsg('Email verified! taking you to dashboard...', 'success');
+          clearOtpTimer();
+          setTimeout(function() {
+            closeOtpModal();
+            UIHelper.redirect('app/index.html');
+          }, 1000);
+        } catch (err) {
+          const msg = (err && err.message) ? err.message : 'Invalid or expired OTP. Please try again.';
+          setOtpMsg(msg, 'error');
+          otpVerifyBtn.disabled    = false;
+          otpVerifyBtn.textContent = 'Verify & Continue';
+        }
+      });
+    }
+
+    if (otpResendBtn) {
+      otpResendBtn.addEventListener('click', async function() {
+        if (otpResendBtn.disabled) return;
+        otpResendBtn.disabled = true;
+        setOtpMsg('', '');
+
+        try {
+          await AuthAPI.resendOtp(_otpEmail);
+          setOtpMsg('A new OTP has been sent to your email.', 'success');
+          if (otpCodeInput) otpCodeInput.value = '';
+          startOtpTimer();
+        } catch (err) {
+          const msg = (err && err.message) ? err.message : 'Could not resend OTP. Please try again.';
+          setOtpMsg(msg, 'error');
+          otpResendBtn.disabled = false;
+        }
+      });
+    }
+
+    function showOtpModal(email) {
+      _otpEmail = email;
+      if (otpEmailDisp) otpEmailDisp.textContent = email;
+      if (otpCodeInput) otpCodeInput.value = '';
+      setOtpMsg('', '');
+      if (otpVerifyBtn) { otpVerifyBtn.disabled = false; otpVerifyBtn.textContent = 'Verify & Continue'; }
+      if (otpModal) {
+        otpModal.style.display = 'flex'; // Override inline style from HTML
+        otpModal.classList.add('hl-otp-open');
+      }
+      if (otpCodeInput) setTimeout(function() { otpCodeInput.focus(); }, 120);
+      startOtpTimer();
+    }
+
+    function closeOtpModal() {
+      if (otpModal) {
+        otpModal.classList.remove('hl-otp-open');
+        otpModal.style.display = 'none';
+      }
+      clearOtpTimer();
+    }
+
+    function startOtpTimer() {
+      clearOtpTimer();
+      _otpSecondsLeft = 60;
+      if (otpCountdown) otpCountdown.textContent = _otpSecondsLeft;
+      if (otpResendBtn) {
+        otpResendBtn.disabled    = true;
+        otpResendBtn.textContent = 'Resend OTP (' + _otpSecondsLeft + 's)';
+      }
+      _otpTimerHandle = setInterval(function() {
+        _otpSecondsLeft -= 1;
+        if (otpCountdown) otpCountdown.textContent = _otpSecondsLeft;
+        if (otpResendBtn) otpResendBtn.textContent = 'Resend OTP (' + _otpSecondsLeft + 's)';
+        if (_otpSecondsLeft <= 0) {
+          clearOtpTimer();
+          if (otpResendBtn) {
+            otpResendBtn.disabled    = false;
+            otpResendBtn.textContent = 'Resend OTP';
+          }
+        }
+      }, 1000);
+    }
+
+    function clearOtpTimer() {
+      if (_otpTimerHandle) { clearInterval(_otpTimerHandle); _otpTimerHandle = null; }
+    }
+
+    function setOtpMsg(text, type) {
+      if (!otpMsg) return;
+      otpMsg.textContent = text;
+      otpMsg.className   = 'hl-otp-msg' + (type ? ' ' + type : '');
+      otpMsg.style.display = text ? 'block' : 'none';
+    }
 
   });
 

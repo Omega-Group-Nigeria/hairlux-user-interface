@@ -49,7 +49,25 @@
   // ── Helpers ───────────────────────────────────────────────────────
   function getSelectedServices() { return allSelectedServices; }
   function getSelectedService()  { return allSelectedServices[0] || null; }
-  function getTotalPrice()       { return allSelectedServices.reduce((s, x) => s + x.price, 0); }
+  function getServicePriceForType(service, type) {
+    const targetType = type || bookingType;
+    const walkIn = Number(service && service.walkInPrice);
+    const home = Number(service && service.homeServicePrice);
+    const hasWalk = (service && service.isWalkInAvailable !== false) && Number.isFinite(walkIn) && walkIn >= 0;
+    const hasHome = (service && service.isHomeServiceAvailable !== false) && Number.isFinite(home) && home >= 0;
+
+    if (targetType === 'WALK_IN') {
+      if (hasWalk) return walkIn;
+      if (hasHome) return home;
+    } else {
+      if (hasHome) return home;
+      if (hasWalk) return walkIn;
+    }
+
+    const fallback = Number((service && (service.price || service.basePrice || service.amount)) || 0);
+    return Number.isFinite(fallback) ? fallback : 0;
+  }
+  function getTotalPrice()       { return allSelectedServices.reduce((s, x) => s + getServicePriceForType(x), 0); }
   function getTotalDuration()    { return allSelectedServices.reduce((s, x) => s + x.duration, 0); }
   function getServiceNames()     { return allSelectedServices.map(s => s.name).join(', ') || '-'; }
   function getDiscountedTotal()  {
@@ -162,6 +180,32 @@
     return payload.data && typeof payload.data === 'object' ? payload.data : payload;
   }
 
+  async function hydrateSelectedServicesPricing() {
+    const services = getSelectedServices();
+    if (!services.length) return;
+
+    const tasks = services.map(async function (svc) {
+      if (!svc || !svc.id) return;
+      try {
+        const res = await APIHelper.request(
+          API_CONFIG.ENDPOINTS.SERVICES + '/' + encodeURIComponent(svc.id)
+        );
+        const data = getApiData(res) || {};
+        if (data && typeof data === 'object') {
+          svc.walkInPrice = data.walkInPrice != null ? Number(data.walkInPrice) : svc.walkInPrice;
+          svc.homeServicePrice = data.homeServicePrice != null ? Number(data.homeServicePrice) : svc.homeServicePrice;
+          if (data.isWalkInAvailable != null) svc.isWalkInAvailable = Boolean(data.isWalkInAvailable);
+          if (data.isHomeServiceAvailable != null) svc.isHomeServiceAvailable = Boolean(data.isHomeServiceAvailable);
+          if (data.duration != null && Number.isFinite(Number(data.duration))) svc.duration = Number(data.duration);
+        }
+      } catch (e) {
+        // Keep decoded/stored pricing when service lookup fails.
+      }
+    });
+
+    await Promise.all(tasks);
+  }
+
   // ── Step 1: Service display ───────────────────────────────────────
   function hydrateSelectedServiceUI() {
     const services = getSelectedServices();
@@ -186,11 +230,12 @@
     // Build service rows
     let html = '<div class="services-list">';
     services.forEach(svc => {
+      const servicePrice = getServicePriceForType(svc);
       html += `
         <div class="service-list-row">
           <span class="service-list-name">${escHtml(svc.name)}</span>
           <div class="service-list-badges">
-            <span class="selected-service-chip">${formatMoney(svc.price)}</span>
+            <span class="selected-service-chip">${formatMoney(servicePrice)}</span>
             <span class="selected-service-chip">${svc.duration} mins</span>
           </div>
         </div>`;
@@ -271,7 +316,7 @@
           <span class="review-svc-name">${escHtml(svc.name)}</span>
         </div>
         <div class="review-svc-right">
-          <span class="review-svc-price">${formatMoney(svc.price)}</span>
+          <span class="review-svc-price">${formatMoney(getServicePriceForType(svc))}</span>
           <span class="review-svc-duration">${svc.duration} mins</span>
         </div>
       </div>`).join('');
@@ -366,8 +411,22 @@
     });
     prevStepBtn.classList.toggle('hidden', step === 1);
     stepActionsEl.classList.toggle('single-action', step === 1);
-    nextStepBtn.querySelector('div').textContent = step === 3 ? 'Create Booking' : 'Continue';
-    if (step === 3) buildReview();
+
+    const nextBtnLabel = nextStepBtn.querySelector('div');
+    if (nextBtnLabel) {
+      nextBtnLabel.textContent = step === 3 ? 'Create Booking' : 'Continue';
+    }
+
+    if (step === 3) {
+      const agreeCheckbox = document.getElementById('agreeTerms');
+      const isAgreed = agreeCheckbox && agreeCheckbox.checked;
+      nextStepBtn.style.pointerEvents = isAgreed ? 'auto' : 'none';
+      nextStepBtn.style.opacity       = isAgreed ? '1' : '0.5';
+      buildReview();
+    } else {
+      nextStepBtn.style.pointerEvents = 'auto';
+      nextStepBtn.style.opacity       = '1';
+    }
   }
 
   function validateStep(currentStep) {
@@ -725,7 +784,11 @@
       refreshSummary();
     } catch (err) {
       discountInfo = null;
-      statusEl.textContent = (err && err.message) || 'Invalid or expired discount code.';
+      if (err && err.status === 401) {
+        statusEl.textContent = 'The code cannot be used as it is yours (influencers cannot use their code).';
+      } else {
+        statusEl.textContent = (err && err.message) || 'Invalid or expired discount code.';
+      }
       statusEl.className   = 'discount-status error';
     } finally {
       setButtonState(applyBtn, '', false);
@@ -785,6 +848,7 @@
         addAddressWrap.style.display = 'none';
         savedAddressEl.value = '';
       }
+      hydrateSelectedServiceUI();
       refreshSummary();
     });
   });
@@ -964,9 +1028,45 @@
     }
   }
 
+  // ── Terms Logic ──────────────────────────────────────────────────
+  const agreeCheckbox = document.getElementById('agreeTerms');
+  const termsLink     = document.getElementById('termsLink');
+  const termsModal    = document.getElementById('termsModal');
+  const closeTermsBtn = document.getElementById('closeTermsModal');
+
+  if (agreeCheckbox) {
+    agreeCheckbox.checked = false;
+    agreeCheckbox.addEventListener('change', function() {
+      if (step === 3) {
+        nextStepBtn.style.pointerEvents = this.checked ? 'auto' : 'none';
+        nextStepBtn.style.opacity       = this.checked ? '1' : '0.5';
+      }
+    });
+  }
+
+  if (termsLink && termsModal) {
+    termsLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      termsModal.classList.add('show');
+    });
+    termsModal.addEventListener('click', function(e) {
+      if (e.target === termsModal) termsModal.classList.remove('show');
+    });
+  }
+
+  if (closeTermsBtn && termsModal) {
+    closeTermsBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      termsModal.classList.remove('show');
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────
-  hydrateSelectedServiceUI();
-  refreshSummary();
-  setStep(1);
-  loadAddresses();
+  (async function initBookingPage() {
+    await hydrateSelectedServicesPricing();
+    hydrateSelectedServiceUI();
+    refreshSummary();
+    setStep(1);
+    loadAddresses();
+  })();
 })();

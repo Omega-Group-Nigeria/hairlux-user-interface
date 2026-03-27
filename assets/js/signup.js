@@ -205,10 +205,13 @@
       });
     }
 
-    // X button closes modal without verifying
+    // X button closes modal without verifying - Redirect to Login
     if (otpCloseBtn) {
       otpCloseBtn.addEventListener('click', function() {
         closeOtpModal();
+        // If user closes OTP modal without verifying, clear any potential session and go to login
+        APIHelper.clearAuth();
+        window.location.href = 'log-in.html';
       });
     }
 

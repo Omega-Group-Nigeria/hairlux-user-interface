@@ -1292,6 +1292,28 @@
       return '\u20a6' + Number(n).toLocaleString('en-NG');
     }
 
+    function getServiceDisplayPrice(svc) {
+      var prices = [];
+
+      var canWalkIn = svc && svc.isWalkInAvailable !== false;
+      var canHome   = svc && svc.isHomeServiceAvailable !== false;
+
+      if (canWalkIn && svc && svc.walkInPrice != null) {
+        var walk = Number(svc.walkInPrice);
+        if (!isNaN(walk) && walk >= 0) prices.push(walk);
+      }
+
+      if (canHome && svc && svc.homeServicePrice != null) {
+        var home = Number(svc.homeServicePrice);
+        if (!isNaN(home) && home >= 0) prices.push(home);
+      }
+
+      if (prices.length) return Math.min.apply(null, prices);
+
+      var fallback = Number((svc && (svc.price || svc.basePrice || svc.amount)) || 0);
+      return isNaN(fallback) ? 0 : fallback;
+    }
+
     // Fallback image per category keyword
     var FALLBACK_IMAGES = [
       { key: 'nail',    url: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=1200&q=80' },
@@ -1400,6 +1422,7 @@
     function buildCard(svc) {
       var imgUrl   = svc.imageUrl || getFallbackImage((svc.category && svc.category.name) || '');
       var catName  = (svc.category && svc.category.name) || '';
+      var displayPrice = getServiceDisplayPrice(svc);
 
       var div = document.createElement('div');
       div.className = 'service-item';
@@ -1408,7 +1431,7 @@
       // Hidden data attributes — the real UUID is stored here
       div.dataset.serviceId       = svc.id;
       div.dataset.serviceName     = svc.name;
-      div.dataset.servicePrice    = svc.price;
+      div.dataset.servicePrice    = displayPrice;
       div.dataset.serviceDuration = svc.duration;
       div.dataset.categoryId      = svc.categoryId || '';
 
@@ -1419,7 +1442,7 @@
         '<div class="service-card-content">' +
           '<h4 class="heading-regular">' + escapeHtml(svc.name) + '</h4>' +
           '<p class="p-regular">' + escapeHtml(svc.description || '') + '</p>' +
-          '<div class="service-cost">From ' + formatPrice(svc.price) + '</div>' +
+          '<div class="service-cost">From ' + formatPrice(displayPrice) + '</div>' +
           '<button type="button" class="sel-btn unselected"><span class="sel-btn-text">Select Service</span></button>' +
         '</div>';
 

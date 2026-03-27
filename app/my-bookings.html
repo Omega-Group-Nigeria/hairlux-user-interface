@@ -1101,7 +1101,7 @@
             <div class="bk-detail-row"><span>Date</span><span id="bkModalDate">-</span></div>
             <div class="bk-detail-row"><span>Time</span><span id="bkModalTime">-</span></div>
             <div class="bk-detail-row"><span>Booking Type</span><span id="bkModalBookingType">-</span></div>
-            <div class="bk-detail-row"><span>Address</span><span id="bkModalAddress">-</span></div>
+            <div class="bk-detail-row"><span id="bkModalAddressLabel">Address</span><span id="bkModalAddress">-</span></div>
             <div class="bk-detail-row" style="display: none;"><span>Notes</span><span id="bkModalNotes">-</span></div>
             <div class="bk-detail-row" id="bkModalGuestNameRow" style="display:none;"><span>Guest Name</span><span id="bkModalGuestName">-</span></div>
             <div class="bk-detail-row" id="bkModalGuestPhoneRow" style="display:none;"><span>Guest Phone</span><span id="bkModalGuestPhone">-</span></div>
@@ -1202,6 +1202,24 @@
         return `${dh}:${m} ${period}`;
       }
 
+      function normalizeBookingType(type) {
+        const t = String(type || '').toUpperCase();
+        if (t === 'WALK_IN' || t === 'WALKIN') return 'WALK_IN';
+        if (t === 'HOME_SERVICE' || t === 'HOME') return 'HOME_SERVICE';
+        return '';
+      }
+
+      function formatBookingType(type) {
+        const t = normalizeBookingType(type);
+        if (t === 'WALK_IN') return 'Walk-In (Store)';
+        if (t === 'HOME_SERVICE') return 'Mobile Service';
+        return '-';
+      }
+
+      function formatBookingLocation(type, address) {
+        return normalizeBookingType(type) === 'WALK_IN' ? 'At the salon' : (address || '-');
+      }
+
       // ── Data normalisation ────────────────────────────────────────
       function normalizeTx(tx) {
         const status = (tx.status || 'pending').toString().toLowerCase();
@@ -1219,16 +1237,18 @@
         const scheduleDate = tx.date || tx.bookingDate || (tx.schedule && tx.schedule.date) || '-';
         const scheduleTime = tx.time || tx.bookingTime || (tx.schedule && tx.schedule.time) || '-';
         const totalAmt = Number(tx.amount || tx.totalAmount || tx.total || (serviceObj && serviceObj.price) || 0);
+        const bookingType = normalizeBookingType(tx.bookingType);
+        const address = (tx.address && (tx.address.addressLine || tx.address.address_line)) || tx.addressLine || '-';
         return {
           id:            tx.id || tx.booking_id || tx.reference || `bk_${Math.random().toString(36).slice(2, 8)}`,
           reservationCode: tx.reservationCode || '',
           createdAt:     tx.createdAt || tx.created_at || tx.updatedAt || new Date().toISOString(),
           serviceName,  status, paymentStatus, scheduleDate, scheduleTime,
-          address:       (tx.address && (tx.address.addressLine || tx.address.address_line)) || tx.addressLine || '-',
+          address,
           amount:        totalAmt,
           notes:         tx.notes || '',
           paymentMethod: (tx.paymentMethod || tx.payment_method || 'WALLET').toUpperCase(),
-          bookingType:   tx.bookingType || 'HOME_SERVICE',
+          bookingType,
           _raw:          tx
         };
       }
@@ -1275,14 +1295,16 @@
         txTableBody.innerHTML = pageRows.map(tx => {
           const dateDisplay = formatScheduleDate(tx.scheduleDate);
           const timeDisplay = formatScheduleTime(tx.scheduleTime);
+          const bookingTypeLabel = formatBookingType(tx.bookingType);
+          const locationLabel = formatBookingLocation(tx.bookingType, tx.address);
           const resCode     = tx.reservationCode ? `<span class="res-code">${tx.reservationCode}</span>` : `<span style="font-size:11px;color:var(--muted);">—</span>`;
           return `<tr class="clickable-row" data-booking-id="${tx.id}" title="Click to view details">
             <td>${resCode}</td>
-            <td><div class="tx-description">${tx.serviceName}</div><div class="tx-sub">${dateDisplay} &middot; ${timeDisplay}</div></td>
+            <td><div class="tx-description">${tx.serviceName}</div><div class="tx-sub">${bookingTypeLabel} &middot; ${dateDisplay} &middot; ${timeDisplay}</div></td>
             <td><span class="tx-pill status-${tx.status}">${tx.status.replace(/_/g,' ')}</span></td>
             <td><span class="tx-pill payment-${tx.paymentStatus}">${tx.paymentStatus}</span></td>
             <td>${dateDisplay}<br><span style="font-size:12px;color:var(--muted);">${timeDisplay}</span></td>
-            <td style="font-size:12px;">${tx.address}</td>
+            <td style="font-size:12px;">${locationLabel}</td>
             <td class="tx-amount">${formatAmount(tx.amount)}</td>
             <td style="font-size:12px;">${formatDate(tx.createdAt)}</td>
           </tr>`;
@@ -1339,13 +1361,16 @@
 
         // Populate with cached data immediately
         const _raw = tx._raw || tx;
+        const bookingType = normalizeBookingType(tx.bookingType);
         document.getElementById('bkModalServiceName').textContent = tx.serviceName;
         document.getElementById('bkModalId').textContent          = tx.id;
         document.getElementById('bkModalResCode').textContent     = tx.reservationCode || '-';
         document.getElementById('bkModalDate').textContent        = formatScheduleDate(tx.scheduleDate);
         document.getElementById('bkModalTime').textContent        = formatScheduleTime(tx.scheduleTime);
-        document.getElementById('bkModalBookingType').textContent = (tx.bookingType || '').replace(/_/g,' ') || '-';
-        document.getElementById('bkModalAddress').textContent     = tx.address || '-';
+        document.getElementById('bkModalBookingType').textContent = formatBookingType(bookingType);
+        document.getElementById('bkModalAddress').textContent     = formatBookingLocation(bookingType, tx.address);
+        const modalAddrLabel = document.getElementById('bkModalAddressLabel');
+        if (modalAddrLabel) modalAddrLabel.textContent = bookingType === 'WALK_IN' ? 'Location' : 'Address';
         document.getElementById('bkModalNotes').textContent       = tx.notes || 'None';
         document.getElementById('bkModalService2').textContent    = tx.serviceName;
         document.getElementById('bkModalAmount').textContent      = formatAmount(tx.amount);
@@ -1388,14 +1413,17 @@
             const freshTime      = d.bookingTime || d.time || (d.schedule && d.schedule.time) || tx.scheduleTime;
             const freshAddr      = (d.address && (d.address.addressLine || d.address.address_line)) || d.addressLine || tx.address;
             const freshAmt       = Number(d.totalAmount || d.amount || tx.amount);
+            const freshBookingType = normalizeBookingType(d.bookingType || tx.bookingType);
 
             document.getElementById('bkModalServiceName').textContent = freshNames;
             document.getElementById('bkModalId').textContent          = d.id;
             document.getElementById('bkModalResCode').textContent     = d.reservationCode || tx.reservationCode || '-';
             document.getElementById('bkModalDate').textContent        = formatScheduleDate(freshDate);
             document.getElementById('bkModalTime').textContent        = formatScheduleTime(freshTime);
-            document.getElementById('bkModalBookingType').textContent = (d.bookingType || tx.bookingType || '').replace(/_/g,' ') || '-';
-            document.getElementById('bkModalAddress').textContent     = freshAddr || '-';
+            document.getElementById('bkModalBookingType').textContent = formatBookingType(freshBookingType);
+            document.getElementById('bkModalAddress').textContent     = formatBookingLocation(freshBookingType, freshAddr);
+            const freshAddrLabel = document.getElementById('bkModalAddressLabel');
+            if (freshAddrLabel) freshAddrLabel.textContent = freshBookingType === 'WALK_IN' ? 'Location' : 'Address';
             document.getElementById('bkModalNotes').textContent       = d.notes || 'None';
             document.getElementById('bkModalService2').textContent    = freshNames;
             document.getElementById('bkModalAmount').textContent      = formatAmount(freshAmt);

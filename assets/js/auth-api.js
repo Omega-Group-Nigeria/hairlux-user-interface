@@ -290,10 +290,21 @@ const AuthAPI = {
    * @returns {Promise<object>} Verify OTP response
    */
   async verifyOtp(otpData) {
-    return await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, {
+    const response = await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, {
       method: 'POST',
       body: JSON.stringify(otpData)
     });
+
+    // Save tokens and user data if returned
+    const data = response && response.data ? response.data : response;
+    if (data && data.accessToken && data.refreshToken) {
+      APIHelper.saveTokens(data.accessToken, data.refreshToken);
+      if (data.user) {
+        APIHelper.saveUserData(data.user);
+      }
+    }
+
+    return response;
   },
 
   /**

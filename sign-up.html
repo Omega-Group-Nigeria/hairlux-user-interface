@@ -347,9 +347,9 @@ s0.parentNode.insertBefore(s1,s0);
                       <input class="text-field w-input" maxlength="256" name="lastName" data-name="Last Name"
                         placeholder="Enter last name" type="text" id="signup-lastName" required=""
                         autocomplete="family-name" style="width: 100%;" />
-                      <input class="text-field w-input" maxlength="256" name="phone" data-name="Phone"
-                        placeholder="Enter phone number (e.g., +2348012345678)" type="tel" id="signup-phone"
-                        autocomplete="tel" style="width: 100%;" />
+                        <input class="text-field w-input" maxlength="11" name="phone" data-name="Phone"
+                        placeholder="Enter phone number (11 digits)" type="tel" id="signup-phone" required=""
+                        pattern="[0-9]{11}" inputmode="numeric" autocomplete="tel" style="width: 100%;" />
                       <input class="text-field w-input" maxlength="256" name="referralCode" data-name="Referral Code"
                         placeholder="Referral code (optional)" type="text" id="signup-referralCode"
                         style="width: 100%;" />
@@ -418,6 +418,20 @@ s0.parentNode.insertBefore(s1,s0);
   <script src="assets/js/config.js"></script>
   <script src="assets/js/auth-api.js"></script>
   <script src="assets/js/ui-helper.js"></script>
+  <script>
+    (function () {
+      document.addEventListener('DOMContentLoaded', function () {
+        var signupForm = document.getElementById('wf-form-Sign-Up');
+        if (!signupForm) return;
+
+        signupForm.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+          }
+        });
+      });
+    })();
+  </script>
   <script src="assets/js/signup.js"></script>
   <script>
     (function () {
@@ -437,6 +451,7 @@ s0.parentNode.insertBefore(s1,s0);
       }
     })();
   </script>
+  <script src="assets/js/nav-auth.js"></script>
 </body>
 
 </html>

@@ -32,8 +32,22 @@
       var fullName = (first + ' ' + last).trim() || user.email || '';
       var avatarEl = document.getElementById('navAvatar');
       var nameEl   = document.getElementById('navName');
+      var greetEl  = document.getElementById('dashboardGreeting');
+
       if (avatarEl) avatarEl.textContent = initials;
       if (nameEl)   nameEl.textContent   = fullName;
+
+      if (greetEl) {
+        // Nigeria time (UTC+1) greeting
+        var ngTime = new Date().toLocaleString('en-US', { timeZone: 'Africa/Lagos', hour12: false, hour: 'numeric' });
+        var hour = parseInt(ngTime, 10);
+        var greeting = 'Hello';
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 17) greeting = 'Good afternoon';
+        else greeting = 'Good evening';
+        
+        greetEl.textContent = `${greeting}, ${first || 'User'}!`;
+      }
 
       // Show influencer-only nav links if user is an active influencer.
       var isInfluencer = !!(user.influencer && user.influencer.isActive === true);
