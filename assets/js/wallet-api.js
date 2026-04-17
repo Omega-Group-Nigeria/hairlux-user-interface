@@ -477,14 +477,21 @@
         const statusNormalized = statusRaw === 'successful' ? 'completed' : statusRaw || 'pending';
         const statusLabel = statusNormalized.charAt(0).toUpperCase() + statusNormalized.slice(1);
         const paymentMethod = String(tx.paymentMethod || '').toUpperCase();
+        const direction = String(tx.type || '').toLowerCase();
+        const isFailedState = statusNormalized === 'failed'
+          || statusNormalized === 'cancelled'
+          || statusNormalized === 'canceled'
+          || statusNormalized === 'error'
+          || statusNormalized === 'declined'
+          || statusNormalized === 'reversed';
 
         const amountClass = statusNormalized === 'pending'
           ? 'pending'
-          : (tx.type === 'credit' ? 'positive' : 'negative');
+          : (isFailedState ? 'negative' : (direction === 'credit' ? 'positive' : 'negative'));
 
         const sign = statusNormalized === 'pending'
           ? ''
-          : (tx.type === 'debit' ? '-' : '');
+          : (direction === 'debit' ? '-' : '');
 
         const label = tx.status && statusNormalized !== 'completed'
           ? `${tx.description} (${tx.status})`
