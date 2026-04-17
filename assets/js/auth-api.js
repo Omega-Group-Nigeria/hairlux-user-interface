@@ -5,6 +5,36 @@
 
 // API Helper Functions
 const APIHelper = {
+  isTokenAuthError(status, data) {
+    const message = String(
+      (data && (data.message || data.error || data.detail)) || ''
+    ).toLowerCase();
+
+    if (status === 401) return true;
+    if (status === 403 && /(token|jwt|auth|unauthorized|expired|invalid)/.test(message)) return true;
+    return /(invalid|expired)\s*(access\s*)?(token|jwt)/.test(message);
+  },
+
+  forceLogout(reason) {
+    this.clearAuth();
+
+    if (typeof window === 'undefined') return;
+
+    try {
+      if (reason) {
+        sessionStorage.setItem('hairlux_auth_notice', reason);
+      }
+    } catch (_) {
+      // Ignore storage access errors.
+    }
+
+    const path = window.location.pathname || '';
+    if (/\/log-in\.html$/i.test(path)) return;
+
+    const loginPage = /\/app(\/|$)/i.test(path) ? '../log-in.html' : 'log-in.html';
+    window.location.href = loginPage;
+  },
+
   /**
    * Make an HTTP request to the API
    * @param {string} endpoint - API endpoint path
@@ -53,7 +83,9 @@ const APIHelper = {
       }
       console.log('Response data:', data);
 
-      if (response.status === 401 && !_isRetry && !isAuthEndpoint) {
+      const isTokenError = !isAuthEndpoint && this.isTokenAuthError(response.status, data);
+
+      if (isTokenError && !_isRetry) {
         const refreshToken = this.getRefreshToken();
         if (refreshToken) {
           try {
@@ -61,14 +93,19 @@ const APIHelper = {
             return await this.request(endpoint, options, true);
           } catch (refreshError) {
             const refreshStatus = refreshError && refreshError.status;
-            // Only clear auth when refresh token is truly invalid/expired.
-            // Keep session data on transient network/server errors.
-            if (refreshStatus === 401 || refreshStatus === 403) {
-              this.clearAuth();
+            const refreshData = refreshError && refreshError.data;
+            if (this.isTokenAuthError(refreshStatus, refreshData || refreshError)) {
+              this.forceLogout('session-expired');
             }
             throw refreshError;
           }
         }
+
+        this.forceLogout('session-expired');
+      }
+
+      if (isTokenError && _isRetry) {
+        this.forceLogout('session-expired');
       }
 
       if (!response.ok) {
