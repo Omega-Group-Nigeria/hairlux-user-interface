@@ -5,6 +5,40 @@
  */
 var BookingAPI = (function () {
 
+  function firstNonEmpty(values, fallback) {
+    for (var i = 0; i < values.length; i++) {
+      var value = values[i];
+      if (value == null) continue;
+      var txt = String(value).trim();
+      if (txt) return txt;
+    }
+    return fallback;
+  }
+
+  function normalizeAddress(data) {
+    data = data || {};
+    var fullAddress = firstNonEmpty([
+      data.fullAddress,
+      data.formattedAddress,
+      data.address
+    ], '');
+
+    return {
+      id:            data.id || '',
+      label:         firstNonEmpty([data.label], ''),
+      fullAddress:   fullAddress,
+      streetAddress: firstNonEmpty([data.streetAddress], ''),
+      city:          firstNonEmpty([data.city], ''),
+      state:         firstNonEmpty([data.state], ''),
+      country:       firstNonEmpty([data.country], 'Nigeria'),
+      placeId:       firstNonEmpty([data.placeId, data.place_id], ''),
+      addressComponents: data.addressComponents && typeof data.addressComponents === 'object'
+        ? data.addressComponents
+        : undefined,
+      isDefault:     Boolean(data.isDefault)
+    };
+  }
+
   /**
    * Create and pay for one or more services in a single appointment.
    * POST /bookings
@@ -66,7 +100,8 @@ var BookingAPI = (function () {
    */
   async function getAddresses() {
     var response = await APIHelper.request(API_CONFIG.ENDPOINTS.USER.ADDRESSES, { method: 'GET' });
-    return Array.isArray(response && response.data) ? response.data : [];
+    var list = Array.isArray(response && response.data) ? response.data : [];
+    return list.map(normalizeAddress);
   }
 
   /**
@@ -81,17 +116,7 @@ var BookingAPI = (function () {
       body: JSON.stringify(payload)
     });
     var data = (response && response.data) || response || {};
-    return {
-      id:          data.id          || '',
-      label:       data.label       || '',
-      addressLine: data.addressLine || '',
-      city:        data.city        || '',
-      state:       data.state       || '',
-      country:     data.country     || 'Nigeria',
-      latitude:    data.latitude  != null ? Number(data.latitude)  : null,
-      longitude:   data.longitude != null ? Number(data.longitude) : null,
-      isDefault:   Boolean(data.isDefault)
-    };
+    return normalizeAddress(data);
   }
 
   /**

@@ -103,11 +103,15 @@
   const homeServiceCard  = document.getElementById('homeServiceCard');
   const walkInCard       = document.getElementById('walkInCard');
 
-  const newAddressLine = document.getElementById('newAddressLine');
+  const newFullAddress = document.getElementById('newFullAddress');
+  const newAddressSuggestions = document.getElementById('newAddressSuggestions');
+  const bookingAddressMapEl = document.getElementById('bookingAddressMap');
+  const bookingMapStatusEl = document.getElementById('bookingMapStatus');
+  const newStreetAddress = document.getElementById('newStreetAddress');
   const newCity        = document.getElementById('newCity');
   const newState       = document.getElementById('newState');
-  const newLatitude    = document.getElementById('newLatitude');
-  const newLongitude   = document.getElementById('newLongitude');
+  const newCountry     = document.getElementById('newCountry');
+  const newPlaceId     = document.getElementById('newPlaceId');
 
   const nextStepBtn   = document.getElementById('nextStep');
   const prevStepBtn   = document.getElementById('prevStep');
@@ -150,6 +154,14 @@
   let walletBalance = 0;
   let bookingType    = 'HOME_SERVICE'; // 'HOME_SERVICE' | 'WALK_IN'
   let bookingForSelf = true;
+  let mapsLoaderPromise = null;
+  let bookingMapInstance = null;
+  let bookingMapMarker = null;
+  let bookingMapGeocoder = null;
+  let bookingAutocompleteService = null;
+  let bookingPlacesService = null;
+  let bookingPredictionDebounceTimer = null;
+  const defaultMapCenter = { lat: 6.5244, lng: 3.3792 };
 
   function getBookingType()   { return bookingType; }
   function getPaymentMethod() { return 'WALLET'; }
@@ -167,6 +179,14 @@
     return String(str)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function escAttr(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function showToast(message, type = 'info', duration = 3000) {
@@ -254,19 +274,439 @@
   }
 
   // ── Address helper ────────────────────────────────────────────────
+  function setBookingMapStatus(message, tone) {
+    if (!bookingMapStatusEl) return;
+    bookingMapStatusEl.textContent = message || '';
+    bookingMapStatusEl.classList.remove('is-error', 'is-success');
+    if (tone === 'error') bookingMapStatusEl.classList.add('is-error');
+    if (tone === 'success') bookingMapStatusEl.classList.add('is-success');
+  }
+
+  function clearBookingAddressSuggestions() {
+    if (!newAddressSuggestions) return;
+    newAddressSuggestions.innerHTML = '';
+    newAddressSuggestions.classList.remove('is-open');
+  }
+
+  function renderBookingAddressSuggestions(predictions) {
+    if (!newAddressSuggestions) return;
+
+    if (!Array.isArray(predictions) || !predictions.length) {
+      clearBookingAddressSuggestions();
+      return;
+    }
+
+    newAddressSuggestions.innerHTML = predictions.map(function (prediction) {
+      const structured = prediction.structured_formatting || {};
+      const main = structured.main_text || prediction.description || '';
+      const sub = structured.secondary_text || '';
+
+      return '' +
+        '<button type="button" class="address-suggestion-item" ' +
+        'data-place-id="' + escAttr(prediction.place_id || '') + '" ' +
+        'data-description="' + escAttr(prediction.description || '') + '">' +
+        '<div class="address-suggestion-main">' + escHtml(main) + '</div>' +
+        (sub ? '<div class="address-suggestion-sub">' + escHtml(sub) + '</div>' : '') +
+        '</button>';
+    }).join('');
+
+    newAddressSuggestions.classList.add('is-open');
+  }
+
+  function toLatLngLiteral(position) {
+    if (!position) return null;
+    if (typeof position.lat === 'function' && typeof position.lng === 'function') {
+      return { lat: Number(position.lat()), lng: Number(position.lng()) };
+    }
+    if (typeof position.lat === 'number' && typeof position.lng === 'number') {
+      return { lat: position.lat, lng: position.lng };
+    }
+    return null;
+  }
+
+  function pickAddressComponent(components, types) {
+    if (!Array.isArray(components)) return '';
+    for (let i = 0; i < components.length; i += 1) {
+      const comp = components[i];
+      if (!comp || !Array.isArray(comp.types)) continue;
+      const matched = types.some(function (type) { return comp.types.indexOf(type) !== -1; });
+      if (matched) return String(comp.long_name || comp.short_name || '').trim();
+    }
+    return '';
+  }
+
+  function parseAddressComponents(components) {
+    const streetNumber = pickAddressComponent(components, ['street_number']);
+    const route = pickAddressComponent(components, ['route']);
+    return {
+      streetAddress: [streetNumber, route].filter(Boolean).join(' ').trim(),
+      city: pickAddressComponent(components, ['locality', 'postal_town', 'sublocality', 'sublocality_level_1']),
+      state: pickAddressComponent(components, ['administrative_area_level_1']),
+      country: pickAddressComponent(components, ['country']) || 'Nigeria'
+    };
+  }
+
+  function syncOneTimeAddressFields(meta) {
+    if (newStreetAddress) newStreetAddress.value = meta.streetAddress || '';
+    if (newCity) newCity.value = meta.city || '';
+    if (newState) newState.value = meta.state || '';
+    if (newCountry) newCountry.value = meta.country || 'Nigeria';
+    if (newPlaceId) newPlaceId.value = meta.placeId || '';
+  }
+
+  function applyBookingGeocodeResult(result, keepManualInput) {
+    if (!result) return;
+
+    const parsed = parseAddressComponents(result.address_components || []);
+    const formattedAddress = String(result.formatted_address || '').trim();
+
+    if (newFullAddress && (!keepManualInput || !newFullAddress.value.trim())) {
+      newFullAddress.value = formattedAddress;
+    }
+
+    syncOneTimeAddressFields({
+      placeId: String(result.place_id || '').trim(),
+      streetAddress: parsed.streetAddress || formattedAddress,
+      city: parsed.city,
+      state: parsed.state,
+      country: parsed.country || 'Nigeria'
+    });
+
+    if (result.geometry && result.geometry.location && bookingMapInstance && bookingMapMarker) {
+      const latLng = toLatLngLiteral(result.geometry.location);
+      if (latLng) {
+        bookingMapMarker.setPosition(latLng);
+        bookingMapInstance.panTo(latLng);
+        bookingMapInstance.setZoom(16);
+      }
+    }
+  }
+
+  function getGoogleMapsPublicKey() {
+    const key = API_CONFIG && API_CONFIG.MAPS ? API_CONFIG.MAPS.GOOGLE_PUBLIC_KEY : '';
+    return String(key || '').trim();
+  }
+
+  function loadGoogleMapsScript() {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      return Promise.resolve();
+    }
+
+    if (mapsLoaderPromise) return mapsLoaderPromise;
+
+    mapsLoaderPromise = new Promise(function (resolve, reject) {
+      const key = getGoogleMapsPublicKey();
+      if (!key) {
+        reject(new Error('Google Maps key is missing. Set window.__HAIRLUX_PUBLIC_CONFIG__.googleMapsKey before loading this page.'));
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&libraries=places&v=weekly';
+      script.async = true;
+      script.defer = true;
+      script.setAttribute('data-maps-loader', 'hairlux-booking');
+      script.onload = function () {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          resolve();
+          return;
+        }
+        reject(new Error('Google Maps loaded, but Places library is unavailable.'));
+      };
+      script.onerror = function () {
+        reject(new Error('Unable to load Google Maps. Check key restrictions and billing setup.'));
+      };
+      document.head.appendChild(script);
+    });
+
+    return mapsLoaderPromise;
+  }
+
+  function geocodeBookingAddressText(addressText, keepManualInput) {
+    return new Promise(function (resolve, reject) {
+      if (!bookingMapGeocoder) {
+        reject(new Error('Geocoder is not initialized yet.'));
+        return;
+      }
+
+      bookingMapGeocoder.geocode({ address: addressText }, function (results, status) {
+        if (status !== 'OK' || !results || !results.length) {
+          reject(new Error('Could not locate this address on the map.'));
+          return;
+        }
+        const topResult = results[0];
+        applyBookingGeocodeResult(topResult, keepManualInput);
+        resolve(topResult);
+      });
+    });
+  }
+
+  function reverseGeocodeBookingLatLng(latLng) {
+    return new Promise(function (resolve, reject) {
+      if (!bookingMapGeocoder) {
+        reject(new Error('Geocoder is not initialized yet.'));
+        return;
+      }
+
+      bookingMapGeocoder.geocode({ location: latLng }, function (results, status) {
+        if (status !== 'OK' || !results || !results.length) {
+          reject(new Error('Could not resolve this map position to an address.'));
+          return;
+        }
+        const topResult = results[0];
+        applyBookingGeocodeResult(topResult, false);
+        resolve(topResult);
+      });
+    });
+  }
+
+  function requestBookingAddressPredictions(inputValue) {
+    const query = String(inputValue || '').trim();
+    if (!query || query.length < 3) {
+      clearBookingAddressSuggestions();
+      return;
+    }
+
+    if (!bookingAutocompleteService || !window.google || !window.google.maps || !window.google.maps.places) {
+      clearBookingAddressSuggestions();
+      return;
+    }
+
+    bookingAutocompleteService.getPlacePredictions({
+      input: query,
+      types: ['geocode']
+    }, function (predictions, status) {
+      if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions || !predictions.length) {
+        clearBookingAddressSuggestions();
+        return;
+      }
+      renderBookingAddressSuggestions(predictions.slice(0, 6));
+    });
+  }
+
+  function selectBookingAddressPrediction(placeId, fallbackDescription) {
+    return new Promise(function (resolve, reject) {
+      if (!bookingPlacesService) {
+        reject(new Error('Places service is not initialized yet.'));
+        return;
+      }
+
+      bookingPlacesService.getDetails({
+        placeId: placeId,
+        fields: ['address_components', 'formatted_address', 'geometry', 'place_id']
+      }, function (place, status) {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place || !place.geometry || !place.geometry.location) {
+          reject(new Error('Unable to load details for this address suggestion.'));
+          return;
+        }
+
+        applyBookingGeocodeResult({
+          place_id: place.place_id,
+          formatted_address: place.formatted_address || fallbackDescription || '',
+          address_components: place.address_components,
+          geometry: place.geometry
+        }, false);
+        clearBookingAddressSuggestions();
+        setBookingMapStatus('Address selected. You can drag the pin to refine it.', 'success');
+        refreshSummary();
+        resolve(place);
+      });
+    });
+  }
+
+  async function ensureBookingMapReady() {
+    if (!bookingAddressMapEl) return;
+    if (!bookingMapInstance) {
+      await loadGoogleMapsScript();
+
+      bookingMapGeocoder = new window.google.maps.Geocoder();
+      bookingAutocompleteService = new window.google.maps.places.AutocompleteService();
+      bookingPlacesService = new window.google.maps.places.PlacesService(document.createElement('div'));
+
+      bookingMapInstance = new window.google.maps.Map(bookingAddressMapEl, {
+        center: defaultMapCenter,
+        zoom: 12,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false
+      });
+
+      bookingMapMarker = new window.google.maps.Marker({
+        position: defaultMapCenter,
+        map: bookingMapInstance,
+        draggable: true
+      });
+
+      bookingMapMarker.addListener('dragend', function () {
+        const position = bookingMapMarker.getPosition();
+        const latLng = toLatLngLiteral(position);
+        if (!latLng) return;
+        reverseGeocodeBookingLatLng(latLng)
+          .then(function () {
+            setBookingMapStatus('Pin moved. Address updated.', 'success');
+            refreshSummary();
+          })
+          .catch(function (error) {
+            setBookingMapStatus((error && error.message) || 'Could not resolve the map pin location.', 'error');
+          });
+      });
+
+      bookingMapInstance.addListener('click', function (event) {
+        if (!event || !event.latLng || !bookingMapMarker) return;
+        bookingMapMarker.setPosition(event.latLng);
+        reverseGeocodeBookingLatLng(event.latLng)
+          .then(function () {
+            setBookingMapStatus('Address updated from map click.', 'success');
+            refreshSummary();
+          })
+          .catch(function (error) {
+            setBookingMapStatus((error && error.message) || 'Could not resolve the selected location.', 'error');
+          });
+      });
+
+      setBookingMapStatus('Search an address to place your booking pin.', '');
+    }
+
+    if (window.google && window.google.maps && bookingMapInstance) {
+      window.google.maps.event.trigger(bookingMapInstance, 'resize');
+      const currentMarker = bookingMapMarker && bookingMapMarker.getPosition();
+      bookingMapInstance.panTo(currentMarker || defaultMapCenter);
+    }
+  }
+
+  function getOneTimeAddress() {
+    if (savedAddressEl.value !== '__add_new__') return null;
+    const fullAddress = (newFullAddress && newFullAddress.value ? newFullAddress.value : '').trim();
+    if (!fullAddress) return null;
+
+    return {
+      id: '',
+      label: 'One-time address',
+      fullAddress: fullAddress,
+      streetAddress: (newStreetAddress && newStreetAddress.value ? newStreetAddress.value : '').trim(),
+      city: (newCity && newCity.value ? newCity.value : '').trim(),
+      state: (newState && newState.value ? newState.value : '').trim(),
+      country: (newCountry && newCountry.value ? newCountry.value : 'Nigeria').trim() || 'Nigeria',
+      placeId: (newPlaceId && newPlaceId.value ? newPlaceId.value : '').trim(),
+      isOneTime: true
+    };
+  }
+
+  async function ensureOneTimeAddressMetadata() {
+    if (!newFullAddress || !newFullAddress.value.trim()) return;
+    if (newPlaceId && newPlaceId.value.trim()) return;
+
+    try {
+      await ensureBookingMapReady();
+      await geocodeBookingAddressText(newFullAddress.value.trim(), true);
+    } catch (_) {
+      // Continue with manual full address when geocoding is unavailable.
+    }
+  }
+
+  function buildOneTimeAddressPayload() {
+    const oneTime = getOneTimeAddress();
+    if (!oneTime) return null;
+
+    const components = {
+      streetAddress: oneTime.streetAddress || undefined,
+      city: oneTime.city || undefined,
+      state: oneTime.state || undefined,
+      country: oneTime.country || 'Nigeria'
+    };
+
+    Object.keys(components).forEach(function (key) {
+      if (!components[key]) delete components[key];
+    });
+
+    return {
+      label: 'New Address',
+      fullAddress: oneTime.fullAddress,
+      streetAddress: oneTime.streetAddress || undefined,
+      city: oneTime.city || undefined,
+      state: oneTime.state || undefined,
+      country: oneTime.country || 'Nigeria',
+      placeId: oneTime.placeId || undefined,
+      addressComponents: Object.keys(components).length ? components : undefined,
+      isDefault: false
+    };
+  }
+
+  function upsertSavedAddressOption(address) {
+    if (!address || !address.id) return;
+
+    let option = null;
+    for (let i = 0; i < savedAddressEl.options.length; i += 1) {
+      if (savedAddressEl.options[i].value === address.id) {
+        option = savedAddressEl.options[i];
+        break;
+      }
+    }
+
+    if (!option) {
+      option = document.createElement('option');
+      option.value = address.id;
+      const addNewOption = savedAddressEl.querySelector('option[value="__add_new__"]');
+      if (addNewOption) {
+        savedAddressEl.insertBefore(option, addNewOption);
+      } else {
+        savedAddressEl.appendChild(option);
+      }
+    }
+
+    option.textContent = address.label
+      ? address.label + ' — ' + (address.fullAddress || '')
+      : (address.fullAddress || 'Saved address');
+    option.dataset.label = address.label || '';
+    option.dataset.fullAddress = address.fullAddress || '';
+    option.dataset.streetAddress = address.streetAddress || '';
+    option.dataset.city = address.city || '';
+    option.dataset.state = address.state || '';
+    option.dataset.country = address.country || 'Nigeria';
+    option.dataset.placeId = address.placeId || '';
+  }
+
+  async function persistOneTimeAddress(opts) {
+    const options = opts || {};
+    const payload = buildOneTimeAddressPayload();
+    if (!payload) {
+      throw new Error('Please enter a valid address before saving.');
+    }
+
+    const created = await BookingAPI.createAddress(payload);
+    if (!created || !created.id) {
+      throw new Error('Address was not saved correctly. Please try again.');
+    }
+
+    upsertSavedAddressOption(created);
+    savedAddressEl.value = created.id;
+    addAddressWrap.style.display = 'none';
+    clearBookingAddressSuggestions();
+    setBookingMapStatus('Address saved and selected for booking.', 'success');
+    refreshSummary();
+
+    if (!options.silentToast) {
+      showToast('Address saved successfully.', 'success', 2200);
+    }
+
+    return created;
+  }
+
   function getSelectedAddress() {
     const value = savedAddressEl.value;
-    if (!value || value === '__add_new__') return null;
+    if (!value) return null;
+    if (value === '__add_new__') return getOneTimeAddress();
     const option = savedAddressEl.options[savedAddressEl.selectedIndex];
-    const text = option.textContent;
-    const [addressLine, cityPart] = text.split(',').map(s => s.trim());
+    const fullAddress = option.dataset.fullAddress || option.textContent || '';
     return {
       id: value,
-      addressLine: addressLine || text,
-      city: option.dataset.city || cityPart || 'Lagos',
-      state: option.dataset.state || cityPart || 'Lagos',
-      latitude: Number(option.dataset.lat || 6.4541),
-      longitude: Number(option.dataset.lng || 3.3947)
+      label: option.dataset.label || '',
+      fullAddress: fullAddress.trim(),
+      streetAddress: (option.dataset.streetAddress || '').trim(),
+      city: (option.dataset.city || '').trim(),
+      state: (option.dataset.state || '').trim(),
+      country: (option.dataset.country || 'Nigeria').trim(),
+      placeId: (option.dataset.placeId || '').trim()
     };
   }
 
@@ -278,7 +718,7 @@
       : (services[0] ? services[0].name : '-');
     const btLabel = bookingType === 'HOME_SERVICE' ? '🏠 Mobile Serivice' : '🏪 Walk-In (Store)';
     const addrLabel = bookingType === 'HOME_SERVICE'
-      ? (address ? escHtml(address.addressLine) : '-')
+      ? (address ? escHtml(address.fullAddress || address.streetAddress || '-') : '-')
       : 'At the salon';
     const guestLabel = bookingForSelf
       ? 'Myself'
@@ -331,7 +771,7 @@
     const detailIcon = `<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg>`;
     const notesVal  = notesEl.value.trim();
     const addrVal   = isHomeService
-      ? (address ? `${escHtml(address.addressLine)}, ${escHtml(address.city)}` : '-')
+      ? (address ? escHtml(address.fullAddress || address.streetAddress || '-') : '-')
       : '<span class="btype-badge walkin">🏪 Walk-In at salon</span>';
     const btBadge   = isHomeService
       ? '<span class="btype-badge home">🏠 Mobile Serivice</span>'
@@ -637,7 +1077,7 @@
     // Address row
     if (isHomeService) {
       modalAddressRow.style.display = '';
-      modalAddress.textContent = addr ? `${addr.addressLine}, ${addr.city}` : '-';
+      modalAddress.textContent = addr ? (addr.fullAddress || addr.streetAddress || '-') : '-';
     } else {
       modalAddressRow.style.display = 'none';
     }
@@ -676,17 +1116,32 @@
 
   // Show confirmation modal BEFORE calling the API
   async function prepareConfirmModal() {
-    const address = getSelectedAddress();
+    let address = getSelectedAddress();
     const bType   = getBookingType();
     const bMethod = getPaymentMethod();
     const gName   = guestNameEl  ? guestNameEl.value.trim()  : '';
     const gPhone  = guestPhoneEl ? guestPhoneEl.value.trim() : '';
-    pendingBookingPayload = {
+
+    if (bType === 'HOME_SERVICE') {
+      if (!address) {
+        throw new Error('Please provide a delivery address before continuing.');
+      }
+
+      if (!address.id) {
+        await ensureOneTimeAddressMetadata();
+        address = await persistOneTimeAddress({ silentToast: true });
+      }
+
+      if (!address || !address.id) {
+        throw new Error('Address must be saved before booking. Please try again.');
+      }
+    }
+
+    const payload = {
       services:      getSelectedServices().map(s => ({ serviceId: s.id })),
       date:          bookingDateEl.value,
       time:          bookingTimeEl.value,
       bookingType:   bType,
-      addressId:     bType === 'HOME_SERVICE' ? (address ? address.id : undefined) : undefined,
       guestName:     gName  || undefined,
       guestPhone:    gPhone || undefined,
       guestEmail:    guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
@@ -694,6 +1149,13 @@
       notes:         notesEl.value.trim() || undefined,
       discountCode:  discountInfo ? discountInfo.code : undefined
     };
+
+    if (bType === 'HOME_SERVICE' && address && address.id) {
+      payload.addressId = address.id;
+    }
+
+    pendingBookingPayload = payload;
+
     // Only fetch wallet balance when paying with WALLET
     walletBalance = bMethod === 'WALLET' ? await BookingAPI.getWalletBalance() : 0;
     updateConfirmModalUI();
@@ -862,52 +1324,97 @@
   });
 
   savedAddressEl.addEventListener('change', function () {
-    addAddressWrap.style.display = this.value === '__add_new__' ? 'block' : 'none';
+    const isOneTimeAddress = this.value === '__add_new__';
+    addAddressWrap.style.display = isOneTimeAddress ? 'block' : 'none';
+    if (isOneTimeAddress) {
+      ensureBookingMapReady().catch(function (error) {
+        setBookingMapStatus((error && error.message) || 'Unable to load Google Maps.', 'error');
+      });
+    }
+    if (!isOneTimeAddress) clearBookingAddressSuggestions();
     refreshSummary();
   });
 
   saveAddressBtn.addEventListener('click', async function (e) {
     e.preventDefault();
-    if (!newAddressLine.value || !newCity.value || !newState.value) {
-      showToast('Please fill address line, city and state.', 'error');
+    if (!newFullAddress.value.trim()) {
+      showToast('Please enter the full address.', 'error');
       return;
     }
+
     setButtonState(saveAddressBtn, 'Saving\u2026', true);
     try {
-      const payload = {
-        label:       'New Address',
-        addressLine: newAddressLine.value.trim(),
-        city:        newCity.value.trim(),
-        state:       newState.value.trim(),
-        country:     'Nigeria',
-        latitude:    newLatitude.value  ? Number(newLatitude.value)  : undefined,
-        longitude:   newLongitude.value ? Number(newLongitude.value) : undefined,
-        isDefault:   false
-      };
-      const created = await BookingAPI.createAddress(payload);
-      if (!created.id) throw new Error('No address ID returned from server.');
-      const option = document.createElement('option');
-      option.value = created.id;
-      option.textContent = `${created.addressLine}, ${created.city}`;
-      option.dataset.city  = created.city  || newCity.value;
-      option.dataset.state = created.state || newState.value;
-      option.dataset.lat   = created.latitude  != null ? created.latitude  : '6.4541';
-      option.dataset.lng   = created.longitude != null ? created.longitude : '3.3947';
-      savedAddressEl.insertBefore(option, savedAddressEl.querySelector('option[value="__add_new__"]'));
-      savedAddressEl.value = created.id;
-      addAddressWrap.style.display = 'none';
-      newAddressLine.value = '';
-      newCity.value = '';
-      newState.value = '';
-      newLatitude.value = '';
-      newLongitude.value = '';
-      refreshSummary();
-      showToast('Address saved successfully.', 'success', 2200);
+      await ensureOneTimeAddressMetadata();
+      await persistOneTimeAddress();
     } catch (err) {
-      showToast((err && err.message) || 'Could not save address. Please try again.', 'error');
+      const msg = (err && err.message) || 'Could not save this address. Please try again.';
+      setBookingMapStatus(msg, 'error');
+      showToast(msg, 'error');
     } finally {
       setButtonState(saveAddressBtn, 'Saving\u2026', false);
     }
+  });
+
+  if (newFullAddress) {
+    newFullAddress.addEventListener('focus', function () {
+      if (savedAddressEl.value === '__add_new__') {
+        ensureBookingMapReady().then(function () {
+          requestBookingAddressPredictions(newFullAddress.value);
+        }).catch(function () {
+          // Map initialization error is shown elsewhere.
+        });
+      }
+    });
+
+    newFullAddress.addEventListener('input', function () {
+      syncOneTimeAddressFields({
+        placeId: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        country: (newCountry && newCountry.value ? newCountry.value : 'Nigeria') || 'Nigeria'
+      });
+
+      if (bookingPredictionDebounceTimer) {
+        window.clearTimeout(bookingPredictionDebounceTimer);
+      }
+
+      bookingPredictionDebounceTimer = window.setTimeout(function () {
+        requestBookingAddressPredictions(newFullAddress.value);
+      }, 250);
+
+      refreshSummary();
+    });
+
+    newFullAddress.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') event.preventDefault();
+    });
+  }
+
+  if (newAddressSuggestions) {
+    newAddressSuggestions.addEventListener('click', function (event) {
+      const target = event.target.closest('.address-suggestion-item');
+      if (!target) return;
+
+      event.preventDefault();
+      const placeId = target.getAttribute('data-place-id') || '';
+      const description = target.getAttribute('data-description') || '';
+      if (!placeId) return;
+
+      ensureBookingMapReady()
+        .then(function () { return selectBookingAddressPrediction(placeId, description); })
+        .catch(function (error) {
+          const msg = (error && error.message) || 'Unable to apply this suggestion.';
+          setBookingMapStatus(msg, 'error');
+          showToast(msg, 'error');
+        });
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    if (!newAddressSuggestions || !newFullAddress) return;
+    if (newAddressSuggestions.contains(event.target) || event.target === newFullAddress) return;
+    clearBookingAddressSuggestions();
   });
 
   // Date change: fetch available slots then refresh summary
@@ -1004,12 +1511,15 @@
         const opt = document.createElement('option');
         opt.value = addr.id;
         opt.textContent = addr.label
-          ? addr.label + ' \u2014 ' + addr.addressLine + ', ' + addr.city
-          : addr.addressLine + ', ' + addr.city;
+          ? addr.label + ' \u2014 ' + addr.fullAddress
+          : addr.fullAddress;
+        opt.dataset.label = addr.label || '';
+        opt.dataset.fullAddress = addr.fullAddress || '';
+        opt.dataset.streetAddress = addr.streetAddress || '';
         opt.dataset.city  = addr.city  || '';
         opt.dataset.state = addr.state || '';
-        opt.dataset.lat   = addr.latitude  != null ? addr.latitude  : '6.4541';
-        opt.dataset.lng   = addr.longitude != null ? addr.longitude : '3.3947';
+        opt.dataset.country = addr.country || 'Nigeria';
+        opt.dataset.placeId = addr.placeId || '';
         savedAddressEl.appendChild(opt);
       });
       const addOpt = document.createElement('option');

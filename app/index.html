@@ -783,7 +783,6 @@
       margin-top: -2px;
     }
     .bk-modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
-    .bk-detail-section {}
     .bk-detail-label {
       font-size: 11px;
       font-weight: 700;
@@ -794,7 +793,6 @@
     }
     .bk-detail-card {
       background: #faf5ee;
-      border: 1px solid #e8cc94;
       border-radius: 12px;
       padding: 4px 0;
     }
@@ -972,6 +970,64 @@
       margin-bottom: 14px;
     }
 
+    .wallet-provider-group {
+      margin-bottom: 12px;
+    }
+
+    .wallet-provider-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .wallet-provider-option {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .wallet-provider-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .wallet-provider-label {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border: 1px solid #dde4d2;
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #fbfdf9;
+      color: #29311f;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .wallet-provider-input:checked + .wallet-provider-label {
+      border-color: #b47d2d;
+      background: #fff8eb;
+      color: #8c5e1a;
+      box-shadow: 0 0 0 2px rgba(180, 125, 45, 0.13);
+    }
+
+    .wallet-provider-input:focus-visible + .wallet-provider-label {
+      box-shadow: 0 0 0 3px rgba(180, 125, 45, 0.2);
+    }
+
+    .wallet-provider-input:disabled + .wallet-provider-label {
+      cursor: not-allowed;
+      opacity: 0.68;
+      background: #f2f3f5;
+      color: #6f7480;
+      border-style: dashed;
+    }
+
     .wallet-modal-field label {
       display: block;
       margin-bottom: 7px;
@@ -1036,6 +1092,13 @@
 
     .wallet-success-row:last-child {
       border-bottom: none;
+    }
+
+    .wallet-success-value {
+      flex: 1;
+      text-align: right;
+      margin-left: 12px;
+      word-break: break-all;
     }
 
     @media (max-width: 991px) {
@@ -1432,7 +1495,20 @@
     <div class="wallet-modal-card">
       <div class="wallet-modal-icon">₦</div>
       <h3 class="wallet-modal-title">Deposit to Wallet</h3>
-      <p class="wallet-modal-text">Enter amount to fund your wallet securely.</p>
+      <p class="wallet-modal-text">Choose payment provider and amount to fund your wallet securely.</p>
+      <div class="wallet-modal-field wallet-provider-group">
+        <label>Payment Provider</label>
+        <div class="wallet-provider-options" role="radiogroup" aria-label="Wallet deposit provider">
+          <div class="wallet-provider-option">
+            <input id="walletProviderMonnify" class="wallet-provider-input" type="radio" name="walletDepositProvider" value="monnify" checked />
+            <label class="wallet-provider-label" for="walletProviderMonnify">Monnify</label>
+          </div>
+          <div class="wallet-provider-option">
+            <input id="walletProviderPaystack" class="wallet-provider-input" type="radio" name="walletDepositProvider" value="paystack" disabled />
+              <label class="wallet-provider-label" for="walletProviderPaystack">Paystack (Coming soon)</label>
+          </div>
+        </div>
+      </div>
       <div class="wallet-modal-field">
         <label for="walletDepositAmount">Amount (NGN)</label>
         <input id="walletDepositAmount" class="wallet-modal-input" type="number" min="1" step="1" placeholder="e.g. 5000" />
@@ -1450,7 +1526,7 @@
       <h3 class="wallet-modal-title">Deposit Successful</h3>
       <p class="wallet-modal-text">Your wallet has been credited successfully.</p>
       <div class="wallet-success-details">
-        <div class="wallet-success-row"><span>Reference</span><span id="walletSuccessReference">-</span></div>
+        <div class="wallet-success-row"><span>Reference</span><span id="walletSuccessReference" class="wallet-success-value">-</span></div>
         <div class="wallet-success-row"><span>Status</span><span>Successful</span></div>
       </div>
       <div class="wallet-modal-actions" style="margin-top:18px;">
@@ -1519,8 +1595,8 @@
       if (t === 'HOME_SERVICE') return 'Mobile Service';
       return '-';
     }
-    function fmtBookingLocation(type, addressLine) {
-      return normalizeBookingType(type) === 'WALK_IN' ? 'At the salon' : (addressLine || '-');
+    function fmtBookingLocation(type, locationValue) {
+      return normalizeBookingType(type) === 'WALK_IN' ? 'At the salon' : (locationValue || '-');
     }
 
     // ── Fallback service backgrounds ────────────────────────────────────────
@@ -1614,8 +1690,14 @@
       const bookingType = normalizeBookingType(bk.bookingType);
       const bookingTypeLabel = fmtBookingType(bookingType);
 
-      const addr = (bk.address && (bk.address.addressLine || bk.address.address_line))
-        || bk.addressLine || '';
+      const addr = (bk.address && (
+        bk.address.fullAddress
+        || bk.address.streetAddress
+        || [bk.address.streetAddress, bk.address.city, bk.address.state, bk.address.country].filter(Boolean).join(', ')
+      ))
+        || bk.fullAddress
+        || bk.streetAddress
+        || '';
       const location = fmtBookingLocation(bookingType, addr);
 
       const amount = Number(bk.totalAmount || bk.amount
@@ -1657,7 +1739,14 @@
       const paymentStatus = (bk.paymentStatus || bk.payment_state || '').toLowerCase();
       const dateStr = bk.bookingDate || bk.date || (bk.schedule && bk.schedule.date) || '';
       const timeStr = bk.bookingTime || bk.time || (bk.schedule && bk.schedule.time) || '';
-      const addr = (bk.address && (bk.address.addressLine || bk.address.address_line)) || bk.addressLine || '-';
+      const addr = (bk.address && (
+        bk.address.fullAddress
+        || bk.address.streetAddress
+        || [bk.address.streetAddress, bk.address.city, bk.address.state, bk.address.country].filter(Boolean).join(', ')
+      ))
+        || bk.fullAddress
+        || bk.streetAddress
+        || '-';
       const bookingType = normalizeBookingType(bk.bookingType);
       const amount = Number(bk.totalAmount || bk.amount || (bk.service && bk.service.price) || 0);
 

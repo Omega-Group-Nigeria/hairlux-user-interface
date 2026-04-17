@@ -17,6 +17,13 @@
     const nextStepBtn = document.getElementById('next-step-btn');
     const prevStepBtn = document.getElementById('prev-step-btn');
     const submitBtn = document.getElementById('signup-submit-btn');
+    const submitBtnDefaultLabel = (submitBtn && submitBtn.textContent)
+      ? submitBtn.textContent.trim()
+      : 'Sign Up';
+
+    if (submitBtn) {
+      submitBtn.dataset.defaultText = submitBtnDefaultLabel;
+    }
 
     // Step 1 inputs
     const emailInput = document.getElementById('signup-email');
@@ -43,6 +50,12 @@
     if (!signupForm) {
       console.error('Sign up form not found');
       return;
+    }
+
+    function resetSubmitButton() {
+      if (!submitBtn) return;
+      UIHelper.setButtonLoading(submitBtn, false);
+      submitBtn.textContent = submitBtn.dataset.defaultText || submitBtnDefaultLabel;
     }
 
     // Password visibility toggle functionality
@@ -132,6 +145,7 @@
       }
 
       // Show loading state
+      submitBtn.dataset.originalText = submitBtn.dataset.defaultText || submitBtnDefaultLabel;
       UIHelper.setButtonLoading(submitBtn, true);
 
       try {
@@ -179,9 +193,20 @@
           errorMessage = Array.isArray(error.message) ? error.message.join(', ') : error.message;
         }
         UIHelper.showToast(errorMessage, 'error');
-        UIHelper.setButtonLoading(submitBtn, false);
+        resetSubmitButton();
       }
     });
+
+    // If browser validation blocks submit, ensure button label does not remain in loading state.
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function() {
+        window.setTimeout(function() {
+          if (!signupForm.checkValidity()) {
+            resetSubmitButton();
+          }
+        }, 0);
+      });
+    }
 
     /* ── OTP Modal ─────────────────────────────────────────────────────────── */
 

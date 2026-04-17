@@ -944,7 +944,7 @@
     .bk-modal-body { padding: 0 20px 4px; }
     .bk-detail-section { margin-top: 16px; }
     .bk-detail-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
-    .bk-detail-card { background: #faf5ee; border: 1px solid #e8cc94; border-radius: 12px; padding: 2px 14px; }
+    .bk-detail-card { background: #faf5ee; border-radius: 12px; padding: 2px 14px; }
     .bk-detail-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 9px 0; border-bottom: 1px dashed #e0e9d4; align-items: baseline; }
     .bk-detail-row:last-child { border-bottom: none; }
     .bk-detail-row span:first-child { color: var(--muted); font-weight: 500; flex-shrink: 0; }
@@ -1238,7 +1238,11 @@
         const scheduleTime = tx.time || tx.bookingTime || (tx.schedule && tx.schedule.time) || '-';
         const totalAmt = Number(tx.amount || tx.totalAmount || tx.total || (serviceObj && serviceObj.price) || 0);
         const bookingType = normalizeBookingType(tx.bookingType);
-        const address = (tx.address && (tx.address.addressLine || tx.address.address_line)) || tx.addressLine || '-';
+        const address = (tx.address && (
+          tx.address.fullAddress
+          || tx.address.streetAddress
+          || [tx.address.streetAddress, tx.address.city, tx.address.state, tx.address.country].filter(Boolean).join(', ')
+        )) || tx.fullAddress || tx.streetAddress || '-';
         return {
           id:            tx.id || tx.booking_id || tx.reference || `bk_${Math.random().toString(36).slice(2, 8)}`,
           reservationCode: tx.reservationCode || '',
@@ -1411,7 +1415,11 @@
             const freshPayStatus = (d.paymentStatus || d.payment_state || tx.paymentStatus || '').toLowerCase();
             const freshDate      = d.bookingDate || d.date || (d.schedule && d.schedule.date) || tx.scheduleDate;
             const freshTime      = d.bookingTime || d.time || (d.schedule && d.schedule.time) || tx.scheduleTime;
-            const freshAddr      = (d.address && (d.address.addressLine || d.address.address_line)) || d.addressLine || tx.address;
+            const freshAddr      = (d.address && (
+              d.address.fullAddress
+              || d.address.streetAddress
+              || [d.address.streetAddress, d.address.city, d.address.state, d.address.country].filter(Boolean).join(', ')
+            )) || d.fullAddress || d.streetAddress || tx.address;
             const freshAmt       = Number(d.totalAmount || d.amount || tx.amount);
             const freshBookingType = normalizeBookingType(d.bookingType || tx.bookingType);
 

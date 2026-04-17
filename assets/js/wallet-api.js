@@ -36,21 +36,61 @@
     });
   }
 
+  const DEPOSIT_PROVIDER_FALLBACK = 'paystack';
+  const DEPOSIT_SESSION_KEY = 'hairlux.wallet.deposit.pending';
+
+  function normalizeProvider(provider) {
+    const candidate = String(provider || '').trim().toLowerCase();
+    return candidate === 'monnify' ? 'monnify' : 'paystack';
+  }
+
+  function isFailedDepositStatus(status) {
+    const value = String(status || '').trim().toLowerCase();
+    return value === 'failed' || value === 'error' || value === 'cancelled' || value === 'canceled' || value === 'abandoned';
+  }
+
+  function normalizeTransactionStatus(status) {
+    const value = String(status || '').trim().toLowerCase();
+    if (!value) return 'pending';
+    if (value === 'successful' || value === 'success' || value === 'complete' || value === 'completed') {
+      return 'completed';
+    }
+    if (value === 'failed' || value === 'error') return 'failed';
+    if (value === 'cancelled' || value === 'canceled') return 'cancelled';
+    return value;
+  }
+
+  function inferTransactionDirection(transactionType, amount, description) {
+    const kind = String(transactionType || '').toUpperCase();
+    if (/DEPOSIT|CREDIT|REFUND|REVERSAL|BONUS|TOPUP/.test(kind)) return 'credit';
+    if (/WITHDRAWAL|DEBIT|PAYMENT|BOOKING|CHARGE|FEE/.test(kind)) return 'debit';
+
+    if (toNumber(amount, 0) < 0) return 'debit';
+    if (toNumber(amount, 0) > 0) return 'credit';
+
+    const text = String(description || '').toLowerCase();
+    if (/deposit|credit|refund/.test(text)) return 'credit';
+    if (/withdraw|debit|payment|booking|charge|fee/.test(text)) return 'debit';
+    return 'debit';
+  }
+
   function normalizeTransaction(tx) {
-    const status = (tx.status || 'successful').toString().toLowerCase();
-    const rawType = (tx.type || '').toString().toLowerCase();
+    const status = normalizeTransactionStatus(tx.status || 'pending');
+    const transactionType = String(tx.transactionType || tx.type || '').trim().toUpperCase() || 'TRANSACTION';
     const amount = Math.abs(toNumber(tx.amount));
-    const isCredit = rawType === 'credit' || amount > 0 && /deposit|credit/i.test(tx.description || tx.title || tx.narration || '');
-    const type = isCredit ? 'credit' : 'debit';
+    const direction = inferTransactionDirection(transactionType, tx.amount, tx.description || tx.title || tx.narration || '');
+    const paymentMethod = String(tx.paymentMethod || tx.payment_method || '').trim().toUpperCase();
 
     return {
       id: tx.id || tx.transactionId || tx.reference || `tx_${Math.random().toString(36).slice(2, 9)}`,
       description: tx.description || tx.title || tx.narration || 'Transaction',
       createdAt: tx.createdAt || tx.date || tx.transactionDate || new Date().toISOString(),
       amount,
-      type,
+      type: direction,
+      transactionType,
       status,
-      reference: tx.reference || tx.ref || '-'
+      paymentMethod: paymentMethod || '-',
+      reference: tx.reference || tx.id || '-'
     };
   }
 
@@ -135,41 +175,63 @@
       };
     },
 
-    async initializeDeposit(amount) {
+    async initializeDeposit(amount, provider) {
       if (typeof APIHelper === 'undefined' || typeof API_CONFIG === 'undefined') {
         throw new Error('Wallet dependencies are not loaded.');
       }
 
       const numericAmount = Math.round(toNumber(amount, 0));
+      const providerName = normalizeProvider(provider || DEPOSIT_PROVIDER_FALLBACK);
       if (!numericAmount || numericAmount < 1) {
         throw new Error('Please enter a valid deposit amount.');
       }
 
       const response = await APIHelper.request(`${API_CONFIG.ENDPOINTS.WALLET}/deposit/initialize`, {
         method: 'POST',
-        body: JSON.stringify({ amount: numericAmount })
+        body: JSON.stringify({
+          amount: numericAmount,
+          provider: providerName
+        })
       });
 
       const data = extractData(response);
-      const paymentUrl =
-        data.paymentUrl ||
-        data.authorizationUrl ||
-        data.authorization_url ||
-        data.url ||
-        null;
+      const normalizedProvider = normalizeProvider(data.provider || providerName);
+      const paymentUrl = normalizedProvider === 'monnify'
+        ? (
+          data.checkoutUrl ||
+          data.checkout_url ||
+          data.paymentUrl ||
+          data.url ||
+          null
+        )
+        : (
+          data.authorization_url ||
+          data.authorizationUrl ||
+          data.paymentUrl ||
+          data.url ||
+          null
+        );
+      const reference = data.reference || data.walletReference || data.wallet_reference || null;
 
       if (!paymentUrl) {
         throw new Error('Could not start deposit. Payment URL not returned by server.');
       }
 
+      if (!reference) {
+        throw new Error('Could not start deposit. Wallet reference not returned by server.');
+      }
+
       return {
+        provider: normalizedProvider,
         paymentUrl,
-        reference: data.reference || data.txRef || data.trxref || null,
+        reference,
+        paymentReference: data.paymentReference || data.payment_reference || data.transactionReference || null,
+        accessCode: data.access_code || data.accessCode || null,
         raw: response
       };
     },
 
-    async verifyDeposit(reference) {
+    async verifyDeposit(reference, provider) {
       if (typeof APIHelper === 'undefined' || typeof API_CONFIG === 'undefined') {
         throw new Error('Wallet dependencies are not loaded.');
       }
@@ -180,7 +242,10 @@
 
       return APIHelper.request(`${API_CONFIG.ENDPOINTS.WALLET}/deposit/verify`, {
         method: 'POST',
-        body: JSON.stringify({ reference })
+        body: JSON.stringify({
+          reference,
+          provider: normalizeProvider(provider || DEPOSIT_PROVIDER_FALLBACK)
+        })
       });
     },
 
@@ -190,14 +255,99 @@
 
   const WalletDashboard = {
     activeDepositReference: '',
+    activeDepositProvider: DEPOSIT_PROVIDER_FALLBACK,
 
     getDepositModalEls() {
       return {
         modal: document.getElementById('walletDepositModal'),
         amountInput: document.getElementById('walletDepositAmount'),
+        providerInputs: document.querySelectorAll('input[name="walletDepositProvider"]'),
         cancelBtn: document.getElementById('walletDepositCancel'),
         proceedBtn: document.getElementById('walletDepositProceed')
       };
+    },
+
+    getSelectedDepositProvider(depositEls) {
+      if (!depositEls || !depositEls.providerInputs || !depositEls.providerInputs.length) {
+        return DEPOSIT_PROVIDER_FALLBACK;
+      }
+
+      const checked = Array.prototype.find.call(depositEls.providerInputs, function (input) {
+        return input && input.checked && !input.disabled;
+      });
+
+      if (!checked) {
+        const firstEnabled = Array.prototype.find.call(depositEls.providerInputs, function (input) {
+          return input && !input.disabled;
+        });
+        if (firstEnabled) {
+          firstEnabled.checked = true;
+          return normalizeProvider(firstEnabled.value);
+        }
+      }
+
+      return normalizeProvider(checked ? checked.value : DEPOSIT_PROVIDER_FALLBACK);
+    },
+
+    setSelectedDepositProvider(provider, depositEls) {
+      if (!depositEls || !depositEls.providerInputs || !depositEls.providerInputs.length) {
+        return;
+      }
+
+      const normalized = normalizeProvider(provider);
+      let selectedInput = null;
+
+      Array.prototype.forEach.call(depositEls.providerInputs, function (input) {
+        const shouldSelect = !input.disabled && normalizeProvider(input.value) === normalized;
+        input.checked = shouldSelect;
+        if (shouldSelect) selectedInput = input;
+      });
+
+      if (!selectedInput) {
+        const firstEnabled = Array.prototype.find.call(depositEls.providerInputs, function (input) {
+          return input && !input.disabled;
+        });
+        if (firstEnabled) {
+          firstEnabled.checked = true;
+        }
+      }
+    },
+
+    savePendingDeposit(reference, provider) {
+      if (!reference) return;
+      try {
+        window.sessionStorage.setItem(DEPOSIT_SESSION_KEY, JSON.stringify({
+          reference,
+          provider: normalizeProvider(provider),
+          createdAt: Date.now()
+        }));
+      } catch (_) {
+        // Ignore storage failures and continue flow.
+      }
+    },
+
+    readPendingDeposit() {
+      try {
+        const raw = window.sessionStorage.getItem(DEPOSIT_SESSION_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return null;
+        if (!parsed.reference) return null;
+        return {
+          reference: String(parsed.reference),
+          provider: normalizeProvider(parsed.provider)
+        };
+      } catch (_) {
+        return null;
+      }
+    },
+
+    clearPendingDeposit() {
+      try {
+        window.sessionStorage.removeItem(DEPOSIT_SESSION_KEY);
+      } catch (_) {
+        // Ignore storage failures.
+      }
     },
 
     getSuccessModalEls() {
@@ -292,6 +442,12 @@
       if (depositEls.amountInput) {
         depositEls.amountInput.disabled = Boolean(isLoading);
       }
+
+      if (depositEls.providerInputs && depositEls.providerInputs.length) {
+        Array.prototype.forEach.call(depositEls.providerInputs, function (input) {
+          input.disabled = Boolean(isLoading);
+        });
+      }
     },
 
     renderBalance(balance) {
@@ -320,6 +476,7 @@
         const statusRaw = (tx.status || '').toLowerCase();
         const statusNormalized = statusRaw === 'successful' ? 'completed' : statusRaw || 'pending';
         const statusLabel = statusNormalized.charAt(0).toUpperCase() + statusNormalized.slice(1);
+        const paymentMethod = String(tx.paymentMethod || '').toUpperCase();
 
         const amountClass = statusNormalized === 'pending'
           ? 'pending'
@@ -339,6 +496,7 @@
               <div class="p-s">${label}</div>
               <div class="p-small transaction-meta">
                 <span>${WalletAPI.formatDate(tx.createdAt)}</span>
+                ${paymentMethod && paymentMethod !== '-' ? `<span>${paymentMethod}</span>` : ''}
                 <span class="tx-status ${statusNormalized}">${statusLabel}</span>
               </div>
             </div>
@@ -410,22 +568,42 @@
 
     async handleDepositCallback() {
       const params = new URLSearchParams(window.location.search);
-      const reference = params.get('reference') || params.get('trxref');
-      const status = (params.get('status') || '').toLowerCase();
+      const pendingDeposit = this.readPendingDeposit();
+      const status = (
+        params.get('status') ||
+        params.get('paymentStatus') ||
+        params.get('payment_status') ||
+        params.get('transactionStatus') ||
+        ''
+      ).toLowerCase();
+      const reference =
+        params.get('walletReference') ||
+        params.get('wallet_reference') ||
+        (pendingDeposit && pendingDeposit.reference) ||
+        params.get('reference') ||
+        params.get('trxref');
+      const provider = normalizeProvider(
+        params.get('provider') ||
+        params.get('paymentProvider') ||
+        (pendingDeposit && pendingDeposit.provider) ||
+        DEPOSIT_PROVIDER_FALLBACK
+      );
 
       if (!reference) return;
 
       try {
-        if (status && status !== 'success' && status !== 'successful') {
+        if (status && isFailedDepositStatus(status)) {
           if (typeof UIHelper !== 'undefined' && UIHelper.showToast) {
             UIHelper.showToast('Deposit was not completed.', 'info');
           }
+          this.clearPendingDeposit();
           return;
         }
 
-        const response = await WalletAPI.verifyDeposit(reference);
+        const response = await WalletAPI.verifyDeposit(reference, provider);
+        const verified = extractData(response);
         const message = response && response.message ? response.message : 'Deposit verified successfully.';
-        this.showDepositSuccessModal(reference);
+        this.showDepositSuccessModal(verified.reference || reference);
         if (typeof UIHelper !== 'undefined' && UIHelper.showToast) {
           UIHelper.showToast(message, 'success', 2000);
         }
@@ -436,6 +614,7 @@
           UIHelper.showToast(message, 'info');
         }
       } finally {
+        this.clearPendingDeposit();
         this.cleanCallbackQuery();
       }
     },
@@ -482,6 +661,7 @@
 
           const rawAmount = depositEls.amountInput ? depositEls.amountInput.value : '';
           const amount = Number(String(rawAmount).replace(/[^\d.]/g, ''));
+          const selectedProvider = self.getSelectedDepositProvider(depositEls);
           if (!Number.isFinite(amount) || amount <= 0) {
             if (typeof UIHelper !== 'undefined' && UIHelper.showToast) {
               UIHelper.showToast('Please enter a valid deposit amount.', 'error');
@@ -491,8 +671,10 @@
 
           try {
             self.setDepositLoading(true);
-            const initResult = await WalletAPI.initializeDeposit(amount);
+            const initResult = await WalletAPI.initializeDeposit(amount, selectedProvider);
             self.activeDepositReference = initResult.reference || '';
+            self.activeDepositProvider = normalizeProvider(initResult.provider || selectedProvider);
+            self.savePendingDeposit(self.activeDepositReference, self.activeDepositProvider);
             window.location.href = initResult.paymentUrl;
           } catch (error) {
             if (typeof UIHelper !== 'undefined' && UIHelper.showToast) {
@@ -509,6 +691,7 @@
           if (depositEls.amountInput) {
             depositEls.amountInput.value = '';
           }
+          self.setSelectedDepositProvider(DEPOSIT_PROVIDER_FALLBACK, depositEls);
           self.openModal(depositEls.modal);
         });
       });

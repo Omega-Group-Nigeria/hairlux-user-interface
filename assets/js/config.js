@@ -1,3 +1,16 @@
+function getRuntimeGoogleMapsKey() {
+  if (typeof window === 'undefined') return '';
+
+  var publicConfig = window.__HAIRLUX_PUBLIC_CONFIG__;
+  if (publicConfig && typeof publicConfig.googleMapsKey === 'string') {
+    var runtimeKey = publicConfig.googleMapsKey.trim();
+    if (runtimeKey) return runtimeKey;
+  }
+
+  var meta = document.querySelector('meta[name="hairlux-google-maps-key"]');
+  return meta ? String(meta.getAttribute('content') || '').trim() : '';
+}
+
 // API Configuration
 const API_CONFIG = {
   BASE_URL: 'https://hairlux-api.up.railway.app',
@@ -40,6 +53,13 @@ const API_CONFIG = {
       CODES:   '/influencer/me/codes',
       REWARDS: '/influencer/me/rewards'
     }
+  },
+
+  // Public browser key for Maps JavaScript API.
+  // Set at runtime via window.__HAIRLUX_PUBLIC_CONFIG__.googleMapsKey
+  // or <meta name="hairlux-google-maps-key" content="...">.
+  MAPS: {
+    GOOGLE_PUBLIC_KEY: getRuntimeGoogleMapsKey()
   }
 };
 

@@ -1,159 +1,216 @@
 /**
- * Hairlux Contact Form — Brevo (Sendinblue) SMTP API
- *
- * SETUP (one-time, ~2 minutes):
- * ─────────────────────────────────────────────────────────────────────────────
- * 1. Sign up free at https://app.brevo.com  (300 emails / day free tier)
- * 2. Go to  Profile → SMTP & API → API Keys  and create a key.
- * 3. Go to  Senders & IP → Senders  and verify a sender email address.
- *    (You can verify omegaresourcemgnt@gmail.com directly as a single sender.)
- * 4. Replace the two placeholder strings below with your real values.
- * ─────────────────────────────────────────────────────────────────────────────
+ * Hairlux Contact Form API handler
+ * Sends sanitized form data to POST /contact
  */
-
-const BREVO_API_KEY      = 'YOUR_BREVO_API_KEY';         // e.g. "xkeysib-abc123..."
-const BREVO_SENDER_EMAIL = 'YOUR_VERIFIED_SENDER_EMAIL'; // must be verified in Brevo
-const BREVO_SENDER_NAME  = 'Hairlux Contact Form';
-const BREVO_TO_EMAIL     = 'omegaresourcemgnt@gmail.com';
-const BREVO_TO_NAME      = 'Hairlux Team';
 
 (function () {
   'use strict';
 
   document.addEventListener('DOMContentLoaded', function () {
-    var form       = document.getElementById('hl-contact-form');
+    var form = document.getElementById('hl-contact-form');
     var successBox = document.getElementById('hl-form-success');
-    var errorBox   = document.getElementById('hl-form-error');
-    var submitBtn  = document.getElementById('hl-submit-btn');
+    var errorBox = document.getElementById('hl-form-error');
+    var submitBtn = document.getElementById('hl-submit-btn');
+    var submitBtnDefault = submitBtn ? (submitBtn.textContent || 'Send Message') : 'Send Message';
 
     if (!form) return;
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
+      hideAlerts();
 
-      var name    = (form.querySelector('#hl-name').value    || '').trim();
-      var email   = (form.querySelector('#hl-email').value   || '').trim();
-      var phone   = (form.querySelector('#hl-phone').value   || '').trim();
-      var subject = (form.querySelector('#hl-subject').value || '').trim();
-      var message = (form.querySelector('#hl-message').value || '').trim();
+      var rawName = valueOf('#hl-name');
+      var rawEmail = valueOf('#hl-email');
+      var rawPhone = valueOf('#hl-phone');
+      var rawSubject = valueOf('#hl-subject');
+      var rawMessage = valueOf('#hl-message');
 
-      if (!name || !email || !message) {
-        showError('Please fill in your name, email, and message.');
+      if (!rawName || !rawEmail || !rawMessage) {
+        showError('Please fill in your name, email address, and message.');
         return;
       }
 
-      if (!isValidEmail(email)) {
+      if (!isValidEmail(rawEmail)) {
         showError('Please enter a valid email address.');
         return;
       }
 
-      setLoading(true);
-      hideAlerts();
+      var name = sanitizeText(rawName, 120);
+      var emailAddress = sanitizeEmail(rawEmail);
+      var phoneNo = sanitizePhone(rawPhone);
+      var subject = sanitizeText(rawSubject, 180) || 'General enquiry';
+      var message = sanitizeText(rawMessage, 5000);
 
-      var rows = [
-        '<tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;width:130px">Name</td>' +
-          '<td style="padding:8px 12px;border-bottom:1px solid #eee">' + escHtml(name) + '</td></tr>',
-        '<tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Email</td>' +
-          '<td style="padding:8px 12px;border-bottom:1px solid #eee"><a href="mailto:' +
-          escHtml(email) + '">' + escHtml(email) + '</a></td></tr>',
-      ];
-      if (phone) {
-        rows.push('<tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Phone</td>' +
-          '<td style="padding:8px 12px;border-bottom:1px solid #eee">' + escHtml(phone) + '</td></tr>');
+      if (name.length < 2) {
+        showError('Name looks invalid. Please enter your full name.');
+        return;
       }
-      if (subject) {
-        rows.push('<tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Subject</td>' +
-          '<td style="padding:8px 12px;border-bottom:1px solid #eee">' + escHtml(subject) + '</td></tr>');
+
+      if (message.length < 10) {
+        showError('Message must be at least 10 characters.');
+        return;
       }
-      rows.push(
-        '<tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;vertical-align:top">Message</td>' +
-        '<td style="padding:8px 12px;white-space:pre-wrap">' + escHtml(message) + '</td></tr>'
-      );
 
-      var htmlContent =
-        '<h2 style="color:#9d8248;margin-bottom:8px">New Message — Hairlux Contact Form</h2>' +
-        '<table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:15px">' +
-        rows.join('') +
-        '</table>' +
-        '<hr style="margin:24px 0;border:none;border-top:1px solid #ddd"/>' +
-        '<p style="color:#888;font-size:12px">Sent via Hairlux website contact form</p>';
+      if (containsAttackPayload(rawName + ' ' + rawSubject + ' ' + rawMessage)) {
+        showError('Please remove unsupported markup or SQL-like syntax from your input and try again.');
+        return;
+      }
 
-      var payload = {
-        sender:      { name: BREVO_SENDER_NAME, email: BREVO_SENDER_EMAIL },
-        to:          [{ email: BREVO_TO_EMAIL, name: BREVO_TO_NAME }],
-        replyTo:     { email: email, name: name },
-        subject:     subject ? '[Hairlux] ' + subject : '[Hairlux] New message from ' + name,
-        htmlContent: htmlContent,
+      var requestBody = {
+        name: name,
+        emailAddress: emailAddress,
+        subject: subject,
+        message: message
       };
 
-      fetch('https://api.brevo.com/v3/smtp/email', {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'api-key': BREVO_API_KEY,
-        },
-        body: JSON.stringify(payload),
-      })
-        .then(function (res) {
-          if (res.ok) {
-            form.reset();
-            showSuccess();
-          } else {
-            return res.json().then(function (data) {
-              throw new Error(data.message || 'Brevo API error ' + res.status);
-            });
-          }
-        })
-        .catch(function (err) {
-          console.error('Contact form error:', err);
-          showError(
-            'Could not send your message right now. Please email us at ' +
-            '<a href="mailto:omegaresourcemgnt@gmail.com">omegaresourcemgnt@gmail.com</a>' +
-            ' or WhatsApp <a href="https://wa.me/2348087141501">+234 808 714 1501</a>.'
-          );
-        })
-        .finally(function () {
-          setLoading(false);
+      if (phoneNo) {
+        requestBody.phoneNo = phoneNo;
+      }
+
+      var baseUrl = getBaseUrl();
+      var url = baseUrl + '/contact';
+
+      setLoading(true);
+
+      try {
+        var res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
         });
+
+        var payload = await safeJson(res);
+
+        if (res.ok) {
+          form.reset();
+          showSuccess(payload && payload.message ? payload.message : 'Contact request submitted successfully.');
+          return;
+        }
+
+        if (res.status === 400) {
+          if (payload && Array.isArray(payload.message) && payload.message.length) {
+            showError(payload.message.join(', '));
+          } else {
+            showError((payload && payload.message) || 'Invalid contact details. Please review your inputs.');
+          }
+          return;
+        }
+
+        if (res.status === 429) {
+          showError('Too many requests. Please wait a little and try again.');
+          return;
+        }
+
+        showError((payload && payload.message) || 'Unable to send your message right now. Please try again later.');
+      } catch (err) {
+        console.error('Contact submit failed:', err);
+        showError('Network error. Please check your connection and try again.');
+      } finally {
+        setLoading(false);
+      }
     });
 
-    /* ── helpers ───────────────────────────────────────── */
+    function valueOf(selector) {
+      var node = form.querySelector(selector);
+      return (node && node.value ? node.value : '').trim();
+    }
 
-    function showSuccess() {
-      if (successBox) {
-        successBox.style.display = 'block';
-        successBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    function getBaseUrl() {
+      if (typeof API_CONFIG !== 'undefined' && API_CONFIG && API_CONFIG.BASE_URL) {
+        return String(API_CONFIG.BASE_URL).replace(/\/+$/, '');
       }
-      if (errorBox) errorBox.style.display = 'none';
+      return '';
     }
 
-    function showError(msg) {
-      if (errorBox) {
-        errorBox.querySelector('.hl-error-text').innerHTML = msg;
-        errorBox.style.display = 'block';
-        errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    function sanitizeText(value, maxLen) {
+      var text = String(value || '')
+        .normalize('NFKC')
+        .replace(/[\u0000-\u001F\u007F]/g, ' ')
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (typeof maxLen === 'number' && maxLen > 0) {
+        text = text.slice(0, maxLen);
       }
-      if (successBox) successBox.style.display = 'none';
+
+      return text;
     }
 
-    function hideAlerts() {
-      if (successBox) successBox.style.display = 'none';
-      if (errorBox)   errorBox.style.display   = 'none';
+    function sanitizeEmail(value) {
+      return String(value || '')
+        .normalize('NFKC')
+        .replace(/[\u0000-\u001F\u007F\s]/g, '')
+        .replace(/[<>"'`]/g, '')
+        .toLowerCase();
     }
 
-    function setLoading(loading) {
-      if (!submitBtn) return;
-      submitBtn.disabled    = loading;
-      submitBtn.textContent = loading ? 'Sending\u2026' : 'Send Message';
+    function sanitizePhone(value) {
+      var cleaned = String(value || '').replace(/[^\d+]/g, '');
+      if (!cleaned) return '';
+
+      if (cleaned.indexOf('+') > 0) {
+        cleaned = '+' + cleaned.replace(/\+/g, '');
+      }
+
+      if (cleaned.startsWith('00')) {
+        cleaned = '+' + cleaned.slice(2);
+      }
+
+      return cleaned.slice(0, 20);
+    }
+
+    function containsAttackPayload(value) {
+      var txt = String(value || '');
+      var sqlPattern = /(\bunion\b\s+\bselect\b|\bdrop\b\s+\btable\b|\binsert\b\s+\binto\b|\bdelete\b\s+\bfrom\b|\bor\b\s+1\s*=\s*1|\band\b\s+1\s*=\s*1|--|\/\*|\*\/)/i;
+      var xssPattern = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
+      return sqlPattern.test(txt) || xssPattern.test(txt);
     }
 
     function isValidEmail(val) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
     }
 
-    function escHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+    async function safeJson(res) {
+      try {
+        return await res.json();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function setLoading(loading) {
+      if (!submitBtn) return;
+      submitBtn.disabled = !!loading;
+      submitBtn.textContent = loading ? 'Sending…' : submitBtnDefault;
+    }
+
+    function hideAlerts() {
+      if (successBox) successBox.style.display = 'none';
+      if (errorBox) errorBox.style.display = 'none';
+    }
+
+    function showSuccess(message) {
+      if (successBox) {
+        var boxText = successBox.querySelector('div');
+        if (boxText && message) boxText.textContent = message;
+        successBox.style.display = 'block';
+        successBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (errorBox) errorBox.style.display = 'none';
+    }
+
+    function showError(message) {
+      if (errorBox) {
+        var errorText = errorBox.querySelector('.hl-error-text');
+        if (errorText) errorText.textContent = message;
+        errorBox.style.display = 'block';
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (successBox) successBox.style.display = 'none';
+    }
+  });
+})();
