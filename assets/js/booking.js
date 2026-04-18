@@ -1,6 +1,9 @@
 (function () {
   // ── Param decoder (XOR + base64, mirrors services.html encoder) ──
   const _KEY = 'hlx2024';
+  const BOOKING_GATEWAY_STATE_KEY = 'hairlux.booking.gateway.pending';
+  const BOOKING_GATEWAY_PROVIDER = 'monnify';
+
   function decodeBookingParams(str) {
     try {
       const hex = atob(str);
@@ -151,8 +154,12 @@
 
   let step = 1;
   let pendingBookingPayload = null;
+  let pendingBookingAmountDue = 0;
   let walletBalance = 0;
+  let bookingPaymentReference = '';
+  let bookingPaymentProvider = BOOKING_GATEWAY_PROVIDER;
   let bookingType    = 'HOME_SERVICE'; // 'HOME_SERVICE' | 'WALK_IN'
+  let bookingTypeCapabilities = { home: true, walk: true };
   let bookingForSelf = true;
   let mapsLoaderPromise = null;
   let bookingMapInstance = null;
@@ -166,6 +173,145 @@
   function getBookingType()   { return bookingType; }
   function getPaymentMethod() { return 'WALLET'; }
   function isBookingForSelf() { return bookingForSelf; }
+
+  function hasOwn(obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj || {}, key);
+  }
+
+  function hasModePricingShape(service) {
+    return Boolean(
+      service && (
+        hasOwn(service, 'walkInPrice') ||
+        hasOwn(service, 'homeServicePrice') ||
+        service.walkInPrice != null ||
+        service.homeServicePrice != null
+      )
+    );
+  }
+
+  function isServiceModeAvailable(service, mode) {
+    if (!service || typeof service !== 'object') return false;
+
+    const fallbackPrice = Number(service.price != null ? service.price : (service.basePrice != null ? service.basePrice : service.amount));
+    const hasFallbackPrice = Number.isFinite(fallbackPrice) && fallbackPrice >= 0;
+
+    const walkPrice = Number(service.walkInPrice);
+    const homePrice = Number(service.homeServicePrice);
+    const hasWalkPrice = Number.isFinite(walkPrice) && walkPrice >= 0;
+    const hasHomePrice = Number.isFinite(homePrice) && homePrice >= 0;
+
+    const hasExplicitWalkFlag = typeof service.isWalkInAvailable === 'boolean';
+    const hasExplicitHomeFlag = typeof service.isHomeServiceAvailable === 'boolean';
+    const walkEnabled = hasExplicitWalkFlag ? service.isWalkInAvailable : true;
+    const homeEnabled = hasExplicitHomeFlag ? service.isHomeServiceAvailable : true;
+    const hasModePrices = hasModePricingShape(service);
+
+    if (mode === 'WALK_IN') {
+      if (!walkEnabled) return false;
+      if (hasModePrices) return hasWalkPrice;
+      return hasFallbackPrice;
+    }
+
+    if (!homeEnabled) return false;
+    if (hasModePrices) return hasHomePrice;
+    return hasFallbackPrice;
+  }
+
+  function getModeBlockers(mode) {
+    return getSelectedServices().filter(function (svc) {
+      return !isServiceModeAvailable(svc, mode);
+    });
+  }
+
+  function computeBookingTypeCapabilities() {
+    const services = getSelectedServices();
+    if (!services.length) {
+      return { home: true, walk: true };
+    }
+
+    return {
+      home: services.every(function (svc) { return isServiceModeAvailable(svc, 'HOME_SERVICE'); }),
+      walk: services.every(function (svc) { return isServiceModeAvailable(svc, 'WALK_IN'); })
+    };
+  }
+
+  function setBookingTypeCardState(card, enabled) {
+    if (!card) return;
+    card.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    card.style.opacity = enabled ? '' : '0.75';
+    card.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  }
+
+  function updateBookingTypeHelper(message, tone) {
+    const card = homeServiceCard || walkInCard;
+    const field = card ? card.closest('.field.full') : null;
+    if (!field) return;
+
+    let helper = document.getElementById('bookingTypeHelper');
+    if (!helper) {
+      helper = document.createElement('div');
+      helper.id = 'bookingTypeHelper';
+      helper.className = 'helper-text';
+      helper.style.marginTop = '8px';
+      field.appendChild(helper);
+    }
+
+    helper.textContent = message || '';
+    helper.style.color = tone === 'error' ? '#dc3545' : '';
+  }
+
+  function applyBookingTypeAvailability() {
+    bookingTypeCapabilities = computeBookingTypeCapabilities();
+    const canHome = bookingTypeCapabilities.home;
+    const canWalk = bookingTypeCapabilities.walk;
+    const homeBlockers = getModeBlockers('HOME_SERVICE');
+    const walkBlockers = getModeBlockers('WALK_IN');
+
+    if (homeServiceCard) homeServiceCard.style.display = canHome ? '' : 'none';
+    if (walkInCard) walkInCard.style.display = canWalk ? '' : 'none';
+
+    if (canHome && canWalk) {
+      if (bookingType !== 'HOME_SERVICE' && bookingType !== 'WALK_IN') {
+        bookingType = 'HOME_SERVICE';
+      }
+      setBookingTypeCardState(homeServiceCard, true);
+      setBookingTypeCardState(walkInCard, true);
+      updateBookingTypeHelper('Some services support both modes. Choose your preferred booking type.', 'info');
+    } else if (canHome) {
+      bookingType = 'HOME_SERVICE';
+      setBookingTypeCardState(homeServiceCard, false);
+      setBookingTypeCardState(walkInCard, false);
+      updateBookingTypeHelper(
+        walkBlockers.length
+          ? ('Walk-in is unavailable for: ' + walkBlockers.map(function (s) { return s.name; }).join(', ') + '.')
+          : 'Selected services are available only for mobile service.',
+        'info'
+      );
+    } else if (canWalk) {
+      bookingType = 'WALK_IN';
+      setBookingTypeCardState(homeServiceCard, false);
+      setBookingTypeCardState(walkInCard, false);
+      updateBookingTypeHelper(
+        homeBlockers.length
+          ? ('Mobile service is unavailable for: ' + homeBlockers.map(function (s) { return s.name; }).join(', ') + '.')
+          : 'Selected services are available only for walk-in bookings.',
+        'info'
+      );
+    } else {
+      bookingType = 'HOME_SERVICE';
+      setBookingTypeCardState(homeServiceCard, false);
+      setBookingTypeCardState(walkInCard, false);
+      updateBookingTypeHelper('Selected services have no valid booking type available. Please change your service selection.', 'error');
+    }
+
+    selectOptionCard([homeServiceCard, walkInCard], bookingType === 'HOME_SERVICE' ? homeServiceCard : walkInCard);
+    const isHome = bookingType === 'HOME_SERVICE';
+    if (addressSection) addressSection.classList.toggle('visible', isHome);
+    if (!isHome) {
+      addAddressWrap.style.display = 'none';
+      if (savedAddressEl) savedAddressEl.value = '';
+    }
+  }
 
   // ── Utilities ─────────────────────────────────────────────────────
   function formatMoney(value) {
@@ -198,6 +344,62 @@
   function getApiData(payload) {
     if (!payload) return null;
     return payload.data && typeof payload.data === 'object' ? payload.data : payload;
+  }
+
+  function normalizeGatewayProvider(provider) {
+    const candidate = String(provider || '').trim().toLowerCase();
+    return candidate === 'monnify' ? 'monnify' : 'monnify';
+  }
+
+  function isFailedGatewayStatus(status) {
+    const value = String(status || '').trim().toLowerCase();
+    return value === 'failed' || value === 'error' || value === 'cancelled' || value === 'canceled' || value === 'abandoned';
+  }
+
+  function saveGatewayPendingState(payload) {
+    try {
+      window.sessionStorage.setItem(BOOKING_GATEWAY_STATE_KEY, JSON.stringify(payload));
+    } catch (_) {
+      // Ignore storage failures and continue with gateway flow.
+    }
+  }
+
+  function readGatewayPendingState() {
+    try {
+      const raw = window.sessionStorage.getItem(BOOKING_GATEWAY_STATE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      if (parsed.createdAt && (Date.now() - Number(parsed.createdAt)) > (6 * 60 * 60 * 1000)) {
+        clearGatewayPendingState();
+        return null;
+      }
+      return parsed;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function clearGatewayPendingState() {
+    try {
+      window.sessionStorage.removeItem(BOOKING_GATEWAY_STATE_KEY);
+    } catch (_) {
+      // Ignore storage failures.
+    }
+  }
+
+  function cleanGatewayCallbackQuery() {
+    if (window.history && typeof window.history.replaceState === 'function') {
+      const cleanUrl = `${window.location.pathname}${window.location.hash || ''}`;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }
+
+  function createBookingPaymentIdempotencyKey() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return 'bookpay-' + window.crypto.randomUUID();
+    }
+    return 'bookpay-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
   }
 
   async function hydrateSelectedServicesPricing() {
@@ -251,10 +453,18 @@
     let html = '<div class="services-list">';
     services.forEach(svc => {
       const servicePrice = getServicePriceForType(svc);
+      const supportsWalk = isServiceModeAvailable(svc, 'WALK_IN');
+      const supportsHome = isServiceModeAvailable(svc, 'HOME_SERVICE');
+      const modeLabel = supportsWalk && supportsHome
+        ? 'Both modes'
+        : (supportsWalk
+          ? 'Walk-In only'
+          : (supportsHome ? 'Mobile only' : 'Unavailable'));
       html += `
         <div class="service-list-row">
           <span class="service-list-name">${escHtml(svc.name)}</span>
           <div class="service-list-badges">
+            <span class="selected-service-chip">${modeLabel}</span>
             <span class="selected-service-chip">${formatMoney(servicePrice)}</span>
             <span class="selected-service-chip">${svc.duration} mins</span>
           </div>
@@ -870,7 +1080,11 @@
   }
 
   function validateStep(currentStep) {
-    if (currentStep === 1) return getSelectedServices().length > 0;
+    if (currentStep === 1) {
+      const hasServices = getSelectedServices().length > 0;
+      const hasValidMode = bookingTypeCapabilities.home || bookingTypeCapabilities.walk;
+      return hasServices && hasValidMode;
+    }
     if (currentStep === 2) {
       const dateTimeOk = Boolean(bookingDateEl.value && bookingTimeEl.value);
       const addrOk = bookingType === 'WALK_IN' || Boolean(getSelectedAddress());
@@ -1034,14 +1248,64 @@
   }
 
   // ── API calls (via BookingAPI helper) ────────────────────────────
-  function redirectToDepositFlow(requiredAmount) {
-    const amount = Math.max(1, Math.ceil(Number(requiredAmount) || 0));
-    window.location.href = `index.html?openDeposit=1&amount=${encodeURIComponent(String(amount))}&reason=booking-payment`;
+  function getAmountDueForPendingBooking() {
+    const fallback = getDiscountedTotal();
+    const amount = Number(pendingBookingAmountDue || fallback || 0);
+    return Number.isFinite(amount) && amount >= 0 ? amount : 0;
+  }
+
+  function buildGatewayBookingPayload() {
+    const source = pendingBookingPayload || {};
+    const bookingPayload = {
+      services: Array.isArray(source.services) ? source.services : [],
+      date: source.date,
+      time: source.time,
+      bookingType: source.bookingType,
+      addressId: source.addressId,
+      guestName: source.guestName,
+      guestPhone: source.guestPhone,
+      guestEmail: source.guestEmail,
+      discountCode: source.discountCode
+    };
+
+    Object.keys(bookingPayload).forEach(function (key) {
+      if (bookingPayload[key] == null || bookingPayload[key] === '') {
+        delete bookingPayload[key];
+      }
+    });
+
+    return bookingPayload;
+  }
+
+  function showBookingSuccessModal(result, fallbackAmount) {
+    const booking = (result && result.booking) || {};
+    const reservationCode = (result && result.reservationCode) || booking.reservationCode || booking.id || '-';
+    const bookingDate = (booking.bookingDate || bookingDateEl.value || '').split('T')[0];
+    const bookingTime = booking.bookingTime || bookingTimeEl.value || '-';
+    const amountPaid = Number(
+      (result && result.totalAmount) ||
+      booking.totalAmount ||
+      fallbackAmount ||
+      getAmountDueForPendingBooking() ||
+      getTotalPrice()
+    );
+
+    paidModalBookingId.textContent = reservationCode;
+    paidModalService.textContent   = getServiceNames();
+    paidModalDateTime.textContent  = `${bookingDate} at ${bookingTime}`;
+    paidModalAmount.textContent    = formatMoney(amountPaid);
+    openPaidModal();
+
+    sessionStorage.removeItem('selectedServices');
+    clearGatewayPendingState();
+    pendingBookingPayload = null;
+    pendingBookingAmountDue = 0;
+    bookingPaymentReference = '';
   }
 
   function updateConfirmModalUI() {
     const baseTotal     = getTotalPrice();
-    const total         = getDiscountedTotal();
+    const total         = getAmountDueForPendingBooking();
     const isHomeService = bookingType === 'HOME_SERVICE';
     const addr          = getSelectedAddress();
     const gName         = guestNameEl && guestNameEl.value.trim();
@@ -1097,21 +1361,31 @@
     modalStatusRow.style.display   = '';
     modalWalletBalance.textContent = formatMoney(walletBalance);
 
+    const makePaymentLabel = makePaymentBtn && makePaymentBtn.querySelector('div');
     if (lowBalance) {
-        modalStatus.textContent = 'Insufficient balance — deposit funds first.';
-        modalStatus.style.color = '#dc3545';
-        makePaymentBtn.querySelector('div').textContent = 'Insufficient Balance';
-        makePaymentBtn.style.pointerEvents = 'none';
-        makePaymentBtn.style.opacity = '0.5';
-        payLaterBtn.style.display = '';
-      } else {
-        modalStatus.textContent = 'Balance sufficient — ready to book.';
-        modalStatus.style.color = '#1f7a3f';
-        makePaymentBtn.querySelector('div').textContent = 'Confirm & Book';
-        makePaymentBtn.style.pointerEvents = '';
-        makePaymentBtn.style.opacity = '';
-        payLaterBtn.style.display = 'none';
+      modalSubtext.textContent = 'Complete payment directly with Monnify and we will finalize your booking automatically.';
+      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(total)} with Monnify for this booking.`;
+      modalStatus.style.color = '#dc3545';
+      if (makePaymentLabel) {
+        makePaymentLabel.textContent = 'Pay with Monnify';
+        makePaymentBtn.dataset.originalLabel = 'Pay with Monnify';
       }
+      makePaymentBtn.style.pointerEvents = '';
+      makePaymentBtn.style.opacity = '';
+      if (payLaterBtn) payLaterBtn.style.display = 'none';
+    } else {
+      modalSubtext.textContent = 'Your wallet will be charged immediately upon confirmation.';
+      modalStatus.textContent = 'Balance sufficient — ready to book.';
+      modalStatus.style.color = '#1f7a3f';
+      if (makePaymentLabel) {
+        makePaymentLabel.textContent = 'Confirm & Book';
+        makePaymentBtn.dataset.originalLabel = 'Confirm & Book';
+      }
+      makePaymentBtn.style.pointerEvents = '';
+      makePaymentBtn.style.opacity = '';
+      if (payLaterBtn) payLaterBtn.style.display = 'none';
+    }
+
   }
 
   // Show confirmation modal BEFORE calling the API
@@ -1155,11 +1429,156 @@
     }
 
     pendingBookingPayload = payload;
+    pendingBookingAmountDue = getDiscountedTotal();
+    bookingPaymentReference = '';
+    bookingPaymentProvider = BOOKING_GATEWAY_PROVIDER;
 
     // Only fetch wallet balance when paying with WALLET
     walletBalance = bMethod === 'WALLET' ? await BookingAPI.getWalletBalance() : 0;
     updateConfirmModalUI();
     openPayModal();
+  }
+
+  async function submitBookingRequest() {
+    const result  = await BookingAPI.create(pendingBookingPayload);
+    showBookingSuccessModal(result, getAmountDueForPendingBooking());
+  }
+
+  async function startGatewayCheckoutForBooking(amountDue) {
+    const total = Number(amountDue || getAmountDueForPendingBooking() || 0);
+    const paymentAmount = Math.max(1, Math.ceil(total));
+
+    if (!BookingAPI || typeof BookingAPI.initializeBookingPayment !== 'function') {
+      showToast('Booking payment is currently unavailable. Please try again later.', 'error');
+      return false;
+    }
+
+    setButtonState(makePaymentBtn, 'Redirecting…', true);
+    try {
+      const idempotencyKey = createBookingPaymentIdempotencyKey();
+      const initResult = await BookingAPI.initializeBookingPayment({
+        bookingPayload: buildGatewayBookingPayload(),
+        amount: paymentAmount,
+        provider: BOOKING_GATEWAY_PROVIDER,
+        idempotencyKey: idempotencyKey
+      });
+
+      bookingPaymentReference = initResult.bookingPaymentReference || '';
+      bookingPaymentProvider = normalizeGatewayProvider(initResult.provider || BOOKING_GATEWAY_PROVIDER);
+
+      saveGatewayPendingState({
+        bookingPaymentReference: bookingPaymentReference,
+        provider: bookingPaymentProvider,
+        amountDue: total,
+        idempotencyKey: idempotencyKey,
+        createdAt: Date.now()
+      });
+
+      window.location.href = initResult.checkoutUrl || initResult.paymentUrl;
+      return true;
+    } catch (error) {
+      const msg = (error && error.message) || 'Could not start Monnify checkout. Please try again.';
+      showToast(msg, 'error');
+      updateConfirmModalUI();
+      return false;
+    } finally {
+      setButtonState(makePaymentBtn, 'Redirecting…', false);
+    }
+  }
+
+  async function finalizeGatewayBookingAfterReturn() {
+    const pendingState = readGatewayPendingState();
+    const query = new URLSearchParams(window.location.search);
+    const status = (
+      query.get('status') ||
+      query.get('paymentStatus') ||
+      query.get('payment_status') ||
+      query.get('transactionStatus') ||
+      ''
+    ).toLowerCase();
+    const paymentReference =
+      query.get('bookingPaymentReference') ||
+      query.get('booking_payment_reference') ||
+      query.get('paymentReference') ||
+      query.get('reference') ||
+      query.get('trxref') ||
+      (pendingState && pendingState.bookingPaymentReference) ||
+      '';
+    const provider = normalizeGatewayProvider(
+      query.get('provider') ||
+      query.get('paymentProvider') ||
+      (pendingState && pendingState.provider) ||
+      BOOKING_GATEWAY_PROVIDER
+    );
+
+    const hasCallbackSignal = Boolean(
+      pendingState ||
+      paymentReference ||
+      status ||
+      query.get('paymentStatus') ||
+      query.get('payment_status')
+    );
+
+    if (!hasCallbackSignal) return;
+
+    if (status && isFailedGatewayStatus(status)) {
+      cleanGatewayCallbackQuery();
+      clearGatewayPendingState();
+      showToast('Payment was not completed. Please try again.', 'info');
+      return;
+    }
+
+    cleanGatewayCallbackQuery();
+
+    if (!paymentReference) {
+      clearGatewayPendingState();
+      showToast('Booking payment reference is missing. Please contact support.', 'error');
+      return;
+    }
+
+    bookingPaymentReference = paymentReference;
+    bookingPaymentProvider = normalizeGatewayProvider((pendingState && pendingState.provider) || provider);
+    pendingBookingAmountDue = Number((pendingState && pendingState.amountDue) || pendingBookingAmountDue || 0);
+
+    let verifiedResult = null;
+    try {
+      verifiedResult = await BookingAPI.verifyBookingPayment(bookingPaymentReference, bookingPaymentProvider);
+    } catch (verifyError) {
+      try {
+        const statusResult = await BookingAPI.getBookingPaymentStatus(bookingPaymentReference);
+        const paymentStatus = String(statusResult.status || '').toUpperCase();
+
+        if (paymentStatus === 'COMPLETED' && statusResult.booking && statusResult.booking.id) {
+          verifiedResult = {
+            booking: statusResult.booking,
+            reservationCode: statusResult.reservationCode || (statusResult.booking && statusResult.booking.reservationCode) || '',
+            totalAmount: Number(statusResult.amount || (statusResult.booking && statusResult.booking.totalAmount) || 0),
+            message: 'Booking payment verified and booking created.'
+          };
+        } else if (paymentStatus === 'PENDING') {
+          showToast('Payment is still pending. Please wait a moment and try again.', 'info', 4200);
+          return;
+        } else if (paymentStatus === 'FAILED') {
+          clearGatewayPendingState();
+          showToast('Payment failed. Please start again.', 'error');
+          return;
+        } else {
+          throw verifyError;
+        }
+      } catch (statusError) {
+        const msg = (verifyError && verifyError.message) || (statusError && statusError.message) || 'Could not verify booking payment.';
+        showToast(msg, 'error', 5000);
+        return;
+      }
+    }
+
+    if (!verifiedResult || !verifiedResult.booking || !verifiedResult.booking.id) {
+      showToast('Payment verified but booking details were not returned. Please contact support.', 'error', 5000);
+      return;
+    }
+
+    showToast((verifiedResult && verifiedResult.message) || 'Payment successful. Booking confirmed.', 'success', 1800);
+    showBookingSuccessModal(verifiedResult, getAmountDueForPendingBooking());
   }
 
   // Called when user clicks "Confirm & Book" / "Reserve Slot" in the modal
@@ -1168,31 +1587,24 @@
       showToast('Missing booking details. Please try again.', 'error');
       return;
     }
-    const total = getDiscountedTotal();
+    const total = getAmountDueForPendingBooking();
     if (walletBalance < total) {
-      showToast('Insufficient wallet balance. Please deposit funds first.', 'error');
+      await startGatewayCheckoutForBooking(total);
       return;
     }
+
     setButtonState(makePaymentBtn, 'Booking…', true);
     try {
-      const result  = await BookingAPI.create(pendingBookingPayload);
-      const booking = result.booking || {};
-
-      // Show reservation code as the booking reference
-      paidModalBookingId.textContent = result.reservationCode || booking.id || '-';
-      paidModalService.textContent   = getServiceNames();
-      paidModalDateTime.textContent  = `${(booking.bookingDate || bookingDateEl.value || '').split('T')[0]} at ${booking.bookingTime || bookingTimeEl.value || '-'}`;
-      paidModalAmount.textContent    = formatMoney(result.totalAmount || getTotalPrice());
-      openPaidModal();
-
-      sessionStorage.removeItem('selectedServices');
-      pendingBookingPayload = null;
+      await submitBookingRequest();
     } catch (error) {
       const msg = (error && error.message) || 'Booking failed. Please try again.';
       if (/insufficient balance/i.test(msg)) {
-        showToast('Insufficient wallet balance. Redirecting to deposit...', 'info', 1400);
-        window.setTimeout(() => redirectToDepositFlow(total - walletBalance), 900);
-        closePayModal();
+        try {
+          walletBalance = await BookingAPI.getWalletBalance();
+        } catch (_) {
+          // Keep previous balance when refresh fails.
+        }
+        await startGatewayCheckoutForBooking(total);
         return;
       }
       showToast(msg, 'error');
@@ -1302,7 +1714,13 @@
   [homeServiceCard, walkInCard].forEach(card => {
     if (!card) return;
     card.addEventListener('click', function () {
-      bookingType = this === homeServiceCard ? 'HOME_SERVICE' : 'WALK_IN';
+      const nextType = this === homeServiceCard ? 'HOME_SERVICE' : 'WALK_IN';
+      const canChoose = bookingTypeCapabilities.home && bookingTypeCapabilities.walk;
+      if (!canChoose) return;
+      if (nextType === 'HOME_SERVICE' && !bookingTypeCapabilities.home) return;
+      if (nextType === 'WALK_IN' && !bookingTypeCapabilities.walk) return;
+
+      bookingType = nextType;
       selectOptionCard([homeServiceCard, walkInCard], this);
       const isHome = bookingType === 'HOME_SERVICE';
       if (addressSection) addressSection.classList.toggle('visible', isHome);
@@ -1485,13 +1903,6 @@
     if (!this.checked) removeDiscount();
   });
 
-  payLaterBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-    const total    = getDiscountedTotal();
-    const required = total - Number(walletBalance || 0);
-    redirectToDepositFlow(required > 0 ? required : total || 5000);
-  });
-
   makePaymentBtn.addEventListener('click', function (e) {
     e.preventDefault();
     createAndPayBooking();
@@ -1574,9 +1985,11 @@
   // ── Init ──────────────────────────────────────────────────────────
   (async function initBookingPage() {
     await hydrateSelectedServicesPricing();
+    applyBookingTypeAvailability();
     hydrateSelectedServiceUI();
     refreshSummary();
     setStep(1);
-    loadAddresses();
+    await loadAddresses();
+    await finalizeGatewayBookingAfterReturn();
   })();
 })();

@@ -384,6 +384,7 @@
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 32px;
         margin-top: 48px;
+        justify-content: ;
       }
 
       .team-card {
@@ -465,7 +466,9 @@
         width: 100%;
         max-width: 640px;
         max-height: 90vh;
-        overflow-y: auto;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
         position: relative;
         transform: translateY(16px);
         transition: transform .22s;
@@ -505,6 +508,8 @@
 
       .team-modal-body {
         padding: 4px 40px 44px;
+        overflow-y: auto;
+        min-height: 0;
       }
 
       .team-modal-profile {
@@ -575,10 +580,62 @@
         margin-bottom: 12px;
       }
 
+      .team-modal-bio-wrap {
+        position: relative;
+      }
+
       .team-modal-bio {
         font-size: 14px;
         line-height: 1.8;
         color: #444;
+        max-height: clamp(220px, 45vh, 420px);
+        overflow-y: auto;
+        padding-right: 6px;
+        padding-bottom: 52px;
+      }
+
+      .team-modal-scroll-hint {
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        color: #6f5a2e;
+        background: rgba(255, 248, 232, .95);
+        border: 1px solid rgba(157, 130, 72, .35);
+        border-radius: 999px;
+        padding: 5px 10px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .2s ease;
+      }
+
+      .team-modal-bio-wrap::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fff 82%);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .2s ease;
+      }
+
+      .team-modal-bio-wrap.has-overflow .team-modal-scroll-hint,
+      .team-modal-bio-wrap.has-overflow::after {
+        opacity: 1;
+      }
+
+      .team-modal-bio-wrap.at-end .team-modal-scroll-hint,
+      .team-modal-bio-wrap.at-end::after {
+        opacity: 0;
       }
 
       .team-modal-bio p {
@@ -592,6 +649,15 @@
       @media (max-width: 520px) {
         .team-modal-body {
           padding: 4px 20px 32px;
+        }
+
+        .team-modal-bio {
+          max-height: 42vh;
+        }
+
+        .team-modal-scroll-hint {
+          font-size: 10px;
+          padding: 5px 9px;
         }
 
         .team-modal-profile {
@@ -634,7 +700,7 @@
             </div>
           </div>
 
-          <div class="team-card" data-member="2">
+          <!-- <div class="team-card" data-member="2">
             <div class="team-card-img-wrap">
               <img src="assets/img/team/olurichard.png" alt="Olu-Richard OLANUSI" loading="lazy" />
             </div>
@@ -642,7 +708,7 @@
               <div class="team-card-name">Olu-Richard OLANUSI</div>
               <div class="team-card-title">Operation Manager</div>
             </div>
-          </div>
+          </div> -->
 
           <div class="team-card" data-member="3">
             <div class="team-card-img-wrap">
@@ -677,29 +743,32 @@
     <script>
       (function () {
         var LINKEDIN_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>';
+        var FACEBOOK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M13 22v-8h3l1-4h-4V8c0-1.16.32-1.95 1.98-1.95H17V2.42C16.66 2.37 15.48 2.25 14.1 2.25c-2.88 0-4.85 1.76-4.85 5V10H6v4h3.25v8H13z"/></svg>';
+        var INSTAGRAM_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5z"/><path d="M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4z"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>';
 
         var members = [
           {
             name: 'Qudus Alao Jimoh',
             title: 'Founder & CEO',
             img: 'assets/img/team/qudus.png',
-            // linkedin: 'https://linkedin.com',
-            bio: '<p>Qudus Alao Jimoh is a seasoned entrepreneur and the driving force behind HairLux. As the founder of Omega Partsway Innovative Ltd, he built a reputation for operational excellence across retail and logistics — disciplines that now underpin HairLux\'s promise of seamless, premium wellness delivery. With a sharp eye for market gaps and a relentless commitment to quality, Qudus channels years of supply chain expertise into ensuring every HairLux product reaches customers with speed, care, and consistency. He believes that great hair wellness is not a luxury — it\'s a standard. </p>'
+            linkedin: 'https://www.linkedin.com/in/qudus-jimoh',
+            facebook: 'https://www.facebook.com/share/1HVfwyiguy/?mibextid=wwXIfr',
+            instagram: 'https://www.instagram.com/omega_empiree?igsh=cmQ0OTBvOTZuanp4&utm_source=qr',
+           bio: '<p>Qudus Jimoh’s journey into business did not begin with HairLux. By the time the brand was conceived, he had already spent years navigating different industries, learning firsthand what it takes to build, sustain, and scale. His entrepreneurial path started early, even before attending Lead City University. Armed with a diploma at a young age and shaped by early exposure to trade through his mother, Qudus stepped into business with clarity and intent. One of his earliest ventures was a laundry and dry-cleaning business, which he built from scratch and managed for over three years. When he eventually relocated, he handed the business over, and it remains operational to this day—a quiet testament to the strength of what he built.</p><p>But Qudus was never interested in staying within one lane. That drive to do what others have not done finds its clearest expression in the HairLux Mobile Salon and Spa, a concept he describes not just as a business, but as a personal milestone. As one of the first of its kind in Nigeria, the mobile unit represents more than innovation; it reflects a long-standing desire to break new ground. For Qudus, building HairLux is deeply fulfilling. It is the realization of a vision he has carried for years: to create something original, something bold, and something that sets a new standard for the industry. That sense of excitement is not just personal; it is embedded in the experience the brand delivers.</p><p>Over the years, he expanded his footprint across multiple sectors, including oil and gas, real estate, transportation, automobile trading, and petroleum product sourcing. Each venture added a new layer of experience, from operations and logistics to customer management and capital flow. These weren’t experiments; they were building blocks. Although his entrepreneurial journey spans close to a decade, the last four years have marked a significant shift, where experience met clarity, and results began to compound more visibly. HairLux emerged in December 2022, not as a first attempt, but as a refined expression of everything he had learned. What started as a passion-driven idea quickly evolved into one of his fastest-growing ventures, outpacing the trajectory of his previous businesses.</p><p>While studying Microbiology at Lead City University, Qudus sharpened his analytical mindset. He further strengthened his strategic thinking as a certified data analyst and gained recognition from the University of Ibadan Business School, where he received an Award of Honor. Today, HairLux stands as a structured, multi-branch beauty brand generating millions in monthly revenue and employing more than 50 staff. The business continues to expand rapidly, supported by strategic partnerships, including collaborations with Justrite and hospitality establishments.</p><p>Yet, what truly defines Qudus is not just what he has built, but how he builds. He approaches business as a system, not a gamble. He understands people, structure, and scale. He builds with continuity in mind, creating ventures that can operate, grow, and outlive his direct involvement. HairLux, in many ways, is just one chapter. At the center of his journey is a clear and unwavering drive: to build an empire across industries, one that is resilient, scalable, and enduring. His ventures may differ in form, but they are united by a single philosophy: intentional growth, disciplined execution, and long-term vision. The results so far speak quietly, but convincingly. And the trajectory is only pointing in one direction.</p>'
           },
           {
             name: 'Zainab Ibrahim Opeyemi',
             title: 'Executive Assistant',
             img: 'assets/img/team/zainab.png',
-            // linkedin: 'https://linkedin.com',
             bio: '<p>Zainab Ibrahim Opeyemi is the executive Assistant with a strong background in Chemistry, studied at Usmanu Danfodiyo University, Sokoto. Gathered professional experience across customer service,Administrative sector and hospitality, complemented by educational exposure.</p>'
           },
-          {
-            name: 'Olu-Richard OLANUSI',
-            title: 'Operation Manager',
-            img: 'assets/img/team/olurichard.png',
-            linkedin: 'https://www.linkedin.com/in/olu-richard-3674351a5',
-            bio: '<p>Olu-Richard OLANUSI, Operation Manager, is a passionate Administrator who prioritize top notch business model as a way of life. Graduated from Federal University of Agriculture Abeokuta, 2011, gathered experience over the years across Finance, Real estate, Health Sector, Agricultural sector and hospitality industry.</p>'
-          },
+          // {
+          //   name: 'Olu-Richard OLANUSI',
+          //   title: 'Operation Manager',
+          //   img: 'assets/img/team/olurichard.png',
+          //   linkedin: 'https://www.linkedin.com/in/olu-richard-3674351a5',
+          //   bio: '<p>Olu-Richard OLANUSI, Operation Manager, is a passionate Administrator who prioritize top notch business model as a way of life. Graduated from Federal University of Agriculture Abeokuta, 2011, gathered experience over the years across Finance, Real estate, Health Sector, Agricultural sector and hospitality industry.</p>'
+          // },
           {
             name: 'Abiola Blessing Omodele',
             title: 'Business Manager',
@@ -709,20 +778,50 @@
           }
         ];
 
+        function socialLink(url, icon, label) {
+          if (!url) return '';
+          return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="team-modal-linkedin">' + icon + ' ' + label + '</a>';
+        }
+
         function openTeamModal(idx) {
           var m = members[idx];
           var body = document.getElementById('teamModalBody');
+
+          var socials =
+            socialLink(m.linkedin, LINKEDIN_ICON, 'LinkedIn') +
+            socialLink(m.facebook, FACEBOOK_ICON, 'Facebook') +
+            socialLink(m.instagram, INSTAGRAM_ICON, 'Instagram');
+
           body.innerHTML =
             '<div class="team-modal-profile">' +
             '<img class="team-modal-photo" src="' + m.img + '" alt="' + m.name + '" />' +
             '<div class="team-modal-profile-info">' +
             '<div class="team-modal-name">' + m.name + '</div>' +
             '<div class="team-modal-role">' + m.title + '</div>' +
-            (m.linkedin ? '<a href="' + m.linkedin + '" target="_blank" rel="noopener" class="team-modal-linkedin">' + LINKEDIN_ICON + ' LinkedIn</a>' : '') +
+            (socials ? '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + socials + '</div>' : '') +
             '</div>' +
             '</div>' +
             '<div class="team-modal-bio-label">About</div>' +
-            '<div class="team-modal-bio">' + m.bio + '</div>';
+            '<div class="team-modal-bio-wrap">' +
+            '<div class="team-modal-bio">' + m.bio + '</div>' +
+            '<div class="team-modal-scroll-hint">Scroll to read more ↓</div>' +
+            '</div>';
+
+          var bioWrap = body.querySelector('.team-modal-bio-wrap');
+          var bioEl = body.querySelector('.team-modal-bio');
+          if (bioWrap && bioEl) {
+            var updateBioScrollCue = function () {
+              var hasOverflow = bioEl.scrollHeight > (bioEl.clientHeight + 2);
+              var atEnd = (bioEl.scrollTop + bioEl.clientHeight) >= (bioEl.scrollHeight - 2);
+              bioWrap.classList.toggle('has-overflow', hasOverflow);
+              bioWrap.classList.toggle('at-end', !hasOverflow || atEnd);
+            };
+
+            bioEl.scrollTop = 0;
+            bioEl.addEventListener('scroll', updateBioScrollCue, { passive: true });
+            window.requestAnimationFrame(updateBioScrollCue);
+          }
+
           document.getElementById('teamModal').classList.add('open');
           document.body.style.overflow = 'hidden';
         }
@@ -738,10 +837,12 @@
               openTeamModal(+card.getAttribute('data-member'));
             });
           });
+
           document.getElementById('teamModalClose').addEventListener('click', closeTeamModal);
           document.getElementById('teamModal').addEventListener('click', function (e) {
             if (e.target === this) closeTeamModal();
           });
+
           document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeTeamModal();
           });

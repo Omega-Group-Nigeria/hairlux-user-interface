@@ -1,0 +1,303 @@
+    :root {
+      --card-bg: #ffffff;
+      --surface: #f8f9fa;
+      --surface-2: #e9ecef;
+      --primary: #000;
+      --muted: #6c757d;
+      --border: #edf0f2;
+      --shadow-soft: 0 6px 22px rgba(0, 0, 0, 0.06);
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%) !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .section {
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+    }
+
+    .dashboard-shell {
+      margin-top: 7em;
+      padding-bottom: 60px;
+    }
+
+    .mobile-nav-tools {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .profile-dropdown { margin-left: 10px; }
+    .profile-toggle { padding: 0; background: transparent; border: none; }
+    .profile-toggle .w-icon-dropdown-toggle { display: none; }
+
+    .profile-list {
+      left: auto; right: 0;
+      min-width: 220px; padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .profile-list .dropdown-link { border-radius: 8px; margin-bottom: 2px; }
+    .profile-list .dropdown-link:last-child { margin-bottom: 0; }
+
+    .top-profile {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-left: 10px; padding: 6px 10px;
+      border-radius: 999px; border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .top-profile-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #91621c, #c18a37);
+      color: #fff; display: inline-flex; align-items: center;
+      justify-content: center; font-size: 12px; font-weight: 700;
+    }
+
+    .top-profile-name { font-size: 12px; color: var(--primary); font-weight: 600; line-height: 1; }
+    .top-profile-link { font-size: 11px; color: var(--muted); text-decoration: none; line-height: 1; }
+
+    /* ── Page shell ── */
+    .referrals-shell {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 clamp(12px, 2.5vw, 24px);
+    }
+
+    .referrals-header {
+      text-align: center;
+      padding: 34px 12px 24px;
+    }
+
+    .referrals-header .p-regular { color: var(--muted); margin-top: 8px; }
+
+    /* ── Referral code hero card ── */
+    .referral-hero {
+      background: linear-gradient(135deg, #faf5ee 0%, #f5ead8 60%, #f0dfc0 100%);
+      border-radius: var(--radius-lg);
+      padding: clamp(28px, 4vw, 48px) clamp(20px, 3vw, 40px);
+      box-shadow: 0 4px 20px rgba(140, 94, 26, 0.1);
+      border: 1.5px solid rgba(140, 94, 26, 0.16);
+      margin-bottom: 28px;
+      color: var(--primary);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .referral-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 110% 0%, rgba(140,94,26,.05) 0%, transparent 60%),
+        radial-gradient(ellipse at -10% 110%, rgba(140,94,26,.04) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .referral-hero-tag {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(140,94,26,0.1);
+      border: 1px solid rgba(140,94,26,0.22);
+      color: #9d8248;
+    }
+
+    .referral-hero-title {
+      font-size: clamp(14px, 2vw, 16px);
+      font-weight: 600;
+      color: rgba(140,94,26,0.65);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .referral-code-display {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: clamp(30px, 6vw, 52px);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #0f0f0f;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+
+    .referral-code-hint {
+      font-size: 12px;
+      color: rgba(140,94,26,0.52);
+      margin-bottom: 22px;
+    }
+
+    .referral-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .btn-ref {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-ref:hover { transform: translateY(-1px); opacity: 0.92; }
+    .btn-ref:active { transform: translateY(0); }
+
+    .btn-copy {
+      background: #9d8248;
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(140,94,26,0.28);
+    }
+
+    .btn-share {
+      background: rgba(140,94,26,0.08);
+      color: #9d8248;
+      border: 1.5px solid rgba(140,94,26,0.28);
+      box-shadow: 0 4px 10px rgba(140,94,26,0.08);
+    }
+
+    .btn-share-link {
+      background: rgba(140,94,26,0.05);
+      color: #9d8248;
+      border: 1.5px solid rgba(140,94,26,0.2);
+      box-shadow: 0 4px 10px rgba(140,94,26,0.06);
+    }
+
+    /* ── Stats row ── */
+    .referral-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .ref-stat {
+      background: rgba(255,255,255,0.65);
+      border: 1px solid #e8cc94;
+      border-radius: 12px;
+      padding: 14px 20px;
+      text-align: center;
+    }
+
+    .ref-stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f0f0f;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .ref-stat-label {
+      font-size: 11px;
+      color: rgba(140,94,26,0.65);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    /* ── History panel ── */
+    .referrals-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .referrals-panel-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .referrals-panel-header h3 { margin: 0; color: var(--primary); font-size: 16px; }
+    .ref-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #faf0e0; color: #9d8248; border: 1px solid #e8cc94; }
+
+    .referrals-table-wrap { overflow-x: auto; }
+
+    .referrals-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .referrals-table th {
+      background: #faf7f2;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .referrals-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #f0ebe0;
+      color: #2d3622;
+      vertical-align: middle;
+    }
+
+    .referrals-table tbody tr:last-child td { border-bottom: none; }
+    .referrals-table tbody tr:hover td { background: #faf5ee; }
+
+    .ref-status-pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .ref-status-REWARDED  { background: #eaf7ee; color: #1a6e38; border: 1px solid #c2e8ce; }
+    .ref-status-PENDING   { background: #fff8e3; color: #8a6208; border: 1px solid #f0d98e; }
+    .ref-status-FAILED    { background: #fdecea; color: #b8271a; border: 1px solid #f1bdb9; }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+      font-size: 14px;
+    }
+
+    .reward-amount { font-weight: 700; color: #8c5e1a; font-family: 'IBM Plex Mono', monospace; }
+    .reward-amount.zero { color: var(--muted); font-weight: 500; }
+
+    @media (max-width: 600px) {
+      .referral-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .referral-actions { flex-direction: column; align-items: center; }
+      .btn-ref { width: 100%; max-width: 280px; justify-content: center; }
+    }

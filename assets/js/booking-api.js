@@ -75,6 +75,140 @@ var BookingAPI = (function () {
     };
   }
 
+  function bookingPaymentsEndpoints() {
+    var defaults = {
+      BASE: '/bookings/payments',
+      INITIALIZE: '/bookings/payments/initialize',
+      VERIFY: '/bookings/payments/verify'
+    };
+
+    var source = API_CONFIG && API_CONFIG.ENDPOINTS && API_CONFIG.ENDPOINTS.BOOKING_PAYMENTS
+      ? API_CONFIG.ENDPOINTS.BOOKING_PAYMENTS
+      : {};
+
+    return {
+      BASE: firstNonEmpty([source.BASE], defaults.BASE),
+      INITIALIZE: firstNonEmpty([source.INITIALIZE], defaults.INITIALIZE),
+      VERIFY: firstNonEmpty([source.VERIFY], defaults.VERIFY)
+    };
+  }
+
+  /**
+   * Initialize a booking payment intent.
+   * POST /bookings/payments/initialize
+   *
+   * @param {{ bookingPayload: Object, amount: number, provider?: string, idempotencyKey: string }} payload
+   * @returns {Promise<{ paymentUrl: string, checkoutUrl: string, bookingPaymentReference: string, gatewayReference: string, expiresAt: string, provider: string, raw: Object }>}
+   */
+  async function initializeBookingPayment(payload) {
+    var endpoints = bookingPaymentsEndpoints();
+    var response = await APIHelper.request(endpoints.INITIALIZE, {
+      method: 'POST',
+      body: JSON.stringify(payload || {})
+    });
+
+    var data = (response && response.data) || {};
+    var paymentUrl = firstNonEmpty([
+      data.checkoutUrl,
+      data.checkout_url,
+      data.paymentUrl,
+      data.url
+    ], '');
+    var bookingPaymentReference = firstNonEmpty([
+      data.bookingPaymentReference,
+      data.booking_payment_reference,
+      data.paymentReference,
+      data.reference
+    ], '');
+
+    if (!paymentUrl) {
+      throw new Error('Could not start booking payment. Checkout URL was not returned.');
+    }
+    if (!bookingPaymentReference) {
+      throw new Error('Could not start booking payment. Reference was not returned.');
+    }
+
+    return {
+      paymentUrl: paymentUrl,
+      checkoutUrl: firstNonEmpty([data.checkoutUrl, data.paymentUrl], paymentUrl),
+      bookingPaymentReference: bookingPaymentReference,
+      gatewayReference: firstNonEmpty([data.gatewayReference], ''),
+      expiresAt: firstNonEmpty([data.expiresAt], ''),
+      provider: firstNonEmpty([data.provider, payload && payload.provider], 'monnify'),
+      raw: response
+    };
+  }
+
+  /**
+   * Verify a booking payment and create booking if paid.
+   * POST /bookings/payments/verify
+   *
+   * @param {string} bookingPaymentReference
+   * @param {string} provider
+   * @returns {Promise<{ booking: Object, reservationCode: string, totalAmount: number, message: string, raw: Object }>}
+   */
+  async function verifyBookingPayment(bookingPaymentReference, provider) {
+    if (!bookingPaymentReference) {
+      throw new Error('Missing booking payment reference for verification.');
+    }
+
+    var endpoints = bookingPaymentsEndpoints();
+    var response = await APIHelper.request(endpoints.VERIFY, {
+      method: 'POST',
+      body: JSON.stringify({
+        bookingPaymentReference: bookingPaymentReference,
+        provider: provider || 'monnify'
+      })
+    });
+
+    var data = (response && response.data) || {};
+    return {
+      booking: data.booking || {},
+      reservationCode: firstNonEmpty([data.reservationCode, data.booking && data.booking.reservationCode], ''),
+      totalAmount: Number(data.totalAmount || (data.booking && data.booking.totalAmount) || 0),
+      message: firstNonEmpty([data.message, response && response.message], 'Booking payment verified successfully.'),
+      raw: response
+    };
+  }
+
+  /**
+   * Get booking payment status for recovery/polling.
+   * GET /bookings/payments/:bookingPaymentReference
+   *
+   * @param {string} bookingPaymentReference
+   * @returns {Promise<{ bookingPaymentReference: string, provider: string, status: string, amount: number, gatewayReference: string, paymentReference: string, expiresAt: string, booking: Object, reservationCode: string, raw: Object }>}
+   */
+  async function getBookingPaymentStatus(bookingPaymentReference) {
+    if (!bookingPaymentReference) {
+      throw new Error('Missing booking payment reference for status lookup.');
+    }
+
+    var endpoints = bookingPaymentsEndpoints();
+    var response = await APIHelper.request(
+      endpoints.BASE + '/' + encodeURIComponent(bookingPaymentReference),
+      { method: 'GET' }
+    );
+
+    var data = (response && response.data) || {};
+    var booking = data.booking || {};
+    return {
+      bookingPaymentReference: firstNonEmpty([
+        data.bookingPaymentReference,
+        data.paymentReference,
+        bookingPaymentReference
+      ], bookingPaymentReference),
+      provider: firstNonEmpty([data.provider], 'monnify'),
+      status: firstNonEmpty([data.status], ''),
+      amount: Number(data.amount || booking.totalAmount || 0),
+      gatewayReference: firstNonEmpty([data.gatewayReference], ''),
+      paymentReference: firstNonEmpty([data.paymentReference], ''),
+      expiresAt: firstNonEmpty([data.expiresAt], ''),
+      booking: booking,
+      reservationCode: firstNonEmpty([booking.reservationCode], ''),
+      raw: response
+    };
+  }
+
   /**
    * Fetch the authenticated user's wallet balance.
    * GET /wallet/balance
@@ -134,5 +268,14 @@ var BookingAPI = (function () {
     return (response && response.data) || response || {};
   }
 
-  return { create: create, getWalletBalance: getWalletBalance, getAddresses: getAddresses, createAddress: createAddress, reschedule: reschedule };
+  return {
+    create: create,
+    initializeBookingPayment: initializeBookingPayment,
+    verifyBookingPayment: verifyBookingPayment,
+    getBookingPaymentStatus: getBookingPaymentStatus,
+    getWalletBalance: getWalletBalance,
+    getAddresses: getAddresses,
+    createAddress: createAddress,
+    reschedule: reschedule
+  };
 })();

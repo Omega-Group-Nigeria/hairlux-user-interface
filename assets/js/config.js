@@ -42,6 +42,11 @@ const API_CONFIG = {
     JOBS: '/jobs',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',
+    BOOKING_PAYMENTS: {
+      BASE: '/bookings/payments',
+      INITIALIZE: '/bookings/payments/initialize',
+      VERIFY: '/bookings/payments/verify'
+    },
     REFERRALS: '/referrals/me',
     REFERRALS_HISTORY: '/referrals/me/history',
     BOOKINGS_BUSINESS_HOURS: '/bookings/business-hours',
