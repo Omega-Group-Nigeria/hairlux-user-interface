@@ -695,6 +695,12 @@
       border-color: #f2d0cb;
     }
 
+    .tx-pill.type-debit.booking-payment {
+      background: #f9f1df;
+      color: #7f5a1f;
+      border-color: #ecd6af;
+    }
+
     .tx-pill.status-successful,
     .tx-pill.status-completed {
       background: #e9f8ef;
@@ -726,6 +732,10 @@
 
     .tx-amount.debit {
       color: #2d3622;
+    }
+
+    .tx-amount.debit.booking-payment {
+      color: #7f5a1f;
     }
 
     .transactions-pagination {

@@ -69,12 +69,14 @@
           ? tx.type
           : inferDirection(transactionType, tx.amount, tx.description || tx.title || tx.narration || '');
         const paymentMethod = String(tx.paymentMethod || tx.payment_method || '').trim().toUpperCase() || '-';
+        const isBookingPayment = transactionType === 'BOOKING_PAYMENT';
         return {
           id: tx.id || tx.transactionId || `tx_${Math.random().toString(36).slice(2, 8)}`,
           createdAt: tx.createdAt || tx.date || new Date().toISOString(),
           description: tx.description || tx.title || tx.narration || 'Transaction',
           type: direction,
           transactionType,
+          isBookingPayment,
           paymentMethod,
           status: normalizeStatus(tx.status || 'pending'),
           amount: Number(tx.amount || 0),
@@ -156,19 +158,22 @@
         const start = (state.page - 1) * state.pageSize;
         const pageRows = state.filtered.slice(start, start + state.pageSize);
 
-        txTableBody.innerHTML = pageRows.map((tx) => `
+        txTableBody.innerHTML = pageRows.map((tx) => {
+          const bookingPaymentClass = tx.isBookingPayment ? ' booking-payment' : '';
+          return `
           <tr>
             <td>
               <div class="tx-description">${tx.description}</div>
             </td>
             <td>${tx.reference}</td>
-            <td><span class="tx-pill type-${tx.type}">${titleCase(tx.transactionType)}</span></td>
+            <td><span class="tx-pill type-${tx.type}${bookingPaymentClass}">${titleCase(tx.transactionType)}</span></td>
             <td><span class="tx-pill method-${String(tx.paymentMethod || '').toLowerCase()}">${tx.paymentMethod}</span></td>
             <td><span class="tx-pill status-${tx.status}">${titleCase(tx.status)}</span></td>
-            <td class="tx-amount ${tx.type}">${formatAmount(tx.amount, tx.type)}</td>
+            <td class="tx-amount ${tx.type}${bookingPaymentClass}">${formatAmount(tx.amount, tx.type)}</td>
             <td>${formatDate(tx.createdAt)}</td>
           </tr>
-        `).join('');
+        `;
+        }).join('');
       }
 
       function renderPagination() {

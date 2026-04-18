@@ -1254,6 +1254,15 @@
     return Number.isFinite(amount) && amount >= 0 ? amount : 0;
   }
 
+  function getGatewayShortfallAmount(totalAmount) {
+    const total = Number(totalAmount || getAmountDueForPendingBooking() || 0);
+    const balance = Number(walletBalance || 0);
+    const normalizedTotal = Number.isFinite(total) && total > 0 ? total : 0;
+    const normalizedBalance = Number.isFinite(balance) && balance > 0 ? balance : 0;
+    const shortfall = Math.max(normalizedTotal - normalizedBalance, 0);
+    return Math.max(1, Math.ceil(shortfall));
+  }
+
   function buildGatewayBookingPayload() {
     const source = pendingBookingPayload || {};
     const bookingPayload = {
@@ -1306,6 +1315,7 @@
   function updateConfirmModalUI() {
     const baseTotal     = getTotalPrice();
     const total         = getAmountDueForPendingBooking();
+    const shortfall     = getGatewayShortfallAmount(total);
     const isHomeService = bookingType === 'HOME_SERVICE';
     const addr          = getSelectedAddress();
     const gName         = guestNameEl && guestNameEl.value.trim();
@@ -1363,8 +1373,8 @@
 
     const makePaymentLabel = makePaymentBtn && makePaymentBtn.querySelector('div');
     if (lowBalance) {
-      modalSubtext.textContent = 'Complete payment directly with Monnify and we will finalize your booking automatically.';
-      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(total)} with Monnify for this booking.`;
+      modalSubtext.textContent = `Wallet contributes ${formatMoney(walletBalance)}. Complete the shortfall with Monnify and we will finalize your booking automatically.`;
+      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(shortfall)} shortfall with Monnify for this booking.`;
       modalStatus.style.color = '#dc3545';
       if (makePaymentLabel) {
         makePaymentLabel.textContent = 'Pay with Monnify';
@@ -1446,7 +1456,7 @@
 
   async function startGatewayCheckoutForBooking(amountDue) {
     const total = Number(amountDue || getAmountDueForPendingBooking() || 0);
-    const paymentAmount = Math.max(1, Math.ceil(total));
+    const paymentAmount = getGatewayShortfallAmount(total);
 
     if (!BookingAPI || typeof BookingAPI.initializeBookingPayment !== 'function') {
       showToast('Booking payment is currently unavailable. Please try again later.', 'error');
@@ -1470,6 +1480,7 @@
         bookingPaymentReference: bookingPaymentReference,
         provider: bookingPaymentProvider,
         amountDue: total,
+        shortfallAmount: paymentAmount,
         idempotencyKey: idempotencyKey,
         createdAt: Date.now()
       });
@@ -1552,7 +1563,7 @@
           verifiedResult = {
             booking: statusResult.booking,
             reservationCode: statusResult.reservationCode || (statusResult.booking && statusResult.booking.reservationCode) || '',
-            totalAmount: Number(statusResult.amount || (statusResult.booking && statusResult.booking.totalAmount) || 0),
+            totalAmount: Number((statusResult.booking && statusResult.booking.totalAmount) || statusResult.amount || 0),
             message: 'Booking payment verified and booking created.'
           };
         } else if (paymentStatus === 'PENDING') {
