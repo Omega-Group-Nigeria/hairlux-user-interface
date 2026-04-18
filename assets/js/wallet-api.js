@@ -575,6 +575,9 @@
 
     async handleDepositCallback() {
       const params = new URLSearchParams(window.location.search);
+      if (params.get('bookingPaymentReference') || params.get('booking_payment_reference')) {
+        return;
+      }
       const pendingDeposit = this.readPendingDeposit();
       const status = (
         params.get('status') ||

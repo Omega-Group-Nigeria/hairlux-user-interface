@@ -1481,6 +1481,9 @@
         provider: bookingPaymentProvider,
         amountDue: total,
         shortfallAmount: paymentAmount,
+        serviceNames: getServiceNames(),
+        bookingDate: bookingDateEl.value || '',
+        bookingTime: bookingTimeEl.value || '',
         idempotencyKey: idempotencyKey,
         createdAt: Date.now()
       });

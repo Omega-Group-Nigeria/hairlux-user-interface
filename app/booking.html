@@ -119,6 +119,32 @@
                       <div id="servicesListContainer"></div>
                       <div class="helper-text" id="selectedServiceHelp">Please return to the Services page to change, or add more services.</div>
                     </div>
+                    <script>
+                      (function () {
+                        var params = new URLSearchParams(window.location.search);
+                        if (!params.get('d')) return;
+
+                        var titleEl = document.getElementById('selectedServiceTitle');
+                        var listEl = document.getElementById('servicesListContainer');
+                        var helpEl = document.getElementById('selectedServiceHelp');
+                        var boxEl = document.getElementById('selectedServiceBox');
+
+                        if (titleEl) titleEl.textContent = 'Preparing services...';
+
+                        if (listEl) {
+                          listEl.innerHTML =
+                            '<div class="selected-service-loading">' +
+                              '<svg class="selected-service-loading-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+                                '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
+                              '</svg>' +
+                              '<span>Loading services</span>' +
+                            '</div>';
+                        }
+
+                        if (helpEl) helpEl.textContent = 'Please wait while we load your selected services.';
+                        if (boxEl) boxEl.classList.remove('missing');
+                      })();
+                    </script>
                   </div>
 
                   <div class="field full">

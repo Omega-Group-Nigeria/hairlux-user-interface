@@ -294,6 +294,24 @@
     </div>
   </div>
 
+  <div id="bookingPaymentSuccessModal" class="wallet-modal" aria-hidden="true">
+    <div class="wallet-modal-card">
+      <div class="wallet-modal-icon">✓</div>
+      <h3 class="wallet-modal-title">Booking Confirmed</h3>
+      <p class="wallet-modal-text">Your payment was verified successfully and your booking is confirmed.</p>
+      <div class="wallet-success-details">
+        <div class="wallet-success-row"><span>Reservation Code</span><span id="bookingSuccessReservation" class="wallet-success-value">-</span></div>
+        <div class="wallet-success-row"><span>Service</span><span id="bookingSuccessService" class="wallet-success-value">-</span></div>
+        <div class="wallet-success-row"><span>Date &amp; Time</span><span id="bookingSuccessDateTime" class="wallet-success-value">-</span></div>
+        <div class="wallet-success-row"><span>Amount</span><span id="bookingSuccessAmount" class="wallet-success-value">-</span></div>
+      </div>
+      <div class="wallet-modal-actions" style="margin-top:18px;">
+        <a href="my-bookings.html" class="button-outline w-inline-block"><div>View My Bookings</div></a>
+        <a href="#" id="bookingSuccessClose" class="button-green w-inline-block"><div>Close</div></a>
+      </div>
+    </div>
+  </div>
+
 
 
   <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=675c8e48ca0e0fb5ab421239"
