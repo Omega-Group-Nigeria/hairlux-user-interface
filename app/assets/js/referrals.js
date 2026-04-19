@@ -89,7 +89,7 @@
 
       document.getElementById('btnShare').addEventListener('click', async () => {
         if (!myCode) return toast('Referral code not loaded yet.', 'error');
-        const shareUrl  = window.location.origin + '/sign-up?code=' + encodeURIComponent(myCode);
+        const shareUrl  = window.location.origin + '/sign-up.html?code=' + encodeURIComponent(myCode);
         const shareData = {
           title: 'Join me on Hairlux!',
           text:  `Use my referral code ${myCode} to sign up and get a reward on Hairlux — premium mobile beauty services.`,

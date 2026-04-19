@@ -556,7 +556,7 @@
         if (el) el.textContent = code || '—';
         document.getElementById('miniCopyBtn').addEventListener('click', async function () {
           if (!code) return;
-          const link = window.location.origin + '/sign-up?code=' + encodeURIComponent(code);
+          const link = window.location.origin + '/sign-up.html?code=' + encodeURIComponent(code);
           try {
             await navigator.clipboard.writeText(link);
           } catch {

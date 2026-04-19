@@ -105,6 +105,7 @@
   // Booking type
   const homeServiceCard  = document.getElementById('homeServiceCard');
   const walkInCard       = document.getElementById('walkInCard');
+  const bookingTypeGrid  = homeServiceCard ? homeServiceCard.parentElement : (walkInCard ? walkInCard.parentElement : null);
 
   const newFullAddress = document.getElementById('newFullAddress');
   const newAddressSuggestions = document.getElementById('newAddressSuggestions');
@@ -258,6 +259,31 @@
 
     helper.textContent = message || '';
     helper.style.color = tone === 'error' ? '#dc3545' : '';
+  }
+
+  function setBookingTypeLoadingState(isLoading) {
+    if (!bookingTypeGrid) return;
+    const field = bookingTypeGrid.closest('.field.full');
+    if (!field) return;
+
+    let loadingEl = document.getElementById('bookingTypeLoading');
+    if (!loadingEl) {
+      loadingEl = document.createElement('div');
+      loadingEl.id = 'bookingTypeLoading';
+      loadingEl.className = 'selected-service-loading booking-type-loading';
+      loadingEl.innerHTML =
+        '<svg class="selected-service-loading-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+          '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
+        '</svg>' +
+        '<span>Loading available booking types</span>';
+      bookingTypeGrid.insertAdjacentElement('afterend', loadingEl);
+    }
+
+    bookingTypeGrid.style.display = isLoading ? 'none' : '';
+    loadingEl.style.display = isLoading ? 'inline-flex' : 'none';
+    if (isLoading) {
+      updateBookingTypeHelper('Please wait while we check which booking mode fits your selected services.', 'info');
+    }
   }
 
   function applyBookingTypeAvailability() {
@@ -462,9 +488,11 @@
           : (supportsHome ? 'Mobile only' : 'Unavailable'));
       html += `
         <div class="service-list-row">
-          <span class="service-list-name">${escHtml(svc.name)}</span>
+          <div class="service-list-main">
+            <span class="service-list-name">${escHtml(svc.name)}</span>
+            <span class="selected-service-chip service-list-mode">${modeLabel}</span>
+          </div>
           <div class="service-list-badges">
-            <span class="selected-service-chip">${modeLabel}</span>
             <span class="selected-service-chip">${formatMoney(servicePrice)}</span>
             <span class="selected-service-chip">${svc.duration} mins</span>
           </div>
@@ -1998,7 +2026,13 @@
 
   // ── Init ──────────────────────────────────────────────────────────
   (async function initBookingPage() {
-    await hydrateSelectedServicesPricing();
+    const shouldShowBookingTypeLoading = getSelectedServices().length > 0;
+    if (shouldShowBookingTypeLoading) setBookingTypeLoadingState(true);
+    try {
+      await hydrateSelectedServicesPricing();
+    } finally {
+      if (shouldShowBookingTypeLoading) setBookingTypeLoadingState(false);
+    }
     applyBookingTypeAvailability();
     hydrateSelectedServiceUI();
     refreshSummary();

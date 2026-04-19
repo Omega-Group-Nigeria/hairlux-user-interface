@@ -749,7 +749,7 @@
 
     .service-list-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 10px;
       padding: 9px 0;
@@ -760,15 +760,33 @@
       border-bottom: none;
     }
 
-    .service-list-name {
+    .service-list-main {
       flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .service-list-name {
+      display: block;
       font-size: 13px;
       font-weight: 600;
       color: #2d3622;
     }
 
+    .service-list-mode {
+      align-self: flex-start;
+      min-height: 24px;
+      padding: 2px 8px;
+      font-size: 10px;
+    }
+
     .service-list-badges {
       display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       gap: 5px;
       flex-shrink: 0;
     }
@@ -1034,6 +1052,11 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .booking-type-loading {
+      margin-top: 2px;
       margin-bottom: 4px;
     }
 

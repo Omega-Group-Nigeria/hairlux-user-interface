@@ -13,6 +13,16 @@
     const token = APIHelper.getToken();
 
     if (user && token) {
+      // Update public homepage CTA to dashboard for authenticated users.
+      const authCta = document.querySelector('[data-auth-cta="hero"]');
+      if (authCta) {
+        authCta.setAttribute('href', 'app/index.html');
+        const authCtaLabel = authCta.querySelector('div');
+        if (authCtaLabel) {
+          authCtaLabel.textContent = 'Go to Dashboard';
+        }
+      }
+
       // 1. Prepare user data
       const first = (user.firstName || '').trim();
       const last  = (user.lastName  || '').trim();

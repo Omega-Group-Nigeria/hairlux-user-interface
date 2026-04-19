@@ -870,7 +870,7 @@
 
     @media (max-width: 479px) {
       .dashboard-content {
-        padding: 0 10px;
+        padding: 0px;
       }
 
       .transactions-panel {
