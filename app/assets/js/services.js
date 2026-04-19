@@ -120,61 +120,6 @@
     var clearBtn    = document.getElementById('sel-clear-btn');
     var continueBtn = document.getElementById('sel-continue-btn');
     var paginationWrap = document.getElementById('services-pagination');
-    var serviceModeModal = document.getElementById('service-mode-modal');
-    var serviceModeTitle = document.getElementById('service-mode-title');
-    var serviceModeText = document.getElementById('service-mode-text');
-    var serviceModeHome = document.getElementById('service-mode-home');
-    var serviceModeWalkIn = document.getElementById('service-mode-walkin');
-    var serviceModeOptions = document.getElementById('service-mode-options');
-    var serviceModeCancel = document.getElementById('service-mode-cancel');
-    var serviceModeChoose = document.getElementById('service-mode-choose');
-    var pendingModeResolver = null;
-
-    function setModeOptionVisualState() {
-      if (!serviceModeOptions) return;
-      serviceModeOptions.querySelectorAll('.service-mode-option').forEach(function (option) {
-        var radio = option.querySelector('input[type="radio"]');
-        option.classList.toggle('is-selected', Boolean(radio && radio.checked));
-      });
-    }
-
-    function closeServiceModeModal(resolvedMode) {
-      if (serviceModeModal) {
-        serviceModeModal.classList.remove('show');
-        serviceModeModal.setAttribute('aria-hidden', 'true');
-      }
-      document.body.style.overflow = '';
-
-      if (pendingModeResolver) {
-        var resolver = pendingModeResolver;
-        pendingModeResolver = null;
-        resolver(normalizeMode(resolvedMode));
-      }
-    }
-
-    function requestServiceModeSelection(serviceName) {
-      if (!serviceModeModal || !serviceModeHome || !serviceModeWalkIn) {
-        return Promise.resolve('HOME_SERVICE');
-      }
-
-      if (serviceModeTitle) serviceModeTitle.textContent = 'Choose booking mode';
-      if (serviceModeText) {
-        var safeName = escapeHtml(String(serviceName || 'this service'));
-        serviceModeText.innerHTML = 'Select how you want <strong>' + safeName + '</strong> delivered.';
-      }
-
-      serviceModeHome.checked = true;
-      serviceModeWalkIn.checked = false;
-      setModeOptionVisualState();
-
-      serviceModeModal.classList.add('show');
-      serviceModeModal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-
-      return new Promise(function (resolve) {
-        pendingModeResolver = resolve;
-      });
-    }
 
     function restoreSelectedFromSession() {
       try {
@@ -266,39 +211,27 @@
       };
     }
 
-    function resolveServiceMode(serviceMeta) {
-      var hasWalk = Boolean(serviceMeta.isWalkInAvailable);
-      var hasHome = Boolean(serviceMeta.isHomeServiceAvailable);
-
-      if (hasWalk && hasHome) {
-        return requestServiceModeSelection(serviceMeta.name);
-      }
-      if (hasHome) return Promise.resolve('HOME_SERVICE');
-      if (hasWalk) return Promise.resolve('WALK_IN');
-      return Promise.resolve('');
-    }
-
     function setCardSelectedState(cardEl, isSelected, selectedMode) {
-      var btn = cardEl.querySelector('.sel-btn');
-      var btnText = cardEl.querySelector('.sel-btn-text');
-
       cardEl.classList.toggle('selected', Boolean(isSelected));
-      if (btn) {
-        btn.classList.toggle('selected-active', Boolean(isSelected));
-        btn.classList.toggle('unselected', !isSelected);
-      }
-      if (btnText) {
-        btnText.textContent = isSelected
-          ? ('Selected \u00b7 ' + modeLabel(normalizeMode(selectedMode) || 'HOME_SERVICE'))
-          : 'Select Service';
-      }
+
+      var normalizedSelectedMode = normalizeMode(selectedMode);
+      cardEl.querySelectorAll('button[data-select-mode]').forEach(function (button) {
+        var buttonMode = normalizeMode(button.dataset.selectMode);
+        var isActive = Boolean(isSelected) && normalizedSelectedMode === buttonMode;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
     }
 
-    async function toggleService(cardEl) {
+    function setServiceSelection(cardEl, mode) {
       var id = cardEl.dataset.serviceId;
       if (!id) return;
 
-      if (selected.has(id)) {
+      var chosenMode = normalizeMode(mode);
+      if (!chosenMode) return;
+
+      var existing = selected.get(id);
+      if (existing && normalizeMode(existing.selectedMode) === chosenMode) {
         selected.delete(id);
         setCardSelectedState(cardEl, false, '');
         renderBar();
@@ -306,9 +239,10 @@
       }
 
       var meta = readServiceMeta(cardEl);
-      var chosenMode = normalizeMode(await resolveServiceMode(meta));
-      if (!chosenMode) {
-        showToast('This service is currently unavailable for booking.', 'error', 3000);
+      var isModeAvailable = (chosenMode === 'HOME_SERVICE' && meta.isHomeServiceAvailable)
+        || (chosenMode === 'WALK_IN' && meta.isWalkInAvailable);
+      if (!isModeAvailable) {
+        showToast('This mode is unavailable for this service.', 'info', 2600);
         return;
       }
 
@@ -333,23 +267,11 @@
     // ── Build a service card element ──────────────────────────
     function buildCard(svc) {
       var imgUrl   = svc.imageUrl || getFallbackImage((svc.category && svc.category.name) || '');
-      var catName  = (svc.category && svc.category.name) || '';
       var displayPrice = getServiceDisplayPrice(svc);
       var selectedSvc = selected.get(String(svc.id));
       var isSelected = Boolean(selectedSvc);
       var canWalkIn = svc && svc.isWalkInAvailable !== false;
       var canHomeService = svc && svc.isHomeServiceAvailable !== false;
-
-      var modeBadges = '';
-      if (canWalkIn) {
-        modeBadges += '<span class="service-mode-pill walkin">Walk-In</span>';
-      }
-      if (canHomeService) {
-        modeBadges += '<span class="service-mode-pill mobile">Mobile Service</span>';
-      }
-      if (!modeBadges) {
-        modeBadges = '<span class="service-mode-pill unavailable">Currently unavailable</span>';
-      }
 
       var div = document.createElement('div');
       div.className = 'service-item' + (isSelected ? ' selected' : '');
@@ -367,26 +289,55 @@
       div.dataset.isHomeServiceAvailable = canHomeService ? 'true' : 'false';
 
       var selectedMode = normalizeMode(selectedSvc && selectedSvc.selectedMode);
-      var selectedLabel = selectedMode ? ('Selected \u00b7 ' + modeLabel(selectedMode)) : 'Selected \u2713';
+      var walkPrice = getServicePriceForMode(svc, 'WALK_IN');
+      var homePrice = getServicePriceForMode(svc, 'HOME_SERVICE');
+
+      var chooseHint = 'Tap one option below to select this service.';
+      if (canHomeService && canWalkIn) {
+        chooseHint = 'Click below to choose:';
+      } else if (canHomeService) {
+        chooseHint = 'Click below to choose:';
+      } else if (canWalkIn) {
+        chooseHint = 'Click below to choose:';
+      }
+
+      var modeActionsHtml = '';
+      if (canHomeService) {
+        modeActionsHtml +=
+          '<button type="button" class="service-mode-action' + (selectedMode === 'HOME_SERVICE' ? ' active' : '') + '" data-select-mode="HOME_SERVICE" aria-pressed="' + (selectedMode === 'HOME_SERVICE' ? 'true' : 'false') + '">' +
+            '<span class="service-mode-action-label">Mobile</span>' +
+            '<span class="service-mode-action-price">' + formatPrice(homePrice) + '</span>' +
+          '</button>';
+      }
+      if (canWalkIn) {
+        modeActionsHtml +=
+          '<button type="button" class="service-mode-action' + (selectedMode === 'WALK_IN' ? ' active' : '') + '" data-select-mode="WALK_IN" aria-pressed="' + (selectedMode === 'WALK_IN' ? 'true' : 'false') + '">' +
+            '<span class="service-mode-action-label">Walk-In</span>' +
+            '<span class="service-mode-action-price">' + formatPrice(walkPrice) + '</span>' +
+          '</button>';
+      }
+      if (!modeActionsHtml) {
+        modeActionsHtml = '<div class="service-mode-unavailable">Currently unavailable</div>';
+      }
+
+      var modeOptionsCount = (canHomeService ? 1 : 0) + (canWalkIn ? 1 : 0);
 
       div.innerHTML =
         '<div class="sel-check" aria-hidden="true">' +
           '<svg viewBox="0 0 16 16"><polyline points="2.5,8 6.5,12 13.5,4.5"/></svg>' +
         '</div>' +
-        '<div class="service-mode-badges" aria-label="Service availability">' +
-          modeBadges +
-        '</div>' +
         '<div class="service-card-content">' +
           '<h4 class="heading-regular">' + escapeHtml(svc.name) + '</h4>' +
           '<p class="p-regular">' + escapeHtml(svc.description || '') + '</p>' +
-          '<div class="service-cost">From ' + formatPrice(displayPrice) + '</div>' +
-          '<button type="button" class="sel-btn ' + (isSelected ? 'selected-active' : 'unselected') + '"><span class="sel-btn-text">' + (isSelected ? selectedLabel : 'Select Service') + '</span></button>' +
+          '<p class="service-mode-hint">' + escapeHtml(chooseHint) + '</p>' +
+          '<div class="service-mode-actions-row' + (modeOptionsCount <= 1 ? ' single-option' : '') + '">' + modeActionsHtml + '</div>' +
         '</div>';
 
-      div.addEventListener('click', function () {
-        toggleService(div).catch(function (error) {
-          showToast((error && error.message) || 'Could not update your selection. Please try again.', 'error');
-        });
+      div.addEventListener('click', function (event) {
+        var modeButton = event.target.closest('button[data-select-mode]');
+        if (!modeButton) return;
+        event.preventDefault();
+        setServiceSelection(div, modeButton.dataset.selectMode);
       });
       return div;
     }
@@ -574,7 +525,10 @@
       var id = removeBtn.dataset.id;
       var cardEl = grid.querySelector('.service-item[data-service-id="' + id + '"]');
       if (cardEl) {
-        toggleService(cardEl);
+        var selectedItem = selected.get(id);
+        if (selectedItem && selectedItem.selectedMode) {
+          setServiceSelection(cardEl, selectedItem.selectedMode);
+        }
         return;
       }
 
@@ -590,39 +544,6 @@
       selected.clear();
       renderBar();
       renderServices(filteredServices);
-    });
-
-    if (serviceModeOptions) {
-      serviceModeOptions.addEventListener('change', setModeOptionVisualState);
-    }
-
-    if (serviceModeCancel) {
-      serviceModeCancel.addEventListener('click', function () {
-        closeServiceModeModal('');
-      });
-    }
-
-    if (serviceModeChoose) {
-      serviceModeChoose.addEventListener('click', function () {
-        var selectedRadio = document.querySelector('input[name="serviceMode"]:checked');
-        if (!selectedRadio) {
-          showToast('Please choose a booking mode to continue.', 'info');
-          return;
-        }
-        closeServiceModeModal(selectedRadio.value);
-      });
-    }
-
-    if (serviceModeModal) {
-      serviceModeModal.addEventListener('click', function (event) {
-        if (event.target === serviceModeModal) closeServiceModeModal('');
-      });
-    }
-
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && serviceModeModal && serviceModeModal.classList.contains('show')) {
-        closeServiceModeModal('');
-      }
     });
 
     // ── Loading / error states ────────────────────────────────

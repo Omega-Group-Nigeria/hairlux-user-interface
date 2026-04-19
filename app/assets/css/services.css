@@ -316,7 +316,7 @@
       background-position: center;
       background-size: cover;
       background-repeat: no-repeat;
-      cursor: pointer;
+      cursor: default;
     }
 
     .service-item:hover {
@@ -355,53 +355,10 @@
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.18);
       border: 2px solid rgba(255, 255, 255, 0.5);
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .service-mode-badges {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      z-index: 3;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      max-width: calc(100% - 64px);
-      pointer-events: none;
-    }
-
-    .service-mode-pill {
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      border: 1px solid transparent;
-      color: #ffffff;
-      backdrop-filter: blur(4px);
-      white-space: nowrap;
-    }
-
-    .service-mode-pill.walkin {
-      background: rgba(92, 150, 55, 0.28);
-      border-color: rgba(204, 237, 183, 0.5);
-    }
-
-    .service-mode-pill.mobile {
-      background: rgba(17, 107, 128, 0.3);
-      border-color: rgba(176, 230, 241, 0.5);
-    }
-
-    .service-mode-pill.unavailable {
-      background: rgba(180, 36, 36, 0.3);
-      border-color: rgba(255, 204, 204, 0.6);
     }
 
     .service-item .sel-check svg {
@@ -416,6 +373,7 @@
     }
 
     .service-item.selected .sel-check {
+      display: flex;
       background: #9d8248;
       border-color: #9d8248;
       transform: scale(1.1);
@@ -444,57 +402,76 @@
       font-size: 14px;
     }
 
-    .service-cost {
-      display: inline-block;
-      margin-bottom: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      color: #f3f7ee;
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      backdrop-filter: blur(2px);
+    .service-mode-hint {
+      margin-bottom: 10px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
     }
 
-    .service-item .sel-btn {
+    .service-mode-actions-row {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .service-mode-actions-row.single-option {
+      grid-template-columns: 1fr;
+    }
+
+    .service-mode-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(255, 255, 255, 0.36);
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+      text-align: left;
+    }
+
+    .service-mode-action:hover {
+      border-color: rgba(255, 255, 255, 0.62);
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .service-mode-action.active {
+      border-color: #dcb46b;
+      background: rgba(157, 130, 72, 0.38);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    }
+
+    .service-mode-action-label {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .service-mode-action-price {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .service-mode-unavailable {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: auto;
       min-height: 38px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: none;
-      font-size: 13px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 204, 204, 0.6);
+      background: rgba(180, 36, 36, 0.34);
+      color: #fff2f2;
+      font-size: 12px;
       font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-      letter-spacing: 0.01em;
-    }
-
-    .service-item .sel-btn.unselected {
-      background: linear-gradient(135deg, #8c5e1a 0%, #b47d2d 100%);
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(140, 94, 26, 0.35);
-    }
-
-    .service-item .sel-btn.unselected:hover {
-      background: linear-gradient(135deg, #7a5018 0%, #9d6e22 100%);
-      box-shadow: 0 6px 16px rgba(140, 94, 26, 0.45);
-    }
-
-    .service-item .sel-btn.selected-active {
-      background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      border: 1.5px solid rgba(255, 255, 255, 0.55);
-      backdrop-filter: blur(4px);
-      box-shadow: none;
-    }
-
-    .service-item .sel-btn.selected-active:hover {
-      background: rgba(255, 255, 255, 0.26);
     }
 
     .service-item.service-hair {
@@ -1056,117 +1033,6 @@
       cursor: pointer;
     }
 
-    .service-mode-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 10020;
-      background: rgba(10, 14, 9, 0.45);
-      backdrop-filter: blur(2px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .service-mode-modal.show {
-      display: flex;
-    }
-
-    .service-mode-modal-card {
-      width: min(100%, 460px);
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22);
-      padding: 18px;
-    }
-
-    .service-mode-modal-title {
-      margin: 0;
-      color: var(--primary);
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .service-mode-modal-text {
-      margin: 8px 0 14px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .service-mode-options {
-      display: grid;
-      gap: 10px;
-    }
-
-    .service-mode-option {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 4px 10px;
-      align-items: start;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #fbfcfd;
-      padding: 11px 12px;
-      cursor: pointer;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .service-mode-option.is-selected {
-      border-color: #9d8248;
-      box-shadow: 0 0 0 3px rgba(157, 130, 72, 0.14);
-      background: #fffdf8;
-    }
-
-    .service-mode-option input {
-      margin-top: 2px;
-    }
-
-    .service-mode-option-label {
-      grid-column: 2;
-      font-size: 14px;
-      font-weight: 700;
-      color: #2f3a24;
-      line-height: 1.25;
-    }
-
-    .service-mode-option-desc {
-      grid-column: 2;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 500;
-      line-height: 1.35;
-    }
-
-    .service-mode-actions {
-      margin-top: 14px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .service-mode-cancel,
-    .service-mode-choose {
-      min-height: 38px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .service-mode-cancel {
-      border: 1px solid rgba(65, 83, 38, 0.26);
-      background: #ffffff;
-      color: var(--primary);
-    }
-
-    .service-mode-cancel:hover {
-      background: #f4f7ef;
-    }
-
     @media (max-width: 991px) {
       .dashboard-grid {
         grid-template-columns: 1fr;
@@ -1218,7 +1084,7 @@
       }
 
       .action-card .button-outline,
-      .service-item .sel-btn {
+      .service-mode-action {
         min-height: 36px;
         padding: 8px 14px;
         font-size: 13px;
@@ -1339,13 +1205,8 @@
         min-height: 44px;
       }
 
-      .service-mode-actions {
-        justify-content: stretch;
-      }
-
-      .service-mode-cancel,
-      .service-mode-choose {
-        flex: 1;
+      .service-mode-actions-row {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1390,7 +1251,7 @@
       }
 
       .action-card .button-outline,
-      .service-item .sel-btn {
+      .service-mode-action {
         min-height: 34px;
         padding: 7px 12px;
         font-size: 12px;
