@@ -52,8 +52,65 @@
   // ── Helpers ───────────────────────────────────────────────────────
   function getSelectedServices() { return allSelectedServices; }
   function getSelectedService()  { return allSelectedServices[0] || null; }
+  function normalizeServiceMode(value) {
+    const mode = String(value || '').trim().toUpperCase();
+    if (mode === 'HOME_SERVICE' || mode === 'MOBILE') return 'HOME_SERVICE';
+    if (mode === 'WALK_IN' || mode === 'WALKIN') return 'WALK_IN';
+    return '';
+  }
+
+  function getSelectedModeFromService(service) {
+    if (!service || typeof service !== 'object') return '';
+    const explicit = normalizeServiceMode(service.selectedMode || service.serviceMode || service.bookingType);
+    if (explicit) return explicit;
+
+    const walkEnabled = service.isWalkInAvailable !== false;
+    const homeEnabled = service.isHomeServiceAvailable !== false;
+    const walkPrice = Number(service.walkInPrice);
+    const homePrice = Number(service.homeServicePrice);
+    const hasWalk = walkEnabled && Number.isFinite(walkPrice) && walkPrice >= 0;
+    const hasHome = homeEnabled && Number.isFinite(homePrice) && homePrice >= 0;
+
+    if (hasHome && !hasWalk) return 'HOME_SERVICE';
+    if (hasWalk && !hasHome) return 'WALK_IN';
+    return '';
+  }
+
+  function hasAnyMobileService() {
+    return getSelectedServices().some(function (svc) {
+      return getSelectedModeFromService(svc) === 'HOME_SERVICE';
+    });
+  }
+
+  function hasAnyWalkInService() {
+    return getSelectedServices().some(function (svc) {
+      return getSelectedModeFromService(svc) === 'WALK_IN';
+    });
+  }
+
+  function getBookingTypePresentation() {
+    const hasHome = hasAnyMobileService();
+    const hasWalk = hasAnyWalkInService();
+    if (hasHome && hasWalk) {
+      return {
+        text: 'Mixed (Mobile + Walk-In)',
+        badgeHtml: '<span class="btype-badge home">🏠 + 🏪 Mixed (Mobile + Walk-In)</span>'
+      };
+    }
+    if (hasHome) {
+      return {
+        text: 'Mobile Service',
+        badgeHtml: '<span class="btype-badge home">🏠 Mobile Serivice</span>'
+      };
+    }
+    return {
+      text: 'Walk-In (Store)',
+      badgeHtml: '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>'
+    };
+  }
+
   function getServicePriceForType(service, type) {
-    const targetType = type || bookingType;
+    const targetType = type || getSelectedModeFromService(service) || bookingType;
     const walkIn = Number(service && service.walkInPrice);
     const home = Number(service && service.homeServicePrice);
     const hasWalk = (service && service.isWalkInAvailable !== false) && Number.isFinite(walkIn) && walkIn >= 0;
@@ -231,8 +288,8 @@
     }
 
     return {
-      home: services.every(function (svc) { return isServiceModeAvailable(svc, 'HOME_SERVICE'); }),
-      walk: services.every(function (svc) { return isServiceModeAvailable(svc, 'WALK_IN'); })
+      home: services.some(function (svc) { return getSelectedModeFromService(svc) === 'HOME_SERVICE'; }),
+      walk: services.some(function (svc) { return getSelectedModeFromService(svc) === 'WALK_IN'; })
     };
   }
 
@@ -288,52 +345,12 @@
 
   function applyBookingTypeAvailability() {
     bookingTypeCapabilities = computeBookingTypeCapabilities();
-    const canHome = bookingTypeCapabilities.home;
-    const canWalk = bookingTypeCapabilities.walk;
-    const homeBlockers = getModeBlockers('HOME_SERVICE');
-    const walkBlockers = getModeBlockers('WALK_IN');
 
-    if (homeServiceCard) homeServiceCard.style.display = canHome ? '' : 'none';
-    if (walkInCard) walkInCard.style.display = canWalk ? '' : 'none';
+    bookingType = bookingTypeCapabilities.home ? 'HOME_SERVICE' : 'WALK_IN';
 
-    if (canHome && canWalk) {
-      if (bookingType !== 'HOME_SERVICE' && bookingType !== 'WALK_IN') {
-        bookingType = 'HOME_SERVICE';
-      }
-      setBookingTypeCardState(homeServiceCard, true);
-      setBookingTypeCardState(walkInCard, true);
-      updateBookingTypeHelper('Some services support both modes. Choose your preferred booking type.', 'info');
-    } else if (canHome) {
-      bookingType = 'HOME_SERVICE';
-      setBookingTypeCardState(homeServiceCard, false);
-      setBookingTypeCardState(walkInCard, false);
-      updateBookingTypeHelper(
-        walkBlockers.length
-          ? ('Walk-in is unavailable for: ' + walkBlockers.map(function (s) { return s.name; }).join(', ') + '.')
-          : 'Selected services are available only for mobile service.',
-        'info'
-      );
-    } else if (canWalk) {
-      bookingType = 'WALK_IN';
-      setBookingTypeCardState(homeServiceCard, false);
-      setBookingTypeCardState(walkInCard, false);
-      updateBookingTypeHelper(
-        homeBlockers.length
-          ? ('Mobile service is unavailable for: ' + homeBlockers.map(function (s) { return s.name; }).join(', ') + '.')
-          : 'Selected services are available only for walk-in bookings.',
-        'info'
-      );
-    } else {
-      bookingType = 'HOME_SERVICE';
-      setBookingTypeCardState(homeServiceCard, false);
-      setBookingTypeCardState(walkInCard, false);
-      updateBookingTypeHelper('Selected services have no valid booking type available. Please change your service selection.', 'error');
-    }
-
-    selectOptionCard([homeServiceCard, walkInCard], bookingType === 'HOME_SERVICE' ? homeServiceCard : walkInCard);
-    const isHome = bookingType === 'HOME_SERVICE';
-    if (addressSection) addressSection.classList.toggle('visible', isHome);
-    if (!isHome) {
+    const needsAddress = bookingTypeCapabilities.home;
+    if (addressSection) addressSection.classList.toggle('visible', needsAddress);
+    if (!needsAddress) {
       addAddressWrap.style.display = 'none';
       if (savedAddressEl) savedAddressEl.value = '';
     }
@@ -479,13 +496,10 @@
     let html = '<div class="services-list">';
     services.forEach(svc => {
       const servicePrice = getServicePriceForType(svc);
-      const supportsWalk = isServiceModeAvailable(svc, 'WALK_IN');
-      const supportsHome = isServiceModeAvailable(svc, 'HOME_SERVICE');
-      const modeLabel = supportsWalk && supportsHome
-        ? 'Both modes'
-        : (supportsWalk
-          ? 'Walk-In only'
-          : (supportsHome ? 'Mobile only' : 'Unavailable'));
+      const selectedMode = getSelectedModeFromService(svc);
+      const modeLabel = selectedMode === 'HOME_SERVICE'
+        ? 'Mobile Service'
+        : (selectedMode === 'WALK_IN' ? 'Walk-In (Store)' : 'Mode not selected');
       html += `
         <div class="service-list-row">
           <div class="service-list-main">
@@ -954,8 +968,9 @@
     const serviceLabel = services.length > 1
       ? `${services.length} services`
       : (services[0] ? services[0].name : '-');
-    const btLabel = bookingType === 'HOME_SERVICE' ? '🏠 Mobile Serivice' : '🏪 Walk-In (Store)';
-    const addrLabel = bookingType === 'HOME_SERVICE'
+    const bookingPresentation = getBookingTypePresentation();
+    const needsAddress = hasAnyMobileService();
+    const addrLabel = needsAddress
       ? (address ? escHtml(address.fullAddress || address.streetAddress || '-') : '-')
       : 'At the salon';
     const guestLabel = bookingForSelf
@@ -965,7 +980,7 @@
     liveSummary.innerHTML = `
       <div class="summary-row"><span>Service(s)</span><span>${escHtml(serviceLabel)}</span></div>
       <div class="summary-row"><span>Booking For</span><span>${escHtml(guestLabel)}</span></div>
-      <div class="summary-row"><span>Type</span><span>${btLabel}</span></div>
+      <div class="summary-row"><span>Type</span><span>${escHtml(bookingPresentation.text)}</span></div>
       <div class="summary-row"><span>Date</span><span>${bookingDateEl.value || '-'}</span></div>
       <div class="summary-row"><span>Time</span><span>${bookingTimeEl.value || '-'}</span></div>
       <div class="summary-row"><span>Location</span><span>${addrLabel}</span></div>
@@ -981,7 +996,8 @@
     const address  = getSelectedAddress();
     const totalPrice    = getTotalPrice();
     const totalDuration = getTotalDuration();
-    const isHomeService = bookingType === 'HOME_SERVICE';
+    const needsAddress = hasAnyMobileService();
+    const bookingPresentation = getBookingTypePresentation();
     const gName  = guestNameEl && guestNameEl.value.trim();
     const gPhone = guestPhoneEl && guestPhoneEl.value.trim();
 
@@ -1008,12 +1024,10 @@
     // Details block
     const detailIcon = `<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg>`;
     const notesVal  = notesEl.value.trim();
-    const addrVal   = isHomeService
+    const addrVal   = needsAddress
       ? (address ? escHtml(address.fullAddress || address.streetAddress || '-') : '-')
       : '<span class="btype-badge walkin">🏪 Walk-In at salon</span>';
-    const btBadge   = isHomeService
-      ? '<span class="btype-badge home">🏠 Mobile Serivice</span>'
-      : '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>';
+    const btBadge   = bookingPresentation.badgeHtml;
     const gEmail   = guestEmailEl ? guestEmailEl.value.trim() : '';
     const guestVal  = bookingForSelf
       ? 'Myself'
@@ -1046,7 +1060,7 @@
           <span class="review-detail-value">${bookingTimeEl.value || '-'}</span>
         </div>
         <div class="review-detail-row">
-          <span class="review-detail-label">${isHomeService ? 'Address' : 'Location'}</span>
+          <span class="review-detail-label">${needsAddress ? 'Address' : 'Location'}</span>
           <span class="review-detail-value">${addrVal}</span>
         </div>
         <div class="review-detail-row">
@@ -1110,12 +1124,14 @@
   function validateStep(currentStep) {
     if (currentStep === 1) {
       const hasServices = getSelectedServices().length > 0;
-      const hasValidMode = bookingTypeCapabilities.home || bookingTypeCapabilities.walk;
+      const hasValidMode = getSelectedServices().every(function (svc) {
+        return Boolean(getSelectedModeFromService(svc)) || isServiceModeAvailable(svc, 'HOME_SERVICE') || isServiceModeAvailable(svc, 'WALK_IN');
+      });
       return hasServices && hasValidMode;
     }
     if (currentStep === 2) {
       const dateTimeOk = Boolean(bookingDateEl.value && bookingTimeEl.value);
-      const addrOk = bookingType === 'WALK_IN' || Boolean(getSelectedAddress());
+      const addrOk = !hasAnyMobileService() || Boolean(getSelectedAddress());
       return dateTimeOk && addrOk;
     }
     return true;
@@ -1344,7 +1360,8 @@
     const baseTotal     = getTotalPrice();
     const total         = getAmountDueForPendingBooking();
     const shortfall     = getGatewayShortfallAmount(total);
-    const isHomeService = bookingType === 'HOME_SERVICE';
+    const needsAddress = hasAnyMobileService();
+    const bookingPresentation = getBookingTypePresentation();
     const addr          = getSelectedAddress();
     const gName         = guestNameEl && guestNameEl.value.trim();
     const gPhone        = guestPhoneEl && guestPhoneEl.value.trim();
@@ -1372,12 +1389,10 @@
     }
 
     // Booking type
-    modalBookingType.innerHTML = isHomeService
-      ? '<span class="btype-badge home">🏠 Mobile Serivice</span>'
-      : '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>';
+    modalBookingType.innerHTML = bookingPresentation.badgeHtml;
 
     // Address row
-    if (isHomeService) {
+    if (needsAddress) {
       modalAddressRow.style.display = '';
       modalAddress.textContent = addr ? (addr.fullAddress || addr.streetAddress || '-') : '-';
     } else {
@@ -1429,12 +1444,12 @@
   // Show confirmation modal BEFORE calling the API
   async function prepareConfirmModal() {
     let address = getSelectedAddress();
-    const bType   = getBookingType();
+    const bType   = hasAnyMobileService() ? 'HOME_SERVICE' : 'WALK_IN';
     const bMethod = getPaymentMethod();
     const gName   = guestNameEl  ? guestNameEl.value.trim()  : '';
     const gPhone  = guestPhoneEl ? guestPhoneEl.value.trim() : '';
 
-    if (bType === 'HOME_SERVICE') {
+    if (hasAnyMobileService()) {
       if (!address) {
         throw new Error('Please provide a delivery address before continuing.');
       }
@@ -1450,7 +1465,7 @@
     }
 
     const payload = {
-      services:      getSelectedServices().map(s => ({ serviceId: s.id })),
+      services:      getSelectedServices().map(s => ({ serviceId: s.id, serviceMode: getSelectedModeFromService(s) || bType })),
       date:          bookingDateEl.value,
       time:          bookingTimeEl.value,
       bookingType:   bType,
@@ -1462,7 +1477,7 @@
       discountCode:  discountInfo ? discountInfo.code : undefined
     };
 
-    if (bType === 'HOME_SERVICE' && address && address.id) {
+    if (hasAnyMobileService() && address && address.id) {
       payload.addressId = address.id;
     }
 
@@ -1736,6 +1751,7 @@
   // ── Option card toggling ──────────────────────────────────────────
   function selectOptionCard(cards, selected) {
     cards.forEach(c => {
+      if (!c) return;
       c.classList.toggle('selected', c === selected);
       c.setAttribute('aria-pressed', String(c === selected));
     });

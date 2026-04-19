@@ -27,6 +27,40 @@
       return '\u20a6' + Number(n).toLocaleString('en-NG');
     }
 
+    function showToast(message, type, duration) {
+      if (window.UIHelper && typeof window.UIHelper.showToast === 'function') {
+        window.UIHelper.showToast(message, type || 'info', duration || 2600);
+      }
+    }
+
+    function normalizeMode(mode) {
+      var value = String(mode || '').trim().toUpperCase();
+      if (value === 'HOME_SERVICE' || value === 'MOBILE') return 'HOME_SERVICE';
+      if (value === 'WALK_IN' || value === 'WALKIN') return 'WALK_IN';
+      return '';
+    }
+
+    function modeLabel(mode) {
+      return mode === 'HOME_SERVICE' ? 'Mobile' : 'Walk-In';
+    }
+
+    function getServicePriceForMode(service, mode) {
+      var walk = Number(service && service.walkInPrice);
+      var home = Number(service && service.homeServicePrice);
+      var hasWalk = !isNaN(walk) && walk >= 0;
+      var hasHome = !isNaN(home) && home >= 0;
+
+      if (mode === 'WALK_IN') {
+        if (hasWalk) return walk;
+        if (hasHome) return home;
+      } else if (mode === 'HOME_SERVICE') {
+        if (hasHome) return home;
+        if (hasWalk) return walk;
+      }
+
+      return getServiceDisplayPrice(service);
+    }
+
     function getServiceDisplayPrice(svc) {
       var prices = [];
 
@@ -66,7 +100,7 @@
     }
 
     // ── State ─────────────────────────────────────────────────
-    // Map: serviceId (UUID) → { id, name, price, duration, categoryId }
+    // Map: serviceId (UUID) → { id, name, price, duration, categoryId, selectedMode, walkInPrice, homeServicePrice, isWalkInAvailable, isHomeServiceAvailable }
     var selected = new Map();
     var activeCategoryId = '';
     var searchTerm = '';
@@ -86,6 +120,89 @@
     var clearBtn    = document.getElementById('sel-clear-btn');
     var continueBtn = document.getElementById('sel-continue-btn');
     var paginationWrap = document.getElementById('services-pagination');
+    var serviceModeModal = document.getElementById('service-mode-modal');
+    var serviceModeTitle = document.getElementById('service-mode-title');
+    var serviceModeText = document.getElementById('service-mode-text');
+    var serviceModeHome = document.getElementById('service-mode-home');
+    var serviceModeWalkIn = document.getElementById('service-mode-walkin');
+    var serviceModeOptions = document.getElementById('service-mode-options');
+    var serviceModeCancel = document.getElementById('service-mode-cancel');
+    var serviceModeChoose = document.getElementById('service-mode-choose');
+    var pendingModeResolver = null;
+
+    function setModeOptionVisualState() {
+      if (!serviceModeOptions) return;
+      serviceModeOptions.querySelectorAll('.service-mode-option').forEach(function (option) {
+        var radio = option.querySelector('input[type="radio"]');
+        option.classList.toggle('is-selected', Boolean(radio && radio.checked));
+      });
+    }
+
+    function closeServiceModeModal(resolvedMode) {
+      if (serviceModeModal) {
+        serviceModeModal.classList.remove('show');
+        serviceModeModal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.style.overflow = '';
+
+      if (pendingModeResolver) {
+        var resolver = pendingModeResolver;
+        pendingModeResolver = null;
+        resolver(normalizeMode(resolvedMode));
+      }
+    }
+
+    function requestServiceModeSelection(serviceName) {
+      if (!serviceModeModal || !serviceModeHome || !serviceModeWalkIn) {
+        return Promise.resolve('HOME_SERVICE');
+      }
+
+      if (serviceModeTitle) serviceModeTitle.textContent = 'Choose booking mode';
+      if (serviceModeText) {
+        var safeName = escapeHtml(String(serviceName || 'this service'));
+        serviceModeText.innerHTML = 'Select how you want <strong>' + safeName + '</strong> delivered.';
+      }
+
+      serviceModeHome.checked = true;
+      serviceModeWalkIn.checked = false;
+      setModeOptionVisualState();
+
+      serviceModeModal.classList.add('show');
+      serviceModeModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      return new Promise(function (resolve) {
+        pendingModeResolver = resolve;
+      });
+    }
+
+    function restoreSelectedFromSession() {
+      try {
+        var raw = sessionStorage.getItem('selectedServices');
+        if (!raw) return;
+        var items = JSON.parse(raw);
+        if (!Array.isArray(items)) return;
+
+        items.forEach(function (item) {
+          if (!item || !item.id) return;
+          var mode = normalizeMode(item.selectedMode || item.serviceMode || item.bookingType);
+          selected.set(String(item.id), {
+            id: String(item.id),
+            name: item.name || '',
+            price: Number(item.price || 0),
+            duration: Number(item.duration || 0),
+            categoryId: item.categoryId || '',
+            selectedMode: mode,
+            walkInPrice: Number(item.walkInPrice),
+            homeServicePrice: Number(item.homeServicePrice),
+            isWalkInAvailable: item.isWalkInAvailable !== false,
+            isHomeServiceAvailable: item.isHomeServiceAvailable !== false
+          });
+        });
+      } catch (e) {
+        // Ignore stale storage values.
+      }
+    }
 
     // ── Selection bottom bar ──────────────────────────────────
     function renderBar() {
@@ -100,13 +217,14 @@
       var totalPrice = 0, totalDuration = 0;
 
       selected.forEach(function (svc) {
-        totalPrice    += svc.price;
-        totalDuration += svc.duration;
+        totalPrice    += Number(svc.price) || 0;
+        totalDuration += Number(svc.duration) || 0;
+        var chipMode = normalizeMode(svc.selectedMode);
 
         var chip = document.createElement('div');
         chip.className = 'sel-chip';
         chip.innerHTML =
-          '<span>' + escapeHtml(svc.name) + '</span>' +
+          '<span>' + escapeHtml(svc.name) + (chipMode ? ' <small class="sel-chip-mode">(' + escapeHtml(modeLabel(chipMode)) + ')</small>' : '') + '</span>' +
           '<button type="button" class="sel-chip-remove" data-id="' + escapeHtml(svc.id) + '" aria-label="Remove ' + escapeHtml(svc.name) + '">' +
             '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>' +
           '</button>';
@@ -134,28 +252,81 @@
     }
 
     // ── Toggle a service card selection ──────────────────────
-    function toggleService(cardEl) {
-      var id       = cardEl.dataset.serviceId;
-      var btn      = cardEl.querySelector('.sel-btn');
-      var btnText  = cardEl.querySelector('.sel-btn-text');
+    function readServiceMeta(cardEl) {
+      return {
+        id: cardEl.dataset.serviceId,
+        name: cardEl.dataset.serviceName,
+        duration: parseInt(cardEl.dataset.serviceDuration, 10) || 0,
+        categoryId: cardEl.dataset.categoryId || '',
+        walkInPrice: Number(cardEl.dataset.walkInPrice),
+        homeServicePrice: Number(cardEl.dataset.homeServicePrice),
+        isWalkInAvailable: cardEl.dataset.isWalkInAvailable === 'true',
+        isHomeServiceAvailable: cardEl.dataset.isHomeServiceAvailable === 'true',
+        fallbackPrice: Number(cardEl.dataset.servicePrice || 0)
+      };
+    }
+
+    function resolveServiceMode(serviceMeta) {
+      var hasWalk = Boolean(serviceMeta.isWalkInAvailable);
+      var hasHome = Boolean(serviceMeta.isHomeServiceAvailable);
+
+      if (hasWalk && hasHome) {
+        return requestServiceModeSelection(serviceMeta.name);
+      }
+      if (hasHome) return Promise.resolve('HOME_SERVICE');
+      if (hasWalk) return Promise.resolve('WALK_IN');
+      return Promise.resolve('');
+    }
+
+    function setCardSelectedState(cardEl, isSelected, selectedMode) {
+      var btn = cardEl.querySelector('.sel-btn');
+      var btnText = cardEl.querySelector('.sel-btn-text');
+
+      cardEl.classList.toggle('selected', Boolean(isSelected));
+      if (btn) {
+        btn.classList.toggle('selected-active', Boolean(isSelected));
+        btn.classList.toggle('unselected', !isSelected);
+      }
+      if (btnText) {
+        btnText.textContent = isSelected
+          ? ('Selected \u00b7 ' + modeLabel(normalizeMode(selectedMode) || 'HOME_SERVICE'))
+          : 'Select Service';
+      }
+    }
+
+    async function toggleService(cardEl) {
+      var id = cardEl.dataset.serviceId;
+      if (!id) return;
 
       if (selected.has(id)) {
         selected.delete(id);
-        cardEl.classList.remove('selected');
-        if (btn) { btn.classList.remove('selected-active'); btn.classList.add('unselected'); }
-        if (btnText) btnText.textContent = 'Select Service';
-      } else {
-        selected.set(id, {
-          id:         id,
-          name:       cardEl.dataset.serviceName,
-          price:      parseInt(cardEl.dataset.servicePrice, 10),
-          duration:   parseInt(cardEl.dataset.serviceDuration, 10),
-          categoryId: cardEl.dataset.categoryId || ''
-        });
-        cardEl.classList.add('selected');
-        if (btn) { btn.classList.remove('unselected'); btn.classList.add('selected-active'); }
-        if (btnText) btnText.textContent = 'Selected \u2713';
+        setCardSelectedState(cardEl, false, '');
+        renderBar();
+        return;
       }
+
+      var meta = readServiceMeta(cardEl);
+      var chosenMode = normalizeMode(await resolveServiceMode(meta));
+      if (!chosenMode) {
+        showToast('This service is currently unavailable for booking.', 'error', 3000);
+        return;
+      }
+
+      var chosenPrice = getServicePriceForMode(meta, chosenMode);
+      selected.set(id, {
+        id: id,
+        name: meta.name,
+        price: Number(chosenPrice || meta.fallbackPrice || 0),
+        duration: Number(meta.duration || 0),
+        categoryId: meta.categoryId,
+        selectedMode: chosenMode,
+        walkInPrice: meta.walkInPrice,
+        homeServicePrice: meta.homeServicePrice,
+        isWalkInAvailable: meta.isWalkInAvailable,
+        isHomeServiceAvailable: meta.isHomeServiceAvailable
+      });
+
+      setCardSelectedState(cardEl, true, chosenMode);
       renderBar();
     }
 
@@ -164,9 +335,10 @@
       var imgUrl   = svc.imageUrl || getFallbackImage((svc.category && svc.category.name) || '');
       var catName  = (svc.category && svc.category.name) || '';
       var displayPrice = getServiceDisplayPrice(svc);
-      var isSelected = selected.has(String(svc.id));
-      var canWalkIn = svc && svc.isWalkInAvailable === true;
-      var canHomeService = svc && svc.isHomeServiceAvailable === true;
+      var selectedSvc = selected.get(String(svc.id));
+      var isSelected = Boolean(selectedSvc);
+      var canWalkIn = svc && svc.isWalkInAvailable !== false;
+      var canHomeService = svc && svc.isHomeServiceAvailable !== false;
 
       var modeBadges = '';
       if (canWalkIn) {
@@ -189,6 +361,13 @@
       div.dataset.servicePrice    = displayPrice;
       div.dataset.serviceDuration = svc.duration;
       div.dataset.categoryId      = svc.categoryId || '';
+      div.dataset.walkInPrice     = svc.walkInPrice != null ? Number(svc.walkInPrice) : '';
+      div.dataset.homeServicePrice = svc.homeServicePrice != null ? Number(svc.homeServicePrice) : '';
+      div.dataset.isWalkInAvailable = canWalkIn ? 'true' : 'false';
+      div.dataset.isHomeServiceAvailable = canHomeService ? 'true' : 'false';
+
+      var selectedMode = normalizeMode(selectedSvc && selectedSvc.selectedMode);
+      var selectedLabel = selectedMode ? ('Selected \u00b7 ' + modeLabel(selectedMode)) : 'Selected \u2713';
 
       div.innerHTML =
         '<div class="sel-check" aria-hidden="true">' +
@@ -201,10 +380,14 @@
           '<h4 class="heading-regular">' + escapeHtml(svc.name) + '</h4>' +
           '<p class="p-regular">' + escapeHtml(svc.description || '') + '</p>' +
           '<div class="service-cost">From ' + formatPrice(displayPrice) + '</div>' +
-          '<button type="button" class="sel-btn ' + (isSelected ? 'selected-active' : 'unselected') + '"><span class="sel-btn-text">' + (isSelected ? 'Selected \u2713' : 'Select Service') + '</span></button>' +
+          '<button type="button" class="sel-btn ' + (isSelected ? 'selected-active' : 'unselected') + '"><span class="sel-btn-text">' + (isSelected ? selectedLabel : 'Select Service') + '</span></button>' +
         '</div>';
 
-      div.addEventListener('click', function () { toggleService(div); });
+      div.addEventListener('click', function () {
+        toggleService(div).catch(function (error) {
+          showToast((error && error.message) || 'Could not update your selection. Please try again.', 'error');
+        });
+      });
       return div;
     }
 
@@ -409,6 +592,39 @@
       renderServices(filteredServices);
     });
 
+    if (serviceModeOptions) {
+      serviceModeOptions.addEventListener('change', setModeOptionVisualState);
+    }
+
+    if (serviceModeCancel) {
+      serviceModeCancel.addEventListener('click', function () {
+        closeServiceModeModal('');
+      });
+    }
+
+    if (serviceModeChoose) {
+      serviceModeChoose.addEventListener('click', function () {
+        var selectedRadio = document.querySelector('input[name="serviceMode"]:checked');
+        if (!selectedRadio) {
+          showToast('Please choose a booking mode to continue.', 'info');
+          return;
+        }
+        closeServiceModeModal(selectedRadio.value);
+      });
+    }
+
+    if (serviceModeModal) {
+      serviceModeModal.addEventListener('click', function (event) {
+        if (event.target === serviceModeModal) closeServiceModeModal('');
+      });
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && serviceModeModal && serviceModeModal.classList.contains('show')) {
+        closeServiceModeModal('');
+      }
+    });
+
     // ── Loading / error states ────────────────────────────────
     function showGridLoading() {
       grid.innerHTML =
@@ -428,6 +644,8 @@
     // ── Bootstrap: load categories then services ──────────────
     function init() {
       showGridLoading();
+      restoreSelectedFromSession();
+      renderBar();
 
       // Load categories for chips
       ServicesAPI.getCategories()
