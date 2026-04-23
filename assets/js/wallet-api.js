@@ -44,6 +44,14 @@
     return candidate === 'monnify' ? 'monnify' : 'paystack';
   }
 
+  function isWalletReference(reference) {
+    return /^WALLET-/i.test(String(reference || '').trim());
+  }
+
+  function isBookingPaymentReference(reference) {
+    return /^BOOKPAY-/i.test(String(reference || '').trim());
+  }
+
   function isFailedDepositStatus(status) {
     const value = String(status || '').trim().toLowerCase();
     return value === 'failed' || value === 'error' || value === 'cancelled' || value === 'canceled' || value === 'abandoned';
@@ -575,7 +583,17 @@
 
     async handleDepositCallback() {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('bookingPaymentReference') || params.get('booking_payment_reference')) {
+      const explicitBookingReference =
+        params.get('bookingPaymentReference') ||
+        params.get('booking_payment_reference') ||
+        '';
+      const genericReference =
+        params.get('paymentReference') ||
+        params.get('reference') ||
+        params.get('trxref') ||
+        '';
+
+      if (explicitBookingReference || isBookingPaymentReference(genericReference)) {
         return;
       }
       const pendingDeposit = this.readPendingDeposit();
@@ -590,8 +608,7 @@
         params.get('walletReference') ||
         params.get('wallet_reference') ||
         (pendingDeposit && pendingDeposit.reference) ||
-        params.get('reference') ||
-        params.get('trxref');
+        (isWalletReference(genericReference) ? genericReference : '');
       const provider = normalizeProvider(
         params.get('provider') ||
         params.get('paymentProvider') ||

@@ -57,6 +57,14 @@
         return value === 'failed' || value === 'error' || value === 'cancelled' || value === 'canceled' || value === 'abandoned';
       }
 
+      function isBookingGatewayReference(reference) {
+        return /^BOOKPAY-/i.test(String(reference || '').trim());
+      }
+
+      function isWalletGatewayReference(reference) {
+        return /^WALLET-/i.test(String(reference || '').trim());
+      }
+
       function bookingPaymentEndpoints() {
         const source = API_CONFIG && API_CONFIG.ENDPOINTS && API_CONFIG.ENDPOINTS.BOOKING_PAYMENTS
           ? API_CONFIG.ENDPOINTS.BOOKING_PAYMENTS
@@ -192,6 +200,29 @@
         const params = new URLSearchParams(window.location.search);
         const pendingState = readPendingBookingPayment();
 
+        const explicitBookingReference =
+          params.get('bookingPaymentReference') ||
+          params.get('booking_payment_reference') ||
+          '';
+        const genericReference =
+          params.get('paymentReference') ||
+          params.get('reference') ||
+          params.get('trxref') ||
+          '';
+        const walletReference =
+          params.get('walletReference') ||
+          params.get('wallet_reference') ||
+          '';
+
+        // Keep booking and wallet callbacks isolated even when they share redirect URLs.
+        if (
+          walletReference ||
+          isWalletGatewayReference(explicitBookingReference) ||
+          isWalletGatewayReference(genericReference)
+        ) {
+          return;
+        }
+
         const status = (
           params.get('status') ||
           params.get('paymentStatus') ||
@@ -201,9 +232,8 @@
         ).toLowerCase();
 
         const bookingPaymentReference =
-          params.get('bookingPaymentReference') ||
-          params.get('booking_payment_reference') ||
-          params.get('paymentReference') ||
+          explicitBookingReference ||
+          (isBookingGatewayReference(genericReference) ? genericReference : '') ||
           (pendingState && pendingState.bookingPaymentReference) ||
           '';
 
@@ -216,10 +246,8 @@
 
         const hasCallbackSignal = Boolean(
           pendingState ||
-          bookingPaymentReference ||
-          status ||
-          params.get('paymentStatus') ||
-          params.get('payment_status')
+          explicitBookingReference ||
+          (genericReference && isBookingGatewayReference(genericReference))
         );
 
         if (!hasCallbackSignal) return;
