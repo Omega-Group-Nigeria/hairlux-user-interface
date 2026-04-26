@@ -47,11 +47,11 @@ var BookingAPI = (function () {
    * CASH reserves the slot (payment collected on the day).
    *
    * @param {Object}   payload
-   * @param {Array<{serviceId:string}>} payload.services      - Services to book
+  * @param {Array<{serviceId:string, serviceMode:string}>} payload.services - Services to book with per-item mode ('WALK_IN' | 'HOME_SERVICE')
    * @param {string}   payload.date                          - Date (YYYY-MM-DD)
    * @param {string}   payload.time                          - Time (HH:mm)
-   * @param {string}   payload.bookingType                    - 'HOME_SERVICE' | 'WALK_IN'
-   * @param {string}   [payload.addressId]                    - Required for HOME_SERVICE
+  * @param {string}   [payload.bookingType]                 - Optional backward-compat field; do not rely on it when services include mixed modes
+  * @param {string}   [payload.addressId]                   - Required if any service item uses HOME_SERVICE; omit for pure WALK_IN bookings
    * @param {string}   [payload.guestName]                    - Name of person being booked for (optional)
    * @param {string}   [payload.guestPhone]                   - Phone of guest (optional)
    * @param {string}   [payload.paymentMethod]                - 'WALLET' (default) | 'CASH'
@@ -97,7 +97,11 @@ var BookingAPI = (function () {
    * Initialize a booking payment intent.
    * POST /bookings/payments/initialize
    *
-   * @param {{ bookingPayload: Object, amount: number, provider?: string, idempotencyKey: string }} payload
+    * @param {{ bookingPayload: Object, amount: number, provider?: string, idempotencyKey: string }} payload
+    * bookingPayload mirrors POST /bookings rules:
+    * - services[] must include serviceMode on every item
+    * - addressId is required if any item uses HOME_SERVICE
+    * - bookingType is optional and kept only for backward compatibility
    * @returns {Promise<{ paymentUrl: string, checkoutUrl: string, bookingPaymentReference: string, gatewayReference: string, expiresAt: string, provider: string, raw: Object }>}
    */
   async function initializeBookingPayment(payload) {
