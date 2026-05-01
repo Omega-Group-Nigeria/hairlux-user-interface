@@ -445,6 +445,13 @@
     return 'bookpay-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
   }
 
+  function createBookingIdempotencyKey() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return 'book-' + window.crypto.randomUUID();
+    }
+    return 'book-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
   async function hydrateSelectedServicesPricing() {
     const services = getSelectedServices();
     if (!services.length) return;
@@ -1465,16 +1472,17 @@
     }
 
     const payload = {
-      services:      getSelectedServices().map(s => ({ serviceId: s.id, serviceMode: getSelectedModeFromService(s) || bType })),
-      date:          bookingDateEl.value,
-      time:          bookingTimeEl.value,
-      bookingType:   bType,
-      guestName:     gName  || undefined,
-      guestPhone:    gPhone || undefined,
-      guestEmail:    guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
-      paymentMethod: bMethod,
-      notes:         notesEl.value.trim() || undefined,
-      discountCode:  discountInfo ? discountInfo.code : undefined
+      services:        getSelectedServices().map(s => ({ serviceId: s.id, serviceMode: getSelectedModeFromService(s) || bType })),
+      date:            bookingDateEl.value,
+      time:            bookingTimeEl.value,
+      bookingType:     bType,
+      guestName:       gName  || undefined,
+      guestPhone:      gPhone || undefined,
+      guestEmail:      guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
+      paymentMethod:   bMethod,
+      notes:           notesEl.value.trim() || undefined,
+      discountCode:    discountInfo ? discountInfo.code : undefined,
+      idempotencyKey:  createBookingIdempotencyKey()
     };
 
     if (hasAnyMobileService() && address && address.id) {

@@ -57,6 +57,7 @@ var BookingAPI = (function () {
    * @param {string}   [payload.paymentMethod]                - 'WALLET' (default) | 'CASH'
    * @param {string}   [payload.notes]                        - Optional notes
    * @param {string}   [payload.discountCode]                 - Optional discount code
+   * @param {string}   payload.idempotencyKey                 - Client-generated key (e.g. 'book-<uuid>'); prevents duplicate bookings on retries
    * @returns {Promise<{ booking: Object, reservationCode: string, totalAmount: number, paymentMethod: string, message: string }>}
    */
   async function create(payload) {
