@@ -49,7 +49,8 @@
 
       function normalizeGatewayProvider(provider) {
         const candidate = String(provider || '').trim().toLowerCase();
-        return candidate === 'monnify' ? 'monnify' : 'monnify';
+        if (candidate === 'paystack') return 'paystack';
+        return 'monnify';
       }
 
       function isFailedGatewayStatus(status) {

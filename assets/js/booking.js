@@ -199,8 +199,9 @@
   const modalSubtext       = document.getElementById('modalSubtext');
   const modalWalletBalance = document.getElementById('modalWalletBalance');
   const modalDebitAmount   = document.getElementById('modalDebitAmount');
-  const payLaterBtn        = document.getElementById('payLaterBtn');
-  const makePaymentBtn     = document.getElementById('makePaymentBtn');
+  const payLaterBtn          = document.getElementById('payLaterBtn');
+  const payWithPaystackBtn   = document.getElementById('payWithPaystackBtn');
+  const makePaymentBtn       = document.getElementById('makePaymentBtn');
   const paidModalBookingId = document.getElementById('paidModalBookingId');
   const paidModalService   = document.getElementById('paidModalService');
   const paidModalDateTime  = document.getElementById('paidModalDateTime');
@@ -391,7 +392,8 @@
 
   function normalizeGatewayProvider(provider) {
     const candidate = String(provider || '').trim().toLowerCase();
-    return candidate === 'monnify' ? 'monnify' : 'monnify';
+    if (candidate === 'paystack') return 'paystack';
+    return 'monnify';
   }
 
   function isFailedGatewayStatus(status) {
@@ -1423,8 +1425,8 @@
 
     const makePaymentLabel = makePaymentBtn && makePaymentBtn.querySelector('div');
     if (lowBalance) {
-      modalSubtext.textContent = `Wallet contributes ${formatMoney(walletBalance)}. Complete the shortfall with Monnify and we will finalize your booking automatically.`;
-      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(shortfall)} shortfall with Monnify for this booking.`;
+      modalSubtext.textContent = `Wallet contributes ${formatMoney(walletBalance)}. Complete the ${formatMoney(shortfall)} shortfall via Monnify or Paystack and we will finalize your booking automatically.`;
+      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(shortfall)} shortfall via Monnify or Paystack.`;
       modalStatus.style.color = '#dc3545';
       if (makePaymentLabel) {
         makePaymentLabel.textContent = 'Pay with Monnify';
@@ -1433,6 +1435,7 @@
       makePaymentBtn.style.pointerEvents = '';
       makePaymentBtn.style.opacity = '';
       if (payLaterBtn) payLaterBtn.style.display = 'none';
+      if (payWithPaystackBtn) payWithPaystackBtn.style.display = '';
     } else {
       modalSubtext.textContent = 'Your wallet will be charged immediately upon confirmation.';
       modalStatus.textContent = 'Balance sufficient — ready to book.';
@@ -1444,6 +1447,7 @@
       makePaymentBtn.style.pointerEvents = '';
       makePaymentBtn.style.opacity = '';
       if (payLaterBtn) payLaterBtn.style.display = 'none';
+      if (payWithPaystackBtn) payWithPaystackBtn.style.display = 'none';
     }
 
   }
@@ -1505,27 +1509,29 @@
     showBookingSuccessModal(result, getAmountDueForPendingBooking());
   }
 
-  async function startGatewayCheckoutForBooking(amountDue) {
+  async function startGatewayCheckoutForBooking(amountDue, provider) {
     const total = Number(amountDue || getAmountDueForPendingBooking() || 0);
     const paymentAmount = getGatewayShortfallAmount(total);
+    const providerToUse = normalizeGatewayProvider(provider || BOOKING_GATEWAY_PROVIDER);
+    const triggerBtn = providerToUse === 'paystack' ? payWithPaystackBtn : makePaymentBtn;
 
     if (!BookingAPI || typeof BookingAPI.initializeBookingPayment !== 'function') {
       showToast('Booking payment is currently unavailable. Please try again later.', 'error');
       return false;
     }
 
-    setButtonState(makePaymentBtn, 'Redirecting…', true);
+    setButtonState(triggerBtn, 'Redirecting…', true);
     try {
       const idempotencyKey = createBookingPaymentIdempotencyKey();
       const initResult = await BookingAPI.initializeBookingPayment({
         bookingPayload: buildGatewayBookingPayload(),
         amount: paymentAmount,
-        provider: BOOKING_GATEWAY_PROVIDER,
+        provider: providerToUse,
         idempotencyKey: idempotencyKey
       });
 
       bookingPaymentReference = initResult.bookingPaymentReference || '';
-      bookingPaymentProvider = normalizeGatewayProvider(initResult.provider || BOOKING_GATEWAY_PROVIDER);
+      bookingPaymentProvider = normalizeGatewayProvider(initResult.provider || providerToUse);
 
       saveGatewayPendingState({
         bookingPaymentReference: bookingPaymentReference,
@@ -1542,12 +1548,13 @@
       window.location.href = initResult.checkoutUrl || initResult.paymentUrl;
       return true;
     } catch (error) {
-      const msg = (error && error.message) || 'Could not start Monnify checkout. Please try again.';
+      const providerName = providerToUse === 'paystack' ? 'Paystack' : 'Monnify';
+      const msg = (error && error.message) || `Could not start ${providerName} checkout. Please try again.`;
       showToast(msg, 'error');
       updateConfirmModalUI();
       return false;
     } finally {
-      setButtonState(makePaymentBtn, 'Redirecting…', false);
+      setButtonState(triggerBtn, 'Redirecting…', false);
     }
   }
 
@@ -1973,6 +1980,13 @@
     e.preventDefault();
     createAndPayBooking();
   });
+
+  if (payWithPaystackBtn) {
+    payWithPaystackBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      startGatewayCheckoutForBooking(getAmountDueForPendingBooking(), 'paystack');
+    });
+  }
 
   bookingPayModal.addEventListener('click', function (event) {
     if (event.target === bookingPayModal) closePayModal();
