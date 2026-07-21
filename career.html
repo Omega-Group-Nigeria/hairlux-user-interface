@@ -660,12 +660,14 @@ s0.parentNode.insertBefore(s1,s0);
                 <textarea class="app-input app-textarea" id="exp-cover-note" placeholder="Tell us why you want to join Hairlux and what makes you the right fit..."></textarea>
               </div>
               <div class="app-form-group">
-                <label class="app-label">Upload CV <span class="app-req">*</span></label>
-                <div class="app-upload">
-                  <div class="app-upload-icon">📄</div>
-                  <p><strong>Click to upload</strong> or drag and drop</p>
-                  <p class="app-upload-sub">PDF only · Max 5MB</p>
+                <label class="app-label">Upload CV <span style="font-weight:400; color:#999;">(Optional, PDF only)</span></label>
+                <input type="file" id="cv-file-input" accept="application/pdf" style="display:none">
+                <div class="app-upload" id="cv-upload-area" onclick="document.getElementById('cv-file-input').click()">
+                  <div class="app-upload-icon" id="cv-upload-icon">📄</div>
+                  <p id="cv-upload-text"><strong>Click to upload</strong> or drag and drop</p>
+                  <p class="app-upload-sub" id="cv-upload-sub">PDF only · Max 5MB</p>
                 </div>
+                <div class="app-error" id="cv-upload-error"></div>
               </div>
               <div class="app-form-group">
                 <label class="app-label">Branch Preference <span class="app-req">*</span></label>
@@ -968,6 +970,7 @@ s0.parentNode.insertBefore(s1,s0);
     ══════════════════════════════════════════════════════════ */
     (function () {
       var currentJob = null;
+      var uploadedCvKey = null;
 
       window.openApplyModal = function (job) {
         currentJob = job || null;
@@ -1006,6 +1009,14 @@ s0.parentNode.insertBefore(s1,s0);
           if (el) el.value = '';
         });
 
+        uploadedCvKey = null;
+        document.getElementById('cv-file-input').value = '';
+        document.getElementById('cv-upload-icon').textContent = '📄';
+        document.getElementById('cv-upload-text').innerHTML = '<strong>Click to upload</strong> or drag and drop';
+        document.getElementById('cv-upload-sub').textContent = 'PDF only · Max 5MB';
+        document.getElementById('cv-upload-error').classList.remove('show');
+        document.getElementById('cv-upload-error').textContent = '';
+
         document.getElementById('apply-confirmation').classList.remove('show');
         document.getElementById('applyStepper').style.display = 'flex';
 
@@ -1018,6 +1029,79 @@ s0.parentNode.insertBefore(s1,s0);
 
         goApplyStep(1);
       };
+
+      // ── CV upload — validates then uploads immediately on selection,
+      // ahead of final submit, so the applicant sees success/failure right
+      // away rather than discovering a problem at the very end. ──
+      var CV_MAX_BYTES = 5 * 1024 * 1024;
+
+      document.getElementById('cv-file-input').addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        var errorEl = document.getElementById('cv-upload-error');
+        errorEl.classList.remove('show');
+        errorEl.textContent = '';
+
+        if (file.type !== 'application/pdf') {
+          errorEl.textContent = 'Please upload a PDF file.';
+          errorEl.classList.add('show');
+          e.target.value = '';
+          return;
+        }
+        if (file.size > CV_MAX_BYTES) {
+          errorEl.textContent = 'File is too large — max 5MB.';
+          errorEl.classList.add('show');
+          e.target.value = '';
+          return;
+        }
+
+        uploadCv(file);
+      });
+
+      function uploadCv(file) {
+        var icon = document.getElementById('cv-upload-icon');
+        var text = document.getElementById('cv-upload-text');
+        var sub  = document.getElementById('cv-upload-sub');
+        var errorEl = document.getElementById('cv-upload-error');
+
+        icon.textContent = '⏳';
+        text.innerHTML = 'Uploading…';
+        sub.textContent = file.name;
+        uploadedCvKey = null;
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS + '/upload-cv', {
+          method: 'POST',
+          body: formData
+        })
+          .then(function (r) {
+            return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+          })
+          .then(function (res) {
+            if (res.ok && res.data && res.data.success) {
+              uploadedCvKey = res.data.data.cvKey;
+              icon.textContent = '✓';
+              text.innerHTML = '<strong style="color:#2e7d32">Uploaded</strong>';
+              sub.textContent = file.name;
+            } else {
+              icon.textContent = '📄';
+              text.innerHTML = '<strong>Click to upload</strong> or drag and drop';
+              sub.textContent = 'PDF only · Max 5MB';
+              errorEl.textContent = (res.data && res.data.message) || 'Upload failed. Please try again.';
+              errorEl.classList.add('show');
+            }
+          })
+          .catch(function () {
+            icon.textContent = '📄';
+            text.innerHTML = '<strong>Click to upload</strong> or drag and drop';
+            sub.textContent = 'PDF only · Max 5MB';
+            errorEl.textContent = 'Something went wrong uploading your CV. Please check your connection and try again.';
+            errorEl.classList.add('show');
+          });
+      }
 
       window.verifyApplicantNIN = function () {
         var nin        = document.getElementById('apply-nin').value.replace(/\s/g, '');
@@ -1178,7 +1262,8 @@ s0.parentNode.insertBefore(s1,s0);
           previousEmployer: getVal('exp-employer') || undefined,
           coverNote: getVal('exp-cover-note'),
           preferredBranchText: getVal('exp-branch') || undefined,
-          // cvUrl / portfolioUrl intentionally omitted — file upload isn't wired up yet.
+          cvUrl: uploadedCvKey || undefined,
+          // portfolioUrl still omitted — no upload UI for it yet.
         };
 
         fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS, {
