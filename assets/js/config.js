@@ -19,7 +19,8 @@ const API_CONFIG = {
   STORAGE_KEYS: {
     ACCESS_TOKEN: 'hairlux_access_token',
     REFRESH_TOKEN: 'hairlux_refresh_token',
-    USER_DATA: 'hairlux_user_data'
+    USER_DATA: 'hairlux_user_data',
+    APPLICANT_TOKEN: 'hairlux_applicant_token',
   },
 
   // API Endpoints
@@ -40,6 +41,8 @@ const API_CONFIG = {
     },
     SERVICES: '/services',
     JOBS: '/jobs',
+    NIN_VERIFY: '/nin/verify',
+    APPLICATIONS: '/applications',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',
     BOOKING_PAYMENTS: {
