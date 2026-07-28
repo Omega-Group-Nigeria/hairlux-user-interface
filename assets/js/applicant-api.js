@@ -60,6 +60,18 @@ const ApplicantAPI = (function () {
       });
     },
 
+    async respondToOffer(response, declineReason) {
+      const token = this.getToken();
+      if (!token) {
+        throw { status: 401, message: 'Not authenticated', data: null };
+      }
+      return request(API_CONFIG.ENDPOINTS.APPLICATIONS + '/offer/respond', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ response, declineReason }),
+      });
+    },
+
     getToken() {
       return localStorage.getItem(API_CONFIG.STORAGE_KEYS.APPLICANT_TOKEN);
     },
