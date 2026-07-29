@@ -3,8 +3,11 @@ const ApplicantAPI = (function () {
   async function request(endpoint, options) {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
     const config = {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options && options.headers ? options.headers : {}),
+      },
     };
 
     let response, data;
@@ -57,6 +60,18 @@ const ApplicantAPI = (function () {
       return request(API_CONFIG.ENDPOINTS.APPLICATIONS + '/me', {
         method: 'GET',
         headers: { Authorization: 'Bearer ' + token },
+      });
+    },
+
+    async respondToOffer(response, declineReason) {
+      const token = this.getToken();
+      if (!token) {
+        throw { status: 401, message: 'Not authenticated', data: null };
+      }
+      return request(API_CONFIG.ENDPOINTS.APPLICATIONS + '/offer/respond', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ response, declineReason }),
       });
     },
 
