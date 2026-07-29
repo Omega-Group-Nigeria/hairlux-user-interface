@@ -8,7 +8,7 @@
   <meta
     content="Hairlux Salon & Spa delivers premium hair, beauty, and wellness services straight to your location. Book a luxury mobile spa experience today."
     name="description" />
-    <meta name="robots" content="index, follow" />
+  <meta name="robots" content="index, follow" />
   <meta content="Hairlux Salon & Spa" property="og:title" />
   <meta
     content="Hairlux Salon & Spa delivers premium hair, beauty, and wellness services straight to your location. Book a luxury mobile spa experience today."
@@ -26,20 +26,20 @@
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
   <script
     type="text/javascript">WebFont.load({ google: { families: ["Merriweather:300,300italic,400,400italic,700,700italic,900,900italic", "Inter:100,200,300,regular", "IBM Plex Mono:regular,500,600"] } });</script>
-    <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69c9230594925b1c38e0d09a/1jksr1k2d';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
-<!-- Schema -->
+  <!--Start of Tawk.to Script-->
+  <script type="text/javascript">
+    var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+    (function () {
+      var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
+      s1.async = true;
+      s1.src = 'https://embed.tawk.to/69c9230594925b1c38e0d09a/1jksr1k2d';
+      s1.charset = 'UTF-8';
+      s1.setAttribute('crossorigin', '*');
+      s0.parentNode.insertBefore(s1, s0);
+    })();
+  </script>
+  <!--End of Tawk.to Script-->
+  <!-- Schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -101,20 +101,74 @@ s0.parentNode.insertBefore(s1,s0);
     }
 
     /* ── Open Vacancies ── */
-    .jobs-section { padding: 72px 0 96px; }
+    .jobs-section {
+      padding: 72px 0 96px;
+    }
+
+    .jobs-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
 
     .jobs-filter-row {
       display: flex;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 48px;
+      margin-bottom: 0;
+    }
+
+    .jobs-search-wrap {
+      position: relative;
+      flex: 0 0 auto;
+      width: 260px;
+      max-width: 100%;
+    }
+
+    .jobs-search-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      pointer-events: none;
+    }
+
+    .jobs-search-input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border-radius: 100px;
+      border: 1.5px solid rgba(0, 0, 0, 0.15);
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      color: #1a1a1a;
+      transition: border-color .2s;
+    }
+
+    .jobs-search-input::placeholder {
+      color: #999;
+    }
+
+    .jobs-search-input:focus {
+      outline: none;
+      border-color: #9d8248;
+    }
+
+    @media (max-width: 640px) {
+      .jobs-search-wrap {
+        width: 100%;
+      }
     }
 
     .jobs-filter-btn {
       padding: 8px 20px;
       border-radius: 100px;
-      border: 1.5px solid rgba(0,0,0,0.15);
+      border: 1.5px solid rgba(0, 0, 0, 0.15);
       background: transparent;
       font-size: 13px;
       font-weight: 500;
@@ -130,18 +184,129 @@ s0.parentNode.insertBefore(s1,s0);
       color: #fff;
     }
 
-    .jobs-list { display: flex; flex-direction: column; gap: 0; }
-
-    .job-card {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 24px;
-      align-items: start;
-      padding: 36px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.1);
+    /* ── Careers hero band (boutique gallery style) ── */
+    .jobs-hero-band {
+      background: #F3EDE2;
+      padding: 90px 24px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
 
-    .job-card:first-child { border-top: 1px solid rgba(0,0,0,0.1); }
+    .jobs-hero-blob {
+      position: absolute;
+      top: -140px;
+      right: -80px;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      background: #9d8248;
+      opacity: .14;
+      pointer-events: none;
+    }
+
+    .jobs-eyebrow {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: .16em;
+      color: #6B551F;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .jobs-headline {
+      font-family: "Merriweather", serif;
+      font-style: italic;
+      font-size: clamp(32px, 6vw, 50px);
+      line-height: 1.18;
+      color: #161616;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .jobs-sub {
+      font-size: 16px;
+      color: #6b6b68;
+      max-width: 560px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    .jobs-stats-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: #6B551F;
+      padding: 8px 18px;
+      border: 1px solid rgba(157, 130, 72, .35);
+      border-radius: 100px;
+      position: relative;
+    }
+
+    .jobs-stats-pill .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #9d8248;
+      display: inline-block;
+    }
+
+    .jobs-gallery-label {
+      text-align: center;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: .1em;
+      color: #a9a49a;
+      margin: 0 0 28px;
+      text-transform: uppercase;
+    }
+
+    /* ── Job gallery cards ── */
+    .jobs-list {
+      display: flex;
+      gap: 22px;
+      overflow-x: auto;
+      padding: 20px 4px 30px;
+      scroll-snap-type: x proximity;
+    }
+
+    .jobs-list::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .jobs-list::-webkit-scrollbar-thumb {
+      background: #ddd6c4;
+      border-radius: 3px;
+    }
+
+    .job-card {
+      flex: 0 0 260px;
+      scroll-snap-align: center;
+      border: 1px solid rgba(0, 0, 0, .1);
+      border-radius: 14px;
+      padding: 24px;
+      cursor: pointer;
+      background: #fff;
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+    }
+
+    .job-card:nth-child(odd) {
+      transform: rotate(-2deg);
+    }
+
+    .job-card:nth-child(even) {
+      transform: rotate(2deg);
+    }
+
+    .job-card:hover,
+    .job-card.open {
+      transform: rotate(0deg) translateY(-4px);
+      box-shadow: 0 16px 36px rgba(22, 22, 22, .1);
+      border-color: rgba(157, 130, 72, .5);
+    }
 
     .job-card-meta {
       display: flex;
@@ -155,66 +320,127 @@ s0.parentNode.insertBefore(s1,s0);
       display: inline-block;
       padding: 3px 12px;
       border-radius: 100px;
-      font-size: 11px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10px;
       font-weight: 600;
-      letter-spacing: .04em;
+      letter-spacing: .05em;
       text-transform: uppercase;
     }
 
-    .badge-FULL_TIME  { background: #000; color: #fff; }
-    .badge-PART_TIME  { background: #e8f0ff; color: #2a52a8; }
-    .badge-CONTRACT   { background: #fff3e0; color: #9a5a00; }
-    .badge-FREELANCE  { background: #f3e8ff; color: #6b3fa0; }
+    .badge-FULL_TIME {
+      background: #000;
+      color: #fff;
+    }
+
+    .badge-PART_TIME {
+      background: #e8f0ff;
+      color: #2a52a8;
+    }
+
+    .badge-CONTRACT {
+      background: #fff3e0;
+      color: #9a5a00;
+    }
+
+    .badge-FREELANCE {
+      background: #f3e8ff;
+      color: #6b3fa0;
+    }
+
+    .job-card-title {
+      font-family: "Merriweather", serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 8px;
+    }
 
     .job-location {
-      font-size: 13px;
-      color: #777;
+      font-size: 12px;
+      color: #a9a49a;
       display: inline-flex;
       align-items: center;
       gap: 5px;
+      margin-bottom: 10px;
     }
 
-    .job-card-title { font-size: clamp(18px, 2vw, 22px); font-weight: 700; color: #1a1a1a; margin: 0 0 10px; }
+    .job-card-hint {
+      font-size: 12px;
+      color: #a9a49a;
+    }
+
+    .job-card-drawer {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height .35s ease, opacity .25s ease;
+    }
+
+    .job-card:hover .job-card-drawer,
+    .job-card.open .job-card-drawer {
+      max-height: 260px;
+      opacity: 1;
+    }
+
+    .job-card-drawer-inner {
+      padding-top: 14px;
+      border-top: 1px solid rgba(157, 130, 72, .25);
+      margin-top: 14px;
+    }
 
     .job-card-desc {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.65;
-      color: #555;
+      color: #575550;
       margin: 0 0 4px;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
 
-    .job-closing { font-size: 12px; color: #999; margin-top: 10px; }
-    .job-card-action { display: flex; align-items: flex-start; padding-top: 4px; }
+    .job-closing {
+      font-size: 11px;
+      color: #999;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
 
     .job-view-btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 11px 24px;
-      background: #0f0f0f;
-      color: #fff;
+      background: none;
       border: none;
-      border-radius: 6px;
-      font-size: 13px;
+      padding: 0;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
       font-weight: 600;
-      white-space: nowrap;
+      color: #9d8248;
       cursor: pointer;
-      transition: background .2s, transform .15s;
+      transition: color .2s;
     }
 
-    .job-view-btn:hover { background: #9d8248; transform: translateY(-1px); }
-    .jobs-empty { text-align: center; padding: 64px 24px; color: #888; font-size: 15px; }
-    .jobs-loading { text-align: center; padding: 64px 24px; color: #aaa; font-size: 14px; }
+    .job-view-btn:hover {
+      color: #6B551F;
+    }
+
+    .jobs-empty,
+    .jobs-loading {
+      flex: 1 1 100%;
+      text-align: center;
+      padding: 64px 24px;
+      color: #888;
+      font-size: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .job-card {
+        flex: 0 0 220px;
+      }
+    }
 
     /* ── Job Detail Modal ── */
     .job-modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.48);
+      background: rgba(0, 0, 0, .48);
       z-index: 9999;
       display: flex;
       align-items: center;
@@ -225,7 +451,10 @@ s0.parentNode.insertBefore(s1,s0);
       transition: opacity .22s;
     }
 
-    .job-modal-overlay.open { opacity: 1; pointer-events: all; }
+    .job-modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
 
     .job-modal {
       background: #fff;
@@ -239,7 +468,9 @@ s0.parentNode.insertBefore(s1,s0);
       transition: transform .22s;
     }
 
-    .job-modal-overlay.open .job-modal { transform: translateY(0); }
+    .job-modal-overlay.open .job-modal {
+      transform: translateY(0);
+    }
 
     .job-modal-top-bar {
       position: sticky;
@@ -257,7 +488,7 @@ s0.parentNode.insertBefore(s1,s0);
       justify-content: center;
       width: 36px;
       height: 36px;
-      background: rgba(0,0,0,.06);
+      background: rgba(0, 0, 0, .06);
       border: none;
       border-radius: 50%;
       cursor: pointer;
@@ -265,18 +496,35 @@ s0.parentNode.insertBefore(s1,s0);
       transition: background .15s;
     }
 
-    .job-modal-close-btn:hover { background: rgba(0,0,0,.12); }
+    .job-modal-close-btn:hover {
+      background: rgba(0, 0, 0, .12);
+    }
 
-    .job-modal-body { padding: 8px 40px 44px; }
+    .job-modal-body {
+      padding: 8px 40px 44px;
+    }
 
     .job-modal-header {
       padding-bottom: 24px;
-      border-bottom: 1px solid rgba(0,0,0,0.1);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       margin-bottom: 28px;
     }
 
-    .job-modal-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-    .job-modal-title { font-size: clamp(22px, 3vw, 30px); font-weight: 700; color: #1a1a1a; margin: 0; line-height: 1.25; }
+    .job-modal-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .job-modal-title {
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+      line-height: 1.25;
+    }
 
     .job-modal-info-row {
       display: grid;
@@ -285,33 +533,109 @@ s0.parentNode.insertBefore(s1,s0);
       margin-bottom: 32px;
       padding: 20px;
       background: linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%);
-      border: 1px solid rgba(65,83,38,.14);
+      border: 1px solid rgba(65, 83, 38, .14);
       border-radius: 10px;
     }
 
-    .job-modal-info-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #9d8248; margin-bottom: 4px; }
-    .job-modal-info-value { font-size: 14px; font-weight: 500; color: #0f0f0f; }
-    .job-modal-section { margin-bottom: 28px; }
-    .job-modal-section-title { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #999; margin-bottom: 14px; }
+    .job-modal-info-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: #9d8248;
+      margin-bottom: 4px;
+    }
+
+    .job-modal-info-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #0f0f0f;
+    }
+
+    .job-modal-section {
+      margin-bottom: 28px;
+    }
+
+    .job-modal-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 14px;
+    }
 
     /* Rich text */
-    .job-richtext p { margin: 0 0 12px; font-size: 14px; line-height: 1.75; color: #444; }
-    .job-richtext h2, .job-richtext h3 { font-weight: 700; color: #1a1a1a; margin: 20px 0 8px; }
-    .job-richtext h2 { font-size: 18px; }
-    .job-richtext h3 { font-size: 16px; }
-    .job-richtext ul, .job-richtext ol { padding-left: 20px; margin: 0 0 12px; }
-    .job-richtext li { font-size: 14px; line-height: 1.7; color: #444; margin-bottom: 4px; }
-    .job-richtext strong { color: #1a1a1a; }
-    .job-richtext a { color: #9d8248; }
+    .job-richtext p {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.75;
+      color: #444;
+    }
 
-    .job-resp-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-    .job-resp-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.65; color: #444; }
+    .job-richtext h2,
+    .job-richtext h3 {
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 20px 0 8px;
+    }
+
+    .job-richtext h2 {
+      font-size: 18px;
+    }
+
+    .job-richtext h3 {
+      font-size: 16px;
+    }
+
+    .job-richtext ul,
+    .job-richtext ol {
+      padding-left: 20px;
+      margin: 0 0 12px;
+    }
+
+    .job-richtext li {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .job-richtext strong {
+      color: #1a1a1a;
+    }
+
+    .job-richtext a {
+      color: #9d8248;
+    }
+
+    .job-resp-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .job-resp-list li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #444;
+    }
+
     .job-resp-check {
       flex-shrink: 0;
-      width: 20px; height: 20px;
+      width: 20px;
+      height: 20px;
       background: #eaf3d8;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-top: 2px;
       color: #9d8248;
     }
@@ -334,18 +658,418 @@ s0.parentNode.insertBefore(s1,s0);
       box-sizing: border-box;
     }
 
-    .job-modal-apply:hover { background: #9d8248; }
+    .job-modal-apply:hover {
+      background: #9d8248;
+    }
 
     @media (max-width: 640px) {
-      .job-card { grid-template-columns: 1fr; gap: 16px; }
-      .job-card-action { padding-top: 0; }
-      .job-view-btn { width: 100%; justify-content: center; }
-      .job-modal-body { padding: 8px 20px 32px; }
-      .job-modal-info-row { grid-template-columns: 1fr 1fr; }
+      .job-modal-body {
+        padding: 8px 20px 32px;
+      }
+
+      .job-modal-info-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ══════════ APPLICATION WIZARD ══════════ */
+    .app-modal {
+      max-width: 640px;
+    }
+
+    .app-modal-top-bar {
+      justify-content: space-between !important;
+      align-items: center;
+      padding: 16px 20px 0 24px;
+    }
+
+    .app-modal-role {
+      font-size: 12px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .app-modal-body {
+      padding: 8px 32px 40px;
+    }
+
+    .app-steps {
+      display: flex;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .app-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-step-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      background: #f0f0f0;
+      color: #999;
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+    }
+
+    .app-step.active .app-step-circle {
+      background: #0f0f0f;
+      color: #fff;
+      border-color: #0f0f0f;
+    }
+
+    .app-step.done .app-step-circle {
+      background: #9d8248;
+      color: #fff;
+      border-color: #9d8248;
+    }
+
+    .app-step-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      white-space: nowrap;
+    }
+
+    .app-step.active .app-step-label {
+      color: #1a1a1a;
+    }
+
+    .app-step.done .app-step-label {
+      color: #9d8248;
+    }
+
+    .app-step-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(0, 0, 0, 0.12);
+      margin: 0 10px;
+    }
+
+    .app-card {
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .app-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .app-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .app-card-sub {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .app-step-badge {
+      flex-shrink: 0;
+      padding: 3px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      background: #f5f0e8;
+      color: #9d8248;
+    }
+
+    .app-card-body {
+      padding: 22px;
+    }
+
+    .app-card-footer {
+      padding: 16px 22px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-card-footer-end {
+      justify-content: flex-end;
+    }
+
+    .app-hint {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .app-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .app-form-group {
+      margin-bottom: 16px;
+    }
+
+    .app-form-group-btn {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .app-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .app-req {
+      color: #c0392b;
+    }
+
+    .app-input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(0, 0, 0, 0.15);
+      background: #fff;
+      font-size: 13px;
+      font-family: inherit;
+      color: #1a1a1a;
+      transition: border-color .2s;
+    }
+
+    .app-input:focus {
+      outline: none;
+      border-color: #9d8248;
+    }
+
+    .app-input[readonly],
+    .app-input[disabled] {
+      background: #f7f7f7;
+      color: #555;
+    }
+
+    .app-select {
+      appearance: auto;
+    }
+
+    .app-textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    .app-form-group-btn .app-btn {
+      width: 100%;
+    }
+
+    .app-error {
+      display: none;
+      font-size: 11px;
+      color: #c0392b;
+      margin-top: -8px;
+      margin-bottom: 12px;
+    }
+
+    .app-error.show {
+      display: block;
+    }
+
+    .app-success-line {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #2e7d32;
+      font-weight: 600;
+      margin: -6px 0 4px;
+    }
+
+    .app-success-line.show {
+      display: flex;
+    }
+
+    .app-bio-fields {
+      display: none;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    }
+
+    .app-bio-fields.show {
+      display: block;
+    }
+
+    .app-helper {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .app-upload {
+      border: 1.5px dashed rgba(0, 0, 0, 0.18);
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+
+    .app-upload:hover {
+      border-color: #9d8248;
+      background: #faf8f4;
+    }
+
+    .app-upload-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .app-upload p {
+      font-size: 12.5px;
+      color: #777;
+      margin: 0;
+    }
+
+    .app-upload-sub {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px !important;
+    }
+
+    .app-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 22px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background .2s, transform .15s, border-color .2s;
+      font-family: inherit;
+    }
+
+    .app-btn-primary {
+      background: #0f0f0f;
+      color: #fff;
+    }
+
+    .app-btn-primary:hover {
+      background: #9d8248;
+    }
+
+    .app-btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .app-btn-outline {
+      background: transparent;
+      color: #444;
+      border: 1.5px solid rgba(0, 0, 0, 0.15);
+    }
+
+    .app-btn-outline:hover {
+      border-color: #9d8248;
+      color: #9d8248;
+    }
+
+    .app-review-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 20px;
+      margin-bottom: 14px;
+    }
+
+    .app-review-item .lbl {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #9d8248;
+      margin-bottom: 3px;
+    }
+
+    .app-review-item .val {
+      font-size: 13.5px;
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+
+    .app-review-divider {
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      margin: 18px 0;
+    }
+
+    .app-confirmation {
+      display: none;
+      text-align: center;
+      padding: 12px 8px 4px;
+    }
+
+    .app-confirmation.show {
+      display: block;
+    }
+
+    .app-confirmation-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .app-confirmation-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .app-confirmation-text {
+      font-size: 13px;
+      color: #777;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .app-confirmation-text strong {
+      color: #1a1a1a;
+    }
+
+    @media (max-width: 640px) {
+      .app-grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .app-review-row {
+        grid-template-columns: 1fr;
+      }
+
+      .app-modal-body {
+        padding: 8px 20px 32px;
+      }
     }
   </style>
   <div class="page-wrapper">
-    <section class="section">
+    <!-- <section class="section">
       <div class="full-image-about">
         <div class="container-m center">
           <div class="inner-heading blur">
@@ -354,29 +1078,43 @@ s0.parentNode.insertBefore(s1,s0);
           </div>
         </div>
       </div>
-    </section>
-    <section class="section">
-      <div class="container">
-        <div class="content-medium center">
-          <p class="h-xl">Build your career with Hairlux.</p>
-          <p class="p-r">We're a fast-growing luxury mobile beauty and wellness brand redefining how Nigerians experience
-            self-care. Our team is made up of passionate stylists, wellness experts, and operators who take pride in
-            delivering excellence at every doorstep. If you're driven, skilled, and ready to grow with a brand that
-            puts quality first — we want to hear from you.</p>
-        </div>
+    </section> -->
+    <section class="section jobs-hero-band">
+      <div class="jobs-hero-blob"></div>
+      <div class="container-m center" style="position:relative;">
+        <p class="jobs-eyebrow">CAREERS AT HAIRLUX</p>
+        <h1 class="jobs-headline">Crafted by hand,<br>built by us.</h1>
+        <p class="jobs-sub">We're a fast-growing luxury mobile beauty and wellness brand redefining how Nigerians
+          experience self-care. Our team is made up of passionate stylists, wellness experts, and operators who take
+          pride in delivering excellence at every doorstep. If you're driven, skilled, and ready to grow with a brand
+          that puts quality first — we want to hear from you.</p>
+        <div class="jobs-stats-pill"><span id="jobsCountStat">—</span>&nbsp;open roles <span class="dot"></span> 3
+          branches</div>
       </div>
     </section>
 
     <section class="section jobs-section">
       <div class="container-m">
 
-        <div class="jobs-filter-row">
-          <button class="jobs-filter-btn active" data-type="">All Roles</button>
-          <button class="jobs-filter-btn" data-type="FULL_TIME">Full-Time</button>
-          <button class="jobs-filter-btn" data-type="PART_TIME">Part-Time</button>
-          <button class="jobs-filter-btn" data-type="CONTRACT">Contract</button>
-          <button class="jobs-filter-btn" data-type="FREELANCE">Freelance</button>
+        <div class="jobs-toolbar">
+          <div class="jobs-filter-row">
+            <button class="jobs-filter-btn active" data-type="">All Roles</button>
+            <button class="jobs-filter-btn" data-type="FULL_TIME">Full-Time</button>
+            <button class="jobs-filter-btn" data-type="PART_TIME">Part-Time</button>
+            <button class="jobs-filter-btn" data-type="CONTRACT">Contract</button>
+            <button class="jobs-filter-btn" data-type="FREELANCE">Freelance</button>
+          </div>
+          <div class="jobs-search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="jobsSearch" class="jobs-search-input" placeholder="Search roles, keywords…">
+          </div>
         </div>
+
+        <p class="jobs-gallery-label">Scroll to browse — hover or tap a card</p>
 
         <div class="jobs-list" id="jobsList">
           <div class="jobs-loading" id="jobsLoading">Loading open vacancies…</div>
@@ -392,18 +1130,230 @@ s0.parentNode.insertBefore(s1,s0);
     <div class="job-modal">
       <div class="job-modal-top-bar">
         <button class="job-modal-close-btn" id="jobModalClose" aria-label="Close">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
       </div>
       <div class="job-modal-body" id="jobModalBody"></div>
     </div>
   </div>
 
-<div class="footer-wrapper">
+  <!-- Application Wizard Modal -->
+  <div class="job-modal-overlay" id="applyModal" role="dialog" aria-modal="true">
+    <div class="job-modal app-modal">
+      <div class="job-modal-top-bar app-modal-top-bar">
+        <div class="app-modal-role" id="applyRoleLabel">Senior Hair Stylist — Academy Branch</div>
+        <button class="job-modal-close-btn" id="applyModalClose" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="job-modal-body app-modal-body">
+
+        <div class="app-steps" id="applyStepper">
+          <div class="app-step active" data-step="1">
+            <div class="app-step-circle">1</div>
+            <div class="app-step-label">Verify Identity</div>
+          </div>
+          <div class="app-step-line"></div>
+          <div class="app-step pending" data-step="2">
+            <div class="app-step-circle">2</div>
+            <div class="app-step-label">Experience & CV</div>
+          </div>
+          <div class="app-step-line"></div>
+          <div class="app-step pending" data-step="3">
+            <div class="app-step-circle">3</div>
+            <div class="app-step-label">Review & Submit</div>
+          </div>
+        </div>
+
+        <!-- STEP 1 — NIN Verification -->
+        <div class="apply-step" data-apply-step="1">
+          <div class="app-card">
+            <div class="app-card-header">
+              <div>
+                <div class="app-card-title">Verify Your Identity</div>
+                <div class="app-card-sub">Step 1 of 3 — Enter your details exactly as they appear on your NIN slip</div>
+              </div>
+              <span class="app-step-badge">Step 1</span>
+            </div>
+            <div class="app-card-body">
+              <p class="app-hint">Your NIN is verified against your name as it appears on your NIN slip. Enter both
+                exactly as printed, and we'll pull the rest of your bio data automatically.</p>
+
+              <div class="app-form-group">
+                <label class="app-label">National Identification Number (NIN) <span class="app-req">*</span></label>
+                <input type="text" class="app-input" id="apply-nin" placeholder="11-digit NIN" maxlength="11"
+                  inputmode="numeric">
+              </div>
+
+              <div class="app-grid-2">
+                <div class="app-form-group"><label class="app-label">First Name <span
+                      class="app-req">*</span></label><input type="text" class="app-input" id="nin-first-name"
+                    placeholder="As on NIN slip"></div>
+                <div class="app-form-group"><label class="app-label">Last Name (Surname) <span
+                      class="app-req">*</span></label><input type="text" class="app-input" id="nin-last-name"
+                    placeholder="As on NIN slip"></div>
+              </div>
+
+              <div class="app-grid-2">
+                <div class="app-form-group">
+                  <label class="app-label">Middle Name <span
+                      style="font-weight:400; color:#999;">(Optional)</span></label>
+                  <input type="text" class="app-input" id="nin-middle-name" placeholder="As on NIN slip">
+                </div>
+                <div class="app-form-group app-form-group-btn">
+                  <button type="button" class="app-btn app-btn-primary" id="apply-nin-btn"
+                    onclick="verifyApplicantNIN()">Verify NIN</button>
+                </div>
+              </div>
+
+              <div class="app-error" id="apply-nin-error">Please enter your 11-digit NIN, first name, and last name
+                exactly as they appear on your NIN slip.</div>
+              <div class="app-success-line" id="apply-nin-status">✓ Verified — bio data retrieved from NIMC. Review and
+                edit any field below.</div>
+
+              <div class="app-bio-fields" id="apply-bio-fields">
+                <div class="app-grid-2">
+                  <div class="app-form-group"><label class="app-label">Full Name</label><input type="text"
+                      class="app-input" id="bio-name" readonly></div>
+                  <div class="app-form-group"><label class="app-label">Date of Birth <span
+                        class="app-req">*</span></label><input type="text" class="app-input" id="bio-dob" readonly>
+                  </div>
+                </div>
+                <div class="app-grid-2">
+                  <div class="app-form-group"><label class="app-label">Gender</label>
+                    <select class="app-input app-select" id="bio-gender" disabled>
+                      <option>Female</option>
+                      <option>Male</option>
+                    </select>
+                  </div>
+                  <div class="app-form-group"><label class="app-label">Phone Number <span
+                        class="app-req">*</span></label><input type="text" class="app-input" id="bio-phone"></div>
+                </div>
+                <div class="app-form-group"><label class="app-label">Residential Address <span
+                      class="app-req">*</span></label><input type="text" class="app-input" id="bio-address"></div>
+                <div class="app-form-group"><label class="app-label">Email Address <span
+                      class="app-req">*</span></label><input type="email" class="app-input" id="bio-email"
+                    placeholder="you@email.com"></div>
+                <div class="app-helper">Name, Date of Birth, and Gender are locked to your verified NIN record. Phone
+                  Number and Residential Address were retrieved from the NIN verification service — edit either before
+                  continuing.</div>
+              </div>
+            </div>
+            <div class="app-card-footer app-card-footer-end">
+              <button type="button" class="app-btn app-btn-primary" id="apply-step1-continue" disabled
+                onclick="goApplyStep(2)">Continue to Experience →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2 — Experience & CV -->
+        <div class="apply-step" data-apply-step="2" style="display:none;">
+          <div class="app-card">
+            <div class="app-card-header">
+              <div>
+                <div class="app-card-title">Experience & Documents</div>
+                <div class="app-card-sub">Step 2 of 3 — Upload your CV and tell us about your experience</div>
+              </div>
+              <span class="app-step-badge">Step 2</span>
+            </div>
+            <div class="app-card-body">
+              <div class="app-grid-2">
+                <div class="app-form-group">
+                  <label class="app-label">Years of Experience <span class="app-req">*</span></label>
+                  <select class="app-input app-select" id="exp-years">
+                    <option>Select range</option>
+                    <option>Less than 1 year</option>
+                    <option selected>1–3 years</option>
+                    <option>3–5 years</option>
+                    <option>5+ years</option>
+                  </select>
+                </div>
+                <div class="app-form-group">
+                  <label class="app-label">Previous Employer</label>
+                  <input type="text" class="app-input" id="exp-employer" placeholder="Company name">
+                </div>
+              </div>
+              <div class="app-form-group">
+                <label class="app-label">Cover Note <span class="app-req">*</span></label>
+                <textarea class="app-input app-textarea" id="exp-cover-note"
+                  placeholder="Tell us why you want to join Hairlux and what makes you the right fit..."></textarea>
+              </div>
+              <div class="app-form-group">
+                <label class="app-label">Upload CV <span style="font-weight:400; color:#999;">(Optional, PDF
+                    only)</span></label>
+                <input type="file" id="cv-file-input" accept="application/pdf" style="display:none">
+                <div class="app-upload" id="cv-upload-area" onclick="document.getElementById('cv-file-input').click()">
+                  <div class="app-upload-icon" id="cv-upload-icon">📄</div>
+                  <p id="cv-upload-text"><strong>Click to upload</strong> or drag and drop</p>
+                  <p class="app-upload-sub" id="cv-upload-sub">PDF only · Max 5MB</p>
+                </div>
+                <div class="app-error" id="cv-upload-error"></div>
+              </div>
+              <div class="app-form-group">
+                <label class="app-label">Branch Preference <span class="app-req">*</span></label>
+                <select class="app-input app-select" id="exp-branch">
+                  <option selected>Academy Branch, Ibadan</option>
+                  <option>Ife Branch</option>
+                  <option>Oyo Branch</option>
+                  <option>No Preference</option>
+                </select>
+              </div>
+            </div>
+            <div class="app-card-footer">
+              <button type="button" class="app-btn app-btn-outline" onclick="goApplyStep(1)">← Previous</button>
+              <button type="button" class="app-btn app-btn-primary" onclick="goApplyStep(3)">Continue to Review
+                →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 — Review & Submit -->
+        <div class="apply-step" data-apply-step="3" style="display:none;">
+          <div class="app-card">
+            <div class="app-card-header">
+              <div>
+                <div class="app-card-title">Review Your Application</div>
+                <div class="app-card-sub">Step 3 of 3 — confirm your details before submitting</div>
+              </div>
+              <span class="app-step-badge">Step 3</span>
+            </div>
+            <div class="app-card-body" id="apply-review-body"></div>
+            <div class="app-error" id="apply-submit-error" style="margin: 0 22px 12px;"></div>
+            <div class="app-card-footer">
+              <button type="button" class="app-btn app-btn-outline" onclick="goApplyStep(2)">← Previous</button>
+              <button type="button" class="app-btn app-btn-primary" id="apply-submit-btn"
+                onclick="submitApplication()">Submit Application →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIRMATION -->
+        <div class="app-confirmation" id="apply-confirmation">
+          <div class="app-confirmation-icon">🎉</div>
+          <div class="app-confirmation-title">Application Submitted Successfully!</div>
+          <div class="app-confirmation-text">Your reference number is <strong
+              id="apply-ref-number">HL-APP-2026-0001</strong>. A confirmation email has been sent to <strong
+              id="apply-confirm-email"></strong></div>
+          <button type="button" class="app-btn app-btn-primary" id="applyDoneBtn">Done</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-wrapper">
     <div class="container gap-m">
       <div class="w-layout-grid footer-grid">
-        <div id="w-node-f7f9f089-26f8-3014-a74e-00331c5a8ea9-1c5a8ea6"><img
-            src="assets/img/logo-side-white.webp"
+        <div id="w-node-f7f9f089-26f8-3014-a74e-00331c5a8ea9-1c5a8ea6"><img src="assets/img/logo-side-white.webp"
             loading="lazy" alt="" class="image-brand-footer" /></div>
         <div id="w-node-f7f9f089-26f8-3014-a74e-00331c5a8eab-1c5a8ea6" class="footer-links-wrapper">
           <div class="footer-heading-small">Explore</div>
@@ -428,8 +1378,8 @@ s0.parentNode.insertBefore(s1,s0);
 " target="_blank" class="link-nav-footer">TikTok</a></li>
             <li class="list-item"><a href="https://www.instagram.com/hairluxspa_salon?igsh=c3RubjJzdXY4MHF4"
                 target="_blank" class="link-nav-footer">Instagram</a></li>
-              <li class="list-item"><a href="https://www.facebook.com/share/18LSVL4XFm/?mibextid=wwXIfr" target="_blank"
-            class="link-nav-footer">Facebook</a></li>
+            <li class="list-item"><a href="https://www.facebook.com/share/18LSVL4XFm/?mibextid=wwXIfr" target="_blank"
+                class="link-nav-footer">Facebook</a></li>
           </ul>
         </div>
 
@@ -438,10 +1388,11 @@ s0.parentNode.insertBefore(s1,s0);
           <ul role="list" class="footer-list w-list-unstyled">
             <li class="list-item"><a href="https://www.tiktok.com/@hairluxmobile?_r=1&_t=ZS-95cFWWRjaVj
 " target="_blank" class="link-nav-footer">TikTok</a></li>
-            <li class="list-item"><a href="https://www.instagram.com/hairluxmobile?igsh=MXJqbWZicXg4dDRuZA%3D%3D&utm_source=qr"
+            <li class="list-item"><a
+                href="https://www.instagram.com/hairluxmobile?igsh=MXJqbWZicXg4dDRuZA%3D%3D&utm_source=qr"
                 target="_blank" class="link-nav-footer">Instagram</a></li>
-          <li class="list-item"><a href="https://www.facebook.com/share/1H9QseKDvA/?mibextid=wwXIfr" target="_blank"
-            class="link-nav-footer">Facebook Mobile</a></li>
+            <li class="list-item"><a href="https://www.facebook.com/share/1H9QseKDvA/?mibextid=wwXIfr" target="_blank"
+                class="link-nav-footer">Facebook Mobile</a></li>
           </ul>
         </div>
       </div>
@@ -459,14 +1410,16 @@ s0.parentNode.insertBefore(s1,s0);
   <script src="assets/js/config.js"></script>
   <script>
     (function () {
-      var BASE   = API_CONFIG.BASE_URL;
+      var BASE = API_CONFIG.BASE_URL;
       var JOBS_EP = API_CONFIG.ENDPOINTS.JOBS;
 
       var typeLabels = { FULL_TIME: 'Full-Time', PART_TIME: 'Part-Time', CONTRACT: 'Contract', FREELANCE: 'Freelance' };
 
-      var renderedJobs = [];
+      var renderedJobs = [];   // jobs currently on screen (post search+filter) — used for modal index lookup
+      var masterJobs = [];   // full result set for the active type filter, before search is applied
+      var searchTerm = '';
 
-      var LOC_ICON   = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
+      var LOC_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
       var CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
       function formatDate(iso) {
@@ -491,28 +1444,36 @@ s0.parentNode.insertBefore(s1,s0);
         }
 
         var html = jobs.map(function (job, i) {
-          var plain   = stripHtml(job.description);
+          var plain = stripHtml(job.description);
+          var trimmed = plain.length > 130 ? plain.slice(0, 130).trim() + '…' : plain;
           var closing = job.closingDate ? '<div class="job-closing">Applications close ' + formatDate(job.closingDate) + '</div>' : '';
-          return '<div class="job-card">' +
-            '<div class="job-card-body">' +
-              '<div class="job-card-meta">' +
-                '<span class="job-type-badge badge-' + job.type + '">' + (typeLabels[job.type] || job.type) + '</span>' +
-                '<span class="job-location">' + LOC_ICON + (job.location || '') + '</span>' +
-              '</div>' +
-              '<h3 class="job-card-title">' + job.title + '</h3>' +
-              '<p class="job-card-desc">' + plain + '</p>' +
-              closing +
+          return '<div class="job-card" data-idx="' + i + '">' +
+            '<div class="job-card-meta">' +
+            '<span class="job-type-badge badge-' + job.type + '">' + (typeLabels[job.type] || job.type) + '</span>' +
             '</div>' +
-            '<div class="job-card-action">' +
-              '<button class="job-view-btn" data-idx="' + i + '">View Details</button>' +
-            '</div>' +
-          '</div>';
+            '<h3 class="job-card-title">' + job.title + '</h3>' +
+            '<span class="job-location">' + LOC_ICON + (job.location || '') + '</span>' +
+            '<p class="job-card-hint">Tap to read more</p>' +
+            '<div class="job-card-drawer"><div class="job-card-drawer-inner">' +
+            '<p class="job-card-desc">' + trimmed + '</p>' +
+            closing +
+            '<button type="button" class="job-view-btn" data-idx="' + i + '">View Details &rarr;</button>' +
+            '</div></div>' +
+            '</div>';
         }).join('');
 
         list.innerHTML = html;
 
+        list.querySelectorAll('.job-card').forEach(function (card) {
+          card.addEventListener('click', function (e) {
+            if (e.target.closest('.job-view-btn')) return;
+            card.classList.toggle('open');
+          });
+        });
+
         list.querySelectorAll('.job-view-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
             openModal(renderedJobs[+btn.getAttribute('data-idx')]);
           });
         });
@@ -521,7 +1482,7 @@ s0.parentNode.insertBefore(s1,s0);
       /* ── Modal ── */
       function openModal(job) {
         var overlay = document.getElementById('jobModal');
-        var body    = document.getElementById('jobModalBody');
+        var body = document.getElementById('jobModalBody');
 
         var respHtml = '';
         if (job.responsibilities && job.responsibilities.length) {
@@ -531,32 +1492,37 @@ s0.parentNode.insertBefore(s1,s0);
           respHtml = '<div class="job-modal-section">' +
             '<div class="job-modal-section-title">Responsibilities</div>' +
             '<ul class="job-resp-list">' + items + '</ul>' +
-          '</div>';
+            '</div>';
         }
 
         body.innerHTML =
           '<div class="job-modal-header">' +
-            '<div class="job-modal-meta">' +
-              '<span class="job-type-badge badge-' + job.type + '">' + (typeLabels[job.type] || job.type) + '</span>' +
-              '<span class="job-location">' + LOC_ICON + (job.location || '') + '</span>' +
-            '</div>' +
-            '<h2 class="job-modal-title">' + job.title + '</h2>' +
+          '<div class="job-modal-meta">' +
+          '<span class="job-type-badge badge-' + job.type + '">' + (typeLabels[job.type] || job.type) + '</span>' +
+          '<span class="job-location">' + LOC_ICON + (job.location || '') + '</span>' +
+          '</div>' +
+          '<h2 class="job-modal-title">' + job.title + '</h2>' +
           '</div>' +
 
           '<div class="job-modal-info-row">' +
-            '<div><div class="job-modal-info-label">Employment Type</div><div class="job-modal-info-value">' + (typeLabels[job.type] || job.type) + '</div></div>' +
-            '<div><div class="job-modal-info-label">Location</div><div class="job-modal-info-value">' + (job.location || '—') + '</div></div>' +
-            '<div><div class="job-modal-info-label">Applications Close</div><div class="job-modal-info-value">' + formatDate(job.closingDate) + '</div></div>' +
+          '<div><div class="job-modal-info-label">Employment Type</div><div class="job-modal-info-value">' + (typeLabels[job.type] || job.type) + '</div></div>' +
+          '<div><div class="job-modal-info-label">Location</div><div class="job-modal-info-value">' + (job.location || '—') + '</div></div>' +
+          '<div><div class="job-modal-info-label">Applications Close</div><div class="job-modal-info-value">' + formatDate(job.closingDate) + '</div></div>' +
           '</div>' +
 
           '<div class="job-modal-section">' +
-            '<div class="job-modal-section-title">About the Role</div>' +
-            '<div class="job-richtext">' + (job.description || '') + '</div>' +
+          '<div class="job-modal-section-title">About the Role</div>' +
+          '<div class="job-richtext">' + (job.description || '') + '</div>' +
           '</div>' +
 
           respHtml +
 
-          '<a href="contact.html?subject=Application%3A%20' + encodeURIComponent(job.title) + '" class="job-modal-apply">Apply for this Role</a>';
+          '<button type="button" class="job-modal-apply" id="jobModalApplyBtn">Apply for this Role</button>';
+
+        document.getElementById('jobModalApplyBtn').addEventListener('click', function () {
+          closeModal();
+          openApplyModal(job);
+        });
 
         overlay.classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -565,6 +1531,20 @@ s0.parentNode.insertBefore(s1,s0);
       function closeModal() {
         document.getElementById('jobModal').classList.remove('open');
         document.body.style.overflow = '';
+      }
+
+      /* ── Search (client-side, applied on top of the active type filter) ── */
+      function applySearch() {
+        var term = searchTerm.trim().toLowerCase();
+        if (!term) {
+          renderJobs(masterJobs);
+          return;
+        }
+        var filtered = masterJobs.filter(function (job) {
+          var haystack = [job.title, job.location, stripHtml(job.description)].join(' ').toLowerCase();
+          return haystack.indexOf(term) !== -1;
+        });
+        renderJobs(filtered);
       }
 
       /* ── Fetch ── */
@@ -576,7 +1556,10 @@ s0.parentNode.insertBefore(s1,s0);
           .then(function (r) { return r.json(); })
           .then(function (res) {
             var jobs = (res.data && res.data.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
-            renderJobs(jobs);
+            masterJobs = jobs;
+            var countEl = document.getElementById('jobsCountStat');
+            if (countEl) countEl.textContent = jobs.length;
+            applySearch();
           })
           .catch(function () {
             document.getElementById('jobsList').innerHTML = '<div class="jobs-empty">Unable to load vacancies right now. Please try again later.</div>';
@@ -601,9 +1584,368 @@ s0.parentNode.insertBefore(s1,s0);
             loadJobs(btn.getAttribute('data-type'));
           });
         });
+
+        var searchDebounce;
+        document.getElementById('jobsSearch').addEventListener('input', function (e) {
+          clearTimeout(searchDebounce);
+          searchDebounce = setTimeout(function () {
+            searchTerm = e.target.value;
+            applySearch();
+          }, 150);
+        });
+
+        document.getElementById('applyModalClose').addEventListener('click', closeApplyModal);
+        document.getElementById('applyModal').addEventListener('click', function (e) {
+          if (e.target === this) closeApplyModal();
+        });
+        document.getElementById('applyDoneBtn').addEventListener('click', closeApplyModal);
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closeApplyModal();
+        });
       });
     })();
+
+    /* ══════════════════════════════════════════════════════════
+       APPLICATION WIZARD — NIN lookup → editable bio → experience → review
+       (mocked for now; swap verifyApplicantNIN()'s setTimeout for a real
+        fetch to the NIMC verification endpoint once the backend is ready,
+        and wire submitApplication() to the real applications API)
+    ══════════════════════════════════════════════════════════ */
+    (function () {
+      var currentJob = null;
+      var uploadedCvKey = null;
+
+      window.openApplyModal = function (job) {
+        currentJob = job || null;
+        var label = document.getElementById('applyRoleLabel');
+        label.textContent = currentJob
+          ? currentJob.title + (currentJob.location ? ' — ' + currentJob.location : '')
+          : 'Application Form';
+
+        resetApplyWizard();
+        var overlay = document.getElementById('applyModal');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.closeApplyModal = function () {
+        document.getElementById('applyModal').classList.remove('open');
+        document.body.style.overflow = '';
+      };
+
+      window.resetApplyWizard = function () {
+        document.getElementById('apply-nin').value = '';
+        document.getElementById('nin-first-name').value = '';
+        document.getElementById('nin-middle-name').value = '';
+        document.getElementById('nin-last-name').value = '';
+        document.getElementById('apply-nin-error').classList.remove('show');
+        document.getElementById('apply-nin-status').classList.remove('show');
+        document.getElementById('apply-bio-fields').classList.remove('show');
+        document.getElementById('apply-step1-continue').disabled = true;
+
+        var btn = document.getElementById('apply-nin-btn');
+        btn.textContent = 'Verify NIN';
+        btn.disabled = false;
+
+        ['exp-employer', 'exp-cover-note'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+
+        uploadedCvKey = null;
+        document.getElementById('cv-file-input').value = '';
+        document.getElementById('cv-upload-icon').textContent = '📄';
+        document.getElementById('cv-upload-text').innerHTML = '<strong>Click to upload</strong> or drag and drop';
+        document.getElementById('cv-upload-sub').textContent = 'PDF only · Max 5MB';
+        document.getElementById('cv-upload-error').classList.remove('show');
+        document.getElementById('cv-upload-error').textContent = '';
+
+        document.getElementById('apply-confirmation').classList.remove('show');
+        document.getElementById('applyStepper').style.display = 'flex';
+
+        var submitBtn = document.getElementById('apply-submit-btn');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Application →';
+        var submitErrorEl = document.getElementById('apply-submit-error');
+        submitErrorEl.classList.remove('show');
+        submitErrorEl.textContent = '';
+
+        goApplyStep(1);
+      };
+
+      // ── CV upload — validates then uploads immediately on selection,
+      // ahead of final submit, so the applicant sees success/failure right
+      // away rather than discovering a problem at the very end. ──
+      var CV_MAX_BYTES = 5 * 1024 * 1024;
+
+      document.getElementById('cv-file-input').addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        var errorEl = document.getElementById('cv-upload-error');
+        errorEl.classList.remove('show');
+        errorEl.textContent = '';
+
+        if (file.type !== 'application/pdf') {
+          errorEl.textContent = 'Please upload a PDF file.';
+          errorEl.classList.add('show');
+          e.target.value = '';
+          return;
+        }
+        if (file.size > CV_MAX_BYTES) {
+          errorEl.textContent = 'File is too large — max 5MB.';
+          errorEl.classList.add('show');
+          e.target.value = '';
+          return;
+        }
+
+        uploadCv(file);
+      });
+
+      function uploadCv(file) {
+        var icon = document.getElementById('cv-upload-icon');
+        var text = document.getElementById('cv-upload-text');
+        var sub = document.getElementById('cv-upload-sub');
+        var errorEl = document.getElementById('cv-upload-error');
+
+        icon.textContent = '⏳';
+        text.innerHTML = 'Uploading…';
+        sub.textContent = file.name;
+        uploadedCvKey = null;
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS + '/upload-cv', {
+          method: 'POST',
+          body: formData
+        })
+          .then(function (r) {
+            return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+          })
+          .then(function (res) {
+            if (res.ok && res.data && res.data.success) {
+              uploadedCvKey = res.data.data.cvKey;
+              icon.textContent = '✓';
+              text.innerHTML = '<strong style="color:#2e7d32">Uploaded</strong>';
+              sub.textContent = file.name;
+            } else {
+              icon.textContent = '📄';
+              text.innerHTML = '<strong>Click to upload</strong> or drag and drop';
+              sub.textContent = 'PDF only · Max 5MB';
+              errorEl.textContent = (res.data && res.data.message) || 'Upload failed. Please try again.';
+              errorEl.classList.add('show');
+            }
+          })
+          .catch(function () {
+            icon.textContent = '📄';
+            text.innerHTML = '<strong>Click to upload</strong> or drag and drop';
+            sub.textContent = 'PDF only · Max 5MB';
+            errorEl.textContent = 'Something went wrong uploading your CV. Please check your connection and try again.';
+            errorEl.classList.add('show');
+          });
+      }
+
+      window.verifyApplicantNIN = function () {
+        var nin = document.getElementById('apply-nin').value.replace(/\s/g, '');
+        var firstName = document.getElementById('nin-first-name').value.trim();
+        var middleName = document.getElementById('nin-middle-name').value.trim();
+        var lastName = document.getElementById('nin-last-name').value.trim();
+        var errorEl = document.getElementById('apply-nin-error');
+
+        if (!/^\d{11}$/.test(nin) || !firstName || !lastName) {
+          errorEl.textContent = 'Please enter your 11-digit NIN, first name, and last name exactly as they appear on your NIN slip.';
+          errorEl.classList.add('show');
+          return;
+        }
+        errorEl.classList.remove('show');
+
+        var btn = document.getElementById('apply-nin-btn');
+        btn.disabled = true;
+        btn.textContent = 'Verifying…';
+
+        var fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.NIN_VERIFY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nin: nin, firstName: firstName, lastName: lastName })
+        })
+          .then(function (r) {
+            return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+          })
+          .then(function (res) {
+            if (res.ok && res.data && res.data.verified) {
+              var bio = res.data.bio || {};
+              document.getElementById('bio-name').value = fullName;
+              document.getElementById('bio-dob').value = bio.dob || '';
+              if (bio.gender) document.getElementById('bio-gender').value = bio.gender;
+              document.getElementById('bio-phone').value = bio.phone || '';
+              document.getElementById('bio-address').value = bio.address || '';
+              document.getElementById('bio-email').value = '';
+
+              document.getElementById('apply-nin-status').classList.add('show');
+              document.getElementById('apply-bio-fields').classList.add('show');
+              document.getElementById('apply-step1-continue').disabled = false;
+              btn.textContent = '✓ Verified';
+              btn.disabled = true; // re-enable via resetApplyWizard() / editing NIN, not by re-clicking
+            } else {
+              // Distinct messaging per failure reason — a mismatch is a
+              // different problem for the applicant than "NIN not found"
+              // or the service being temporarily down.
+              var reason = (res.data && res.data.reason) || 'VERIFICATION_UNAVAILABLE';
+              var messages = {
+                NAME_MISMATCH: "We couldn't verify those details against this NIN. Double-check your first and last name match your NIN slip exactly, then try again.",
+                NIN_NOT_FOUND: 'No record was found for that NIN. Please double-check the number and try again.',
+                INVALID_INPUT: 'Please check your NIN, first name, and last name and try again.',
+                VERIFICATION_UNAVAILABLE: 'Identity verification is temporarily unavailable. Please try again shortly.'
+              };
+              errorEl.textContent = (res.data && res.data.message) || messages[reason] || messages.VERIFICATION_UNAVAILABLE;
+              errorEl.classList.add('show');
+              btn.disabled = false;
+              btn.textContent = 'Verify NIN';
+            }
+          })
+          .catch(function () {
+            errorEl.textContent = 'Something went wrong reaching the verification service. Please check your connection and try again.';
+            errorEl.classList.add('show');
+            btn.disabled = false;
+            btn.textContent = 'Verify NIN';
+          });
+      };
+
+      window.goApplyStep = function (n) {
+        document.querySelectorAll('.apply-step').forEach(function (el) {
+          el.style.display = (parseInt(el.dataset.applyStep, 10) === n) ? 'block' : 'none';
+        });
+        document.querySelectorAll('#applyStepper .app-step').forEach(function (el) {
+          var s = parseInt(el.dataset.step, 10);
+          el.classList.remove('done', 'active', 'pending');
+          if (s < n) el.classList.add('done');
+          else if (s === n) el.classList.add('active');
+          else el.classList.add('pending');
+          el.querySelector('.app-step-circle').textContent = (s < n) ? '✓' : s;
+        });
+        if (n === 3) populateApplyReview();
+        document.querySelector('.app-modal-body').scrollTop = 0;
+      };
+
+      function populateApplyReview() {
+        var val = function (id) { var el = document.getElementById(id); return (el && el.value) ? el.value : '—'; };
+        var body = document.getElementById('apply-review-body');
+        body.innerHTML =
+          '<div class="app-review-row">' +
+          '<div class="app-review-item"><div class="lbl">Full Name</div><div class="val">' + val('bio-name') + '</div></div>' +
+          '<div class="app-review-item"><div class="lbl">Date of Birth</div><div class="val">' + val('bio-dob') + '</div></div>' +
+          '</div>' +
+          '<div class="app-review-row">' +
+          '<div class="app-review-item"><div class="lbl">Gender</div><div class="val">' + val('bio-gender') + '</div></div>' +
+          '<div class="app-review-item"><div class="lbl">Phone Number</div><div class="val">' + val('bio-phone') + '</div></div>' +
+          '</div>' +
+          '<div class="app-review-item" style="margin-bottom:14px"><div class="lbl">Address</div><div class="val">' + val('bio-address') + '</div></div>' +
+          '<div class="app-review-item" style="margin-bottom:14px"><div class="lbl">Email</div><div class="val">' + val('bio-email') + '</div></div>' +
+          '<div class="app-review-divider"></div>' +
+          '<div class="app-review-row">' +
+          '<div class="app-review-item"><div class="lbl">Experience</div><div class="val">' + val('exp-years') + '</div></div>' +
+          '<div class="app-review-item"><div class="lbl">Previous Employer</div><div class="val">' + val('exp-employer') + '</div></div>' +
+          '</div>' +
+          '<div class="app-review-item" style="margin-bottom:14px"><div class="lbl">Branch Preference</div><div class="val">' + val('exp-branch') + '</div></div>' +
+          '<div class="app-review-item"><div class="lbl">Cover Note</div><div class="val" style="font-weight:400">' + val('exp-cover-note') + '</div></div>';
+      }
+
+      function getVal(id) {
+        var el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+      }
+
+      function validateBeforeSubmit() {
+        var email = getVal('bio-email');
+        var missing = [];
+
+        if (!getVal('bio-phone')) missing.push('Phone Number');
+        if (!getVal('bio-address')) missing.push('Residential Address');
+        if (!email) missing.push('Email Address');
+        else if (email.indexOf('@') === -1) missing.push('a valid Email Address');
+        if (!getVal('exp-cover-note')) missing.push('Cover Note');
+
+        if (missing.length) {
+          return 'Please go back and fill in: ' + missing.join(', ') + '.';
+        }
+        return null;
+      }
+
+      window.submitApplication = function () {
+        var errorEl = document.getElementById('apply-submit-error');
+        errorEl.classList.remove('show');
+
+        var validationError = validateBeforeSubmit();
+        if (validationError) {
+          errorEl.textContent = validationError;
+          errorEl.classList.add('show');
+          return;
+        }
+
+        var btn = document.getElementById('apply-submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting…';
+
+        var payload = {
+          jobId: (currentJob && currentJob.id) ? currentJob.id : undefined,
+          appliedRole: (currentJob && currentJob.title) ? currentJob.title : undefined,
+          firstName: getVal('nin-first-name'),
+          middleName: getVal('nin-middle-name') || undefined,
+          lastName: getVal('nin-last-name'),
+          nin: getVal('apply-nin'),
+          dateOfBirth: getVal('bio-dob') || undefined,
+          gender: getVal('bio-gender') || undefined,
+          phone: getVal('bio-phone'),
+          address: getVal('bio-address'),
+          email: getVal('bio-email'),
+          yearsOfExperience: getVal('exp-years') || undefined,
+          previousEmployer: getVal('exp-employer') || undefined,
+          coverNote: getVal('exp-cover-note'),
+          preferredBranchText: getVal('exp-branch') || undefined,
+          cvUrl: uploadedCvKey || undefined,
+          // portfolioUrl still omitted — no upload UI for it yet.
+        };
+
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(function (r) {
+            return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+          })
+          .then(function (res) {
+            if (res.ok && res.data && res.data.success) {
+              var application = res.data.data || {};
+
+              document.querySelectorAll('.apply-step').forEach(function (el) { el.style.display = 'none'; });
+              document.getElementById('applyStepper').style.display = 'none';
+
+              document.getElementById('apply-confirm-email').textContent = application.email || getVal('bio-email');
+              document.getElementById('apply-ref-number').textContent = application.applicationCode || '—';
+              document.getElementById('apply-confirmation').classList.add('show');
+            } else {
+              var message = (res.data && res.data.message) ||
+                'Something went wrong submitting your application. Please try again.';
+              errorEl.textContent = message;
+              errorEl.classList.add('show');
+              btn.disabled = false;
+              btn.textContent = 'Submit Application →';
+            }
+          })
+          .catch(function () {
+            errorEl.textContent = 'Something went wrong reaching the server. Please check your connection and try again.';
+            errorEl.classList.add('show');
+            btn.disabled = false;
+            btn.textContent = 'Submit Application →';
+          });
+      };
+    })();
   </script>
+  <script src="assets/js/config.js"></script>
   <script src="assets/js/auth-api.js"></script>
   <script src="assets/js/nav-auth.js"></script>
 </body>
