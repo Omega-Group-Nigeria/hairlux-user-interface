@@ -3,8 +3,11 @@ const ApplicantAPI = (function () {
   async function request(endpoint, options) {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
     const config = {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options && options.headers ? options.headers : {}),
+      },
     };
 
     let response, data;
