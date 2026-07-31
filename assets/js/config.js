@@ -45,6 +45,8 @@ const API_CONFIG = {
     APPLICATIONS: '/applications',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',
+    BRANCHES: '/branches',
+    SALON_BOOKING_RESERVE: '/salon-bookings/reserve',
     BOOKING_PAYMENTS: {
       BASE: '/bookings/payments',
       INITIALIZE: '/bookings/payments/initialize',
