@@ -24,18 +24,18 @@ var BookingAPI = (function () {
     ], '');
 
     return {
-      id: data.id || '',
-      label: firstNonEmpty([data.label], ''),
-      fullAddress: fullAddress,
+      id:            data.id || '',
+      label:         firstNonEmpty([data.label], ''),
+      fullAddress:   fullAddress,
       streetAddress: firstNonEmpty([data.streetAddress], ''),
-      city: firstNonEmpty([data.city], ''),
-      state: firstNonEmpty([data.state], ''),
-      country: firstNonEmpty([data.country], 'Nigeria'),
-      placeId: firstNonEmpty([data.placeId, data.place_id], ''),
+      city:          firstNonEmpty([data.city], ''),
+      state:         firstNonEmpty([data.state], ''),
+      country:       firstNonEmpty([data.country], 'Nigeria'),
+      placeId:       firstNonEmpty([data.placeId, data.place_id], ''),
       addressComponents: data.addressComponents && typeof data.addressComponents === 'object'
         ? data.addressComponents
         : undefined,
-      isDefault: Boolean(data.isDefault)
+      isDefault:     Boolean(data.isDefault)
     };
   }
 
@@ -60,7 +60,6 @@ var BookingAPI = (function () {
    * @param {string}   payload.idempotencyKey                 - Client-generated key (e.g. 'book-<uuid>'); prevents duplicate bookings on retries
    * @returns {Promise<{ booking: Object, reservationCode: string, totalAmount: number, paymentMethod: string, message: string }>}
    */
-
   async function create(payload) {
     var response = await APIHelper.request(API_CONFIG.ENDPOINTS.BOOKINGS, {
       method: 'POST',
@@ -69,46 +68,12 @@ var BookingAPI = (function () {
     // Response shape: { success, message, data: { booking: {...}, reservationCode, totalAmount, paymentMethod, message } }
     var data = (response && response.data) || {};
     return {
-      booking: data.booking || {},
+      booking:         data.booking         || {},
       reservationCode: data.reservationCode || (data.booking && data.booking.reservationCode) || '',
-      totalAmount: Number(data.totalAmount || (data.booking && data.booking.totalAmount) || 0),
-      paymentMethod: data.paymentMethod || 'WALLET',
-      message: data.message || (response && response.message) || 'Booking confirmed.'
+      totalAmount:     Number(data.totalAmount || (data.booking && data.booking.totalAmount) || 0),
+      paymentMethod:   data.paymentMethod   || 'WALLET',
+      message:         data.message        || (response && response.message) || 'Booking confirmed.'
     };
-  }
-
-  /**
-   * Public — no auth required. Used to populate the branch picker for
-   * Walk-In reservations (the customer picks which branch they'll visit).
-   * @returns {Promise<Array<{id: string, name: string}>>}
-   */
-  async function getBranches() {
-    var response = await APIHelper.request(API_CONFIG.ENDPOINTS.BRANCHES, { method: 'GET' });
-    var data = (response && response.data) || [];
-    return Array.isArray(data) ? data : (data.branches || data.data || []);
-  }
-
-  /** Used to source the logged-in customer's own name/phone/email when booking for themselves (not "Someone Else"). */
-  async function getMyProfile() {
-    var response = await APIHelper.request(API_CONFIG.ENDPOINTS.USER.PROFILE, { method: 'GET' });
-    return (response && response.data) || {};
-  }
-
-  /**
-   * Reserve a salon visit in advance (Walk-In bookings only). Generates a
-   * reservation code the customer presents at the branch — no payment is
-   * collected here, and no Stylist is assigned until staff verify the code
-   * on arrival.
-   * @param {object} payload { branchId, customerName, customerPhone, customerEmail?, bookingDate, bookingTime, services: [{serviceId, quantity?}], notes? }
-   * @returns {Promise<{ reservationCode: string, bookingDate: string, bookingTime: string, totalAmount: number }>}
-   */
-  async function reserveSalonVisit(payload) {
-    var response = await APIHelper.request(API_CONFIG.ENDPOINTS.SALON_BOOKING_RESERVE, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    var data = (response && response.data) || {};
-    return data;
   }
 
   function bookingPaymentsEndpoints() {
@@ -261,8 +226,8 @@ var BookingAPI = (function () {
     var data = (response && response.data) || response || {};
     var balance = Number(
       data.balance !== undefined ? data.balance :
-        data.walletBalance !== undefined ? data.walletBalance :
-          data.availableBalance !== undefined ? data.availableBalance : 0
+      data.walletBalance !== undefined ? data.walletBalance :
+      data.availableBalance !== undefined ? data.availableBalance : 0
     );
     return Number.isFinite(balance) ? balance : 0;
   }
@@ -310,9 +275,6 @@ var BookingAPI = (function () {
 
   return {
     create: create,
-    getBranches: getBranches,
-    getMyProfile: getMyProfile,
-    reserveSalonVisit: reserveSalonVisit,
     initializeBookingPayment: initializeBookingPayment,
     verifyBookingPayment: verifyBookingPayment,
     getBookingPaymentStatus: getBookingPaymentStatus,
