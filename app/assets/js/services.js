@@ -44,41 +44,36 @@
       return mode === 'HOME_SERVICE' ? 'Mobile' : 'Walk-In';
     }
 
-    function getServicePriceForMode(service, mode) {
-      var walk = Number(service && service.walkInPrice);
-      var home = Number(service && service.homeServicePrice);
-      var hasWalk = !isNaN(walk) && walk >= 0;
-      var hasHome = !isNaN(home) && home >= 0;
-
-      if (mode === 'WALK_IN') {
-        if (hasWalk) return walk;
-        if (hasHome) return home;
-      } else if (mode === 'HOME_SERVICE') {
-        if (hasHome) return home;
-        if (hasWalk) return walk;
+    // Branch walk-in price, if the API resolved one (effectivePrice is the
+    // per-branch value when bookingType is supplied; walkInPrice is the branch
+    // override when branchId is supplied). Falls back to the catalog price.
+    function getWalkInPrice(svc) {
+      if (!svc) return 0;
+      var candidates = [svc.effectivePrice, svc.walkInPrice];
+      for (var i = 0; i < candidates.length; i++) {
+        var value = Number(candidates[i]);
+        if (candidates[i] != null && Number.isFinite(value) && value >= 0) return value;
       }
+      var fallback = Number((svc.price != null ? svc.price : (svc.basePrice != null ? svc.basePrice : svc.amount)) || 0);
+      return Number.isFinite(fallback) && fallback >= 0 ? fallback : 0;
+    }
 
+    // Website books walk-in only — mobile/home-service moved to the app.
+    function isWalkInBookable(svc) {
+      if (!svc || svc.isWalkInAvailable === false) return false;
+      var walk = Number(svc.walkInPrice);
+      if (svc.walkInPrice != null && !isNaN(walk) && walk >= 0) return true;
+      var fallback = Number((svc && (svc.price != null ? svc.price : (svc.basePrice != null ? svc.basePrice : svc.amount))) || 0);
+      return Number.isFinite(fallback) && fallback >= 0;
+    }
+
+    function getServicePriceForMode(service, mode) {
+      if (mode === 'WALK_IN') return getWalkInPrice(service);
       return getServiceDisplayPrice(service);
     }
 
     function getServiceDisplayPrice(svc) {
-      var prices = [];
-
-      var canWalkIn = svc && svc.isWalkInAvailable !== false;
-      var canHome   = svc && svc.isHomeServiceAvailable !== false;
-
-      if (canWalkIn && svc && svc.walkInPrice != null) {
-        var walk = Number(svc.walkInPrice);
-        if (!isNaN(walk) && walk >= 0) prices.push(walk);
-      }
-
-      if (canHome && svc && svc.homeServicePrice != null) {
-        var home = Number(svc.homeServicePrice);
-        if (!isNaN(home) && home >= 0) prices.push(home);
-      }
-
-      if (prices.length) return Math.min.apply(null, prices);
-
+      if (svc && svc.isWalkInAvailable !== false) return getWalkInPrice(svc);
       var fallback = Number((svc && (svc.price || svc.basePrice || svc.amount)) || 0);
       return isNaN(fallback) ? 0 : fallback;
     }
@@ -103,6 +98,7 @@
     // Map: serviceId (UUID) → { id, name, price, duration, categoryId, selectedMode, walkInPrice, homeServicePrice, isWalkInAvailable, isHomeServiceAvailable }
     var selected = new Map();
     var activeCategoryId = '';
+    var activeBranchId = '';
     var searchTerm = '';
     var allServices = [];
     var filteredServices = [];
@@ -120,6 +116,7 @@
     var clearBtn    = document.getElementById('sel-clear-btn');
     var continueBtn = document.getElementById('sel-continue-btn');
     var paginationWrap = document.getElementById('services-pagination');
+    var branchSelect   = document.getElementById('service-branch-select');
 
     function restoreSelectedFromSession() {
       try {
@@ -130,14 +127,15 @@
 
         items.forEach(function (item) {
           if (!item || !item.id) return;
-          var mode = normalizeMode(item.selectedMode || item.serviceMode || item.bookingType);
+          // Website is walk-in only — mobile/home-service bookings happen in the app.
+          var selectedMode = 'WALK_IN';
           selected.set(String(item.id), {
             id: String(item.id),
             name: item.name || '',
-            price: Number(item.price || 0),
+            price: Number(item.walkInPrice != null ? item.walkInPrice : item.price) || 0,
             duration: Number(item.duration || 0),
             categoryId: item.categoryId || '',
-            selectedMode: mode,
+            selectedMode: selectedMode,
             walkInPrice: Number(item.walkInPrice),
             homeServicePrice: Number(item.homeServicePrice),
             isWalkInAvailable: item.isWalkInAvailable !== false,
@@ -230,6 +228,12 @@
       var chosenMode = normalizeMode(mode);
       if (!chosenMode) return;
 
+      // Website is walk-in only — mobile/home-service moved to the app.
+      if (chosenMode === 'HOME_SERVICE') {
+        showToast('Mobile (home) service is available in the Hairlux app.', 'info', 2600);
+        return;
+      }
+
       var existing = selected.get(id);
       if (existing && normalizeMode(existing.selectedMode) === chosenMode) {
         selected.delete(id);
@@ -270,8 +274,9 @@
       var displayPrice = getServiceDisplayPrice(svc);
       var selectedSvc = selected.get(String(svc.id));
       var isSelected = Boolean(selectedSvc);
-      var canWalkIn = svc && svc.isWalkInAvailable !== false;
-      var canHomeService = svc && svc.isHomeServiceAvailable !== false;
+      var canWalkIn = isWalkInBookable(svc);
+      // Website is walk-in only — mobile/home-service moved to the app.
+      var canHomeService = false;
 
       var div = document.createElement('div');
       div.className = 'service-item' + (isSelected ? ' selected' : '');
@@ -283,32 +288,17 @@
       div.dataset.servicePrice    = displayPrice;
       div.dataset.serviceDuration = svc.duration;
       div.dataset.categoryId      = svc.categoryId || '';
-      div.dataset.walkInPrice     = svc.walkInPrice != null ? Number(svc.walkInPrice) : '';
+      div.dataset.walkInPrice     = getWalkInPrice(svc);
       div.dataset.homeServicePrice = svc.homeServicePrice != null ? Number(svc.homeServicePrice) : '';
       div.dataset.isWalkInAvailable = canWalkIn ? 'true' : 'false';
       div.dataset.isHomeServiceAvailable = canHomeService ? 'true' : 'false';
 
       var selectedMode = normalizeMode(selectedSvc && selectedSvc.selectedMode);
       var walkPrice = getServicePriceForMode(svc, 'WALK_IN');
-      var homePrice = getServicePriceForMode(svc, 'HOME_SERVICE');
 
-      var chooseHint = 'Tap one option below to select this service.';
-      if (canHomeService && canWalkIn) {
-        chooseHint = 'Click below to choose:';
-      } else if (canHomeService) {
-        chooseHint = 'Click below to choose:';
-      } else if (canWalkIn) {
-        chooseHint = 'Click below to choose:';
-      }
+      var chooseHint = 'Tap below to select this walk-in service.';
 
       var modeActionsHtml = '';
-      if (canHomeService) {
-        modeActionsHtml +=
-          '<button type="button" class="service-mode-action' + (selectedMode === 'HOME_SERVICE' ? ' active' : '') + '" data-select-mode="HOME_SERVICE" aria-pressed="' + (selectedMode === 'HOME_SERVICE' ? 'true' : 'false') + '">' +
-            '<span class="service-mode-action-label">Mobile</span>' +
-            '<span class="service-mode-action-price">' + formatPrice(homePrice) + '</span>' +
-          '</button>';
-      }
       if (canWalkIn) {
         modeActionsHtml +=
           '<button type="button" class="service-mode-action' + (selectedMode === 'WALK_IN' ? ' active' : '') + '" data-select-mode="WALK_IN" aria-pressed="' + (selectedMode === 'WALK_IN' ? 'true' : 'false') + '">' +
@@ -563,10 +553,76 @@
     }
 
     // ── Bootstrap: load categories then services ──────────────
+    function loadServices() {
+      showGridLoading();
+      var params = { status: 'ACTIVE', bookingType: 'WALK_IN' };
+      if (activeBranchId) params.branchId = activeBranchId;
+
+      // Load all active services (walk-in only — mobile/home-service is in the app)
+      ServicesAPI.getServices(params)
+        .then(function (res) {
+          var list = (res && res.data) || [];
+          allServices = list.filter(isWalkInBookable);
+          applyFilter();
+        })
+        .catch(function (err) {
+          showGridError((err && err.message) || 'Failed to load services.');
+        });
+    }
+
+    function loadBranches() {
+      if (!branchSelect) return;
+      try {
+        APIHelper.request(API_CONFIG.ENDPOINTS.BRANCHES, { method: 'GET' })
+          .then(function (res) {
+            var data = (res && res.data) || [];
+            var branches = Array.isArray(data) ? data : (data.branches || data.data || []);
+            if (!Array.isArray(branches) || !branches.length) return;
+
+            var frag = document.createDocumentFragment();
+            branches.forEach(function (b) {
+              var opt = document.createElement('option');
+              opt.value = b.id;
+              opt.textContent = b.name;
+              frag.appendChild(opt);
+            });
+            branchSelect.appendChild(frag);
+          })
+          .catch(function () {
+            // branch selector stays with just "Standard prices"
+          });
+      } catch (e) {
+        // ignore
+      }
+    }
+
     function init() {
       showGridLoading();
       restoreSelectedFromSession();
       renderBar();
+
+      if (branchSelect) {
+        branchSelect.addEventListener('change', function () {
+          var nextBranchId = this.value || '';
+          if (nextBranchId === activeBranchId) return;
+
+          // Prices may change per branch — start selection fresh.
+          selected.clear();
+          renderBar();
+
+          activeBranchId = nextBranchId;
+          loadServices();
+          showToast(
+            activeBranchId
+              ? 'Prices updated for the selected branch.'
+              : 'Showing standard prices.',
+            'info',
+            2200
+          );
+        });
+      }
+
+      loadBranches();
 
       // Load categories for chips
       ServicesAPI.getCategories()
@@ -585,15 +641,7 @@
           // chips stay with just "All" if categories fail
         });
 
-      // Load all active services
-      ServicesAPI.getServices({ status: 'ACTIVE' })
-        .then(function (res) {
-          allServices = (res && res.data) || [];
-          applyFilter();
-        })
-        .catch(function (err) {
-          showGridError((err && err.message) || 'Failed to load services.');
-        });
+      loadServices();
     }
 
     // Add spin keyframe once

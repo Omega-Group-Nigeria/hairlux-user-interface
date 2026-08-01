@@ -60,26 +60,14 @@
   }
 
   function getSelectedModeFromService(service) {
-    if (!service || typeof service !== 'object') return '';
-    const explicit = normalizeServiceMode(service.selectedMode || service.serviceMode || service.bookingType);
-    if (explicit) return explicit;
-
-    const walkEnabled = service.isWalkInAvailable !== false;
-    const homeEnabled = service.isHomeServiceAvailable !== false;
-    const walkPrice = Number(service.walkInPrice);
-    const homePrice = Number(service.homeServicePrice);
-    const hasWalk = walkEnabled && Number.isFinite(walkPrice) && walkPrice >= 0;
-    const hasHome = homeEnabled && Number.isFinite(homePrice) && homePrice >= 0;
-
-    if (hasHome && !hasWalk) return 'HOME_SERVICE';
-    if (hasWalk && !hasHome) return 'WALK_IN';
+    // Website is walk-in only — mobile/home-service booking moved to the app.
+    if (service && typeof service === 'object' && isServiceModeAvailable(service, 'WALK_IN')) return 'WALK_IN';
     return '';
   }
 
   function hasAnyMobileService() {
-    return getSelectedServices().some(function (svc) {
-      return getSelectedModeFromService(svc) === 'HOME_SERVICE';
-    });
+    // Website is walk-in only — mobile/home-service moved to the app.
+    return false;
   }
 
   function hasAnyWalkInService() {
@@ -89,20 +77,7 @@
   }
 
   function getBookingTypePresentation() {
-    const hasHome = hasAnyMobileService();
-    const hasWalk = hasAnyWalkInService();
-    if (hasHome && hasWalk) {
-      return {
-        text: 'Mixed (Mobile + Walk-In)',
-        badgeHtml: '<span class="btype-badge home">🏠 + 🏪 Mixed (Mobile + Walk-In)</span>'
-      };
-    }
-    if (hasHome) {
-      return {
-        text: 'Mobile Service',
-        badgeHtml: '<span class="btype-badge home">🏠 Mobile Serivice</span>'
-      };
-    }
+    // Website is walk-in only — mobile/home-service moved to the app.
     return {
       text: 'Walk-In (Store)',
       badgeHtml: '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>'
@@ -153,6 +128,25 @@
   const notesEl = document.getElementById('notes');
   const addAddressWrap = document.getElementById('addAddressWrap');
   const saveAddressBtn = document.getElementById('saveAddressBtn');
+
+  // Inline field validation
+  const serviceFieldError = document.getElementById('serviceFieldError');
+  const dateFieldError   = document.getElementById('dateFieldError');
+  const timeFieldError   = document.getElementById('timeFieldError');
+  const branchFieldError = document.getElementById('branchFieldError');
+
+  function showFieldError(el, message) {
+    if (!el) return;
+    el.textContent = message || '';
+    el.style.display = message ? '' : 'none';
+  }
+
+  function clearFieldErrors() {
+    showFieldError(serviceFieldError, '');
+    showFieldError(dateFieldError, '');
+    showFieldError(timeFieldError, '');
+    showFieldError(branchFieldError, '');
+  }
 
   let branchesLoaded = false;
   async function ensureBranchesLoaded() {
@@ -235,8 +229,10 @@
   let walletBalance = 0;
   let bookingPaymentReference = '';
   let bookingPaymentProvider = BOOKING_GATEWAY_PROVIDER;
-  let bookingType = 'HOME_SERVICE'; // 'HOME_SERVICE' | 'WALK_IN'
+  let bookingType = 'WALK_IN'; // Website is walk-in only — 'WALK_IN' | 'HOME_SERVICE' (app only)
   let bookingTypeCapabilities = { home: true, walk: true };
+  let activeBranchId = '';
+  let branchPricingToken = 0;
   let bookingForSelf = true;
   let mapsLoaderPromise = null;
   let bookingMapInstance = null;
@@ -363,19 +359,16 @@
   }
 
   function applyBookingTypeAvailability() {
-    bookingTypeCapabilities = computeBookingTypeCapabilities();
+    // Website is walk-in only — mobile/home-service booking moved to the app.
+    bookingTypeCapabilities = { home: false, walk: true };
+    bookingType = 'WALK_IN';
 
-    bookingType = bookingTypeCapabilities.home ? 'HOME_SERVICE' : 'WALK_IN';
-
-    const needsAddress = bookingTypeCapabilities.home;
-    if (addressSection) addressSection.classList.toggle('visible', needsAddress);
-    if (!needsAddress) {
-      addAddressWrap.style.display = 'none';
-      if (savedAddressEl) savedAddressEl.value = '';
-    }
-
-    if (branchSection) branchSection.style.display = needsAddress ? 'none' : '';
-    if (!needsAddress) ensureBranchesLoaded();
+    // Always a salon walk-in reservation: no delivery address, branch required.
+    if (addressSection) addressSection.classList.remove('visible');
+    if (addAddressWrap) addAddressWrap.style.display = 'none';
+    if (savedAddressEl) savedAddressEl.value = '';
+    if (branchSection) branchSection.style.display = '';
+    ensureBranchesLoaded();
   }
 
   // ── Utilities ─────────────────────────────────────────────────────
@@ -398,6 +391,12 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function getSelectedBranchName() {
+    if (!visitBranchEl || !visitBranchEl.value) return '';
+    const option = visitBranchEl.options[visitBranchEl.selectedIndex];
+    return option ? option.textContent.trim() : '';
   }
 
   function showToast(message, type = 'info', duration = 3000) {
@@ -475,23 +474,28 @@
     return 'book-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
   }
 
-  async function hydrateSelectedServicesPricing() {
+  async function hydrateSelectedServicesPricing(branchId) {
     const services = getSelectedServices();
     if (!services.length) return;
 
     const tasks = services.map(async function (svc) {
       if (!svc || !svc.id) return;
       try {
+        const query = new URLSearchParams({ bookingType: 'WALK_IN' });
+        if (branchId) query.set('branchId', branchId);
         const res = await APIHelper.request(
-          API_CONFIG.ENDPOINTS.SERVICES + '/' + encodeURIComponent(svc.id)
+          API_CONFIG.ENDPOINTS.SERVICES + '/' + encodeURIComponent(svc.id) + '?' + query.toString()
         );
         const data = getApiData(res) || {};
         if (data && typeof data === 'object') {
-          svc.walkInPrice = data.walkInPrice != null ? Number(data.walkInPrice) : svc.walkInPrice;
-          svc.homeServicePrice = data.homeServicePrice != null ? Number(data.homeServicePrice) : svc.homeServicePrice;
+          // Branch overrides walk-in price; effectivePrice is the resolved branch value.
+          const walkPrice = data.effectivePrice != null ? data.effectivePrice : data.walkInPrice;
+          if (walkPrice != null && Number.isFinite(Number(walkPrice))) {
+            svc.walkInPrice = Number(walkPrice);
+          }
           if (data.isWalkInAvailable != null) svc.isWalkInAvailable = Boolean(data.isWalkInAvailable);
-          if (data.isHomeServiceAvailable != null) svc.isHomeServiceAvailable = Boolean(data.isHomeServiceAvailable);
           if (data.duration != null && Number.isFinite(Number(data.duration))) svc.duration = Number(data.duration);
+          svc.branchId = branchId || '';
         }
       } catch (e) {
         // Keep decoded/stored pricing when service lookup fails.
@@ -1000,9 +1004,11 @@
       : (services[0] ? services[0].name : '-');
     const bookingPresentation = getBookingTypePresentation();
     const needsAddress = hasAnyMobileService();
+    const branchName = getSelectedBranchName();
+    const locationLabel = needsAddress ? 'Address' : 'Branch';
     const addrLabel = needsAddress
       ? (address ? escHtml(address.fullAddress || address.streetAddress || '-') : '-')
-      : 'At the salon';
+      : (escHtml(branchName) || 'At the salon');
     const guestLabel = bookingForSelf
       ? 'Myself'
       : ((guestNameEl && guestNameEl.value.trim()) || 'Guest');
@@ -1013,11 +1019,19 @@
       <div class="summary-row"><span>Type</span><span>${escHtml(bookingPresentation.text)}</span></div>
       <div class="summary-row"><span>Date</span><span>${bookingDateEl.value || '-'}</span></div>
       <div class="summary-row"><span>Time</span><span>${bookingTimeEl.value || '-'}</span></div>
-      <div class="summary-row"><span>Location</span><span>${addrLabel}</span></div>
+      <div class="summary-row"><span>${locationLabel}</span><span>${addrLabel}</span></div>
       <div class="summary-row"><span>Payment</span><span>👛 Wallet</span></div>
       ${discountInfo ? `<div class="summary-row" style="color:#1f7a3f;"><span>Discount (${discountInfo.percentage}% off)</span><span>&minus;${formatMoney(getTotalPrice() - getDiscountedTotal())}</span></div>` : ''}
     `;
     summaryTotal.textContent = formatMoney(getDiscountedTotal());
+
+    // Indicate the total reflects the selected branch's walk-in prices.
+    const priceNoteEl = document.getElementById('summaryPriceNote');
+    if (priceNoteEl) {
+      priceNoteEl.textContent = branchName
+        ? `Walk-in prices for ${branchName}`
+        : 'Select a branch to see its walk-in prices';
+    }
   }
 
   // ── Step 3: Review ────────────────────────────────────────────────
@@ -1056,7 +1070,7 @@
     const notesVal = notesEl.value.trim();
     const addrVal = needsAddress
       ? (address ? escHtml(address.fullAddress || address.streetAddress || '-') : '-')
-      : '<span class="btype-badge walkin">🏪 Walk-In at salon</span>';
+      : '<span class="btype-badge walkin">🏪 ' + escHtml(getSelectedBranchName() || 'Walk-In at salon') + '</span>';
     const btBadge = bookingPresentation.badgeHtml;
     const gEmail = guestEmailEl ? guestEmailEl.value.trim() : '';
     const guestVal = bookingForSelf
@@ -1125,6 +1139,7 @@
   // ── Stepper ───────────────────────────────────────────────────────
   function setStep(newStep) {
     step = newStep;
+    clearFieldErrors();
     stepPills.forEach(pill => {
       pill.classList.toggle('active', Number(pill.dataset.stepPill) === step);
     });
@@ -1218,6 +1233,15 @@
     refreshSummary();
   }
 
+  function defaultBookingDateToToday() {
+    if (!bookingDateEl || bookingDateEl.value) return;
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    bookingDateEl.value = `${y}-${m}-${d}`;
+  }
+
   async function loadAvailableSlots(date) {
     bookingTimeEl.innerHTML = '<option value="">Loading available slots\u2026</option>';
     bookingTimeEl.disabled = true;
@@ -1288,6 +1312,17 @@
       var openMins = openParts[0] * 60 + (openParts[1] || 0);
       var closeMins = closeParts[0] * 60 + (closeParts[1] || 0);
 
+      // Defensive: some close times are stored as 12-hour values (e.g. "7:50"
+      // meaning 7:50 PM). When close is "before" open, treat it as PM so the
+      // day still produces slots instead of silently yielding zero.
+      if (closeMins < openMins) closeMins += 12 * 60;
+      if (closeMins <= openMins) {
+        bookingTimeEl.innerHTML = '<option value="">No available slots for this date</option>';
+        timeHelperText.textContent = 'We have no available slots on this date. Please try another day.';
+        timeHelperText.style.color = '#888';
+        return;
+      }
+
       var slots = [];
       for (var mins = openMins; mins < closeMins; mins += 30) {
         var sh = Math.floor(mins / 60);
@@ -1299,7 +1334,7 @@
 
       if (slots.length === 0) {
         bookingTimeEl.innerHTML = '<option value="">No available slots for this date</option>';
-        timeHelperText.textContent = 'All slots are too soon. Please try a later date.';
+        timeHelperText.textContent = 'All slots for this date are too soon. Please pick a later date or another day.';
         timeHelperText.style.color = '#888';
       } else {
         bookingTimeEl.innerHTML = '<option value="">\u2014 select a time \u2014</option>';
@@ -1447,8 +1482,8 @@
 
     const makePaymentLabel = makePaymentBtn && makePaymentBtn.querySelector('div');
     if (lowBalance) {
-      modalSubtext.textContent = `Wallet contributes ${formatMoney(walletBalance)}. Complete the ${formatMoney(shortfall)} shortfall via Monnify or Paystack and we will finalize your booking automatically.`;
-      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(shortfall)} shortfall via Monnify or Paystack.`;
+      modalSubtext.textContent = `Wallet contributes ${formatMoney(walletBalance)}. Complete the ${formatMoney(shortfall)} shortfall via Monnify and we will finalize your booking automatically.`;
+      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(shortfall)} shortfall via Monnify.`;
       modalStatus.style.color = '#dc3545';
       if (makePaymentLabel) {
         makePaymentLabel.textContent = 'Pay with Monnify';
@@ -1457,7 +1492,7 @@
       makePaymentBtn.style.pointerEvents = '';
       makePaymentBtn.style.opacity = '';
       if (payLaterBtn) payLaterBtn.style.display = 'none';
-      if (payWithPaystackBtn) payWithPaystackBtn.style.display = '';
+      if (payWithPaystackBtn) payWithPaystackBtn.style.display = 'none';
     } else {
       modalSubtext.textContent = 'Your wallet will be charged immediately upon confirmation.';
       modalStatus.textContent = 'Balance sufficient — ready to book.';
@@ -1901,6 +1936,35 @@
     refreshSummary();
   });
 
+  // Branch change: walk-in prices may vary per branch, so re-resolve pricing.
+  if (visitBranchEl) {
+    visitBranchEl.addEventListener('change', async function () {
+      const token = ++branchPricingToken;
+      activeBranchId = this.value || '';
+      showFieldError(branchFieldError, '');
+
+      if (activeBranchId) {
+        try {
+          await hydrateSelectedServicesPricing(activeBranchId);
+        } catch (_) {
+          // Keep current pricing if the branch-scoped lookup fails.
+        }
+      }
+      if (token !== branchPricingToken) return;
+
+      hydrateSelectedServiceUI();
+      refreshSummary();
+      if (step === 3) buildReview();
+      showToast(
+        activeBranchId
+          ? 'Prices updated for the selected branch.'
+          : 'Showing standard prices.',
+        'info',
+        2200
+      );
+    });
+  }
+
   saveAddressBtn.addEventListener('click', async function (e) {
     e.preventDefault();
     if (!newFullAddress.value.trim()) {
@@ -1985,6 +2049,7 @@
 
   // Date change: fetch available slots then refresh summary
   bookingDateEl.addEventListener('change', function () {
+    showFieldError(dateFieldError, '');
     if (this.value) {
       loadAvailableSlots(this.value);
     } else {
@@ -1996,16 +2061,28 @@
   });
 
   [bookingTimeEl, notesEl].forEach(el => {
-    el.addEventListener('change', refreshSummary);
+    el.addEventListener('change', function () {
+      showFieldError(timeFieldError, '');
+      refreshSummary();
+    });
     el.addEventListener('input', refreshSummary);
   });
 
   nextStepBtn.addEventListener('click', async function (e) {
     e.preventDefault();
     if (!validateStep(step)) {
+      clearFieldErrors();
+      if (step === 1) {
+        showFieldError(serviceFieldError, getSelectedServices().length ? '' : 'Please select at least one service before continuing.');
+      } else if (step === 2) {
+        showFieldError(dateFieldError, bookingDateEl.value ? '' : 'Please choose a date.');
+        showFieldError(timeFieldError, bookingTimeEl.value ? '' : 'Please choose a time.');
+        showFieldError(branchFieldError, (visitBranchEl && visitBranchEl.value) ? '' : 'Please choose a branch.');
+      }
       showToast('Please complete all required fields before continuing.', 'error');
       return;
     }
+    clearFieldErrors();
     if (step < 3) { setStep(step + 1); return; }
     setButtonState(nextStepBtn, 'Loading…', true);
     try {
@@ -2150,6 +2227,14 @@
     hydrateSelectedServiceUI();
     refreshSummary();
     setStep(1);
+
+    // Default to today and pre-fetch its availability so the time dropdown
+    // is ready without requiring a manual date selection first.
+    defaultBookingDateToToday();
+    if (bookingDateEl && bookingDateEl.value) {
+      loadAvailableSlots(bookingDateEl.value);
+    }
+
     await loadAddresses();
     await finalizeGatewayBookingAfterReturn();
   })();

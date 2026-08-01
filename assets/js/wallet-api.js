@@ -36,12 +36,12 @@
     });
   }
 
-  const DEPOSIT_PROVIDER_FALLBACK = 'paystack';
+  const DEPOSIT_PROVIDER_FALLBACK = 'monnify';
   const DEPOSIT_SESSION_KEY = 'hairlux.wallet.deposit.pending';
 
   function normalizeProvider(provider) {
     const candidate = String(provider || '').trim().toLowerCase();
-    return candidate === 'monnify' ? 'monnify' : 'paystack';
+    return candidate === 'paystack' ? 'paystack' : 'monnify';
   }
 
   function isWalletReference(reference) {

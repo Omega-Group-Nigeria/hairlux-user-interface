@@ -510,6 +510,46 @@
       flex-wrap: wrap;
     }
 
+    .service-branch-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .service-branch-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .service-branch-select {
+      min-width: 200px;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: #2d3622;
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .service-branch-select:focus {
+      border-color: #b47d2d;
+      box-shadow: 0 0 0 3px rgba(180, 125, 45, 0.14);
+    }
+
+    .service-branch-note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
     .service-search-row {
       position: relative;
       width: min(100%, 460px);

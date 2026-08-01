@@ -91,8 +91,8 @@
       <div class="booking-hero">
         <div class="title-tag small">Multi-Step Booking</div>
         <h1 class="h-l">Book your service in 3 easy steps</h1>
-        <p class="p-regular booking-subtext">Pick a service, choose date and time, select your saved address (or add a
-          new one), then review and submit.</p>
+        <p class="p-regular booking-subtext">Pick a service, choose date and time, select your preferred branch, then
+          review and submit.</p>
       </div>
 
       <div class="booking-layout">
@@ -119,6 +119,7 @@
                       <div class="helper-text" id="selectedServiceHelp">Please return to the Services page to change, or
                         add more services.</div>
                     </div>
+                    <div class="helper-text field-error" id="serviceFieldError" style="display:none;color:#dc3545;margin-top:5px;"></div>
                     <script>
                       (function () {
                         var params = new URLSearchParams(window.location.search);
@@ -197,6 +198,7 @@
                   <div class="field">
                     <label for="bookingDate">Date</label>
                     <input type="date" id="bookingDate" required />
+                    <div class="helper-text field-error" id="dateFieldError" style="display:none;color:#dc3545;margin-top:5px;"></div>
                   </div>
 
                   <div class="field">
@@ -205,10 +207,11 @@
                       <option value="">— pick a date first —</option>
                     </select>
                     <div class="helper-text" id="timeHelperText" style="margin-top:5px;"></div>
+                    <div class="helper-text field-error" id="timeFieldError" style="display:none;color:#dc3545;margin-top:5px;"></div>
                   </div>
 
-                  <!-- Address section: shown only for HOME_SERVICE -->
-                  <div class="field full address-wrap visible" id="addressSection">
+                  <!-- Address section: website is walk-in only, so this stays hidden -->
+                  <div class="field full address-wrap" id="addressSection" style="display:none;">
                     <label for="savedAddress">Delivery Address</label>
                     <select id="savedAddress">
                       <option value="">Loading addresses…</option>
@@ -216,8 +219,8 @@
                     </select>
                   </div>
 
-                  <!-- Branch section: shown only for WALK_IN -->
-                  <div class="field full" id="branchSection" style="display:none;">
+                  <!-- Branch section: always shown (walk-in only) -->
+                  <div class="field full" id="branchSection">
                     <label for="visitBranch">Which branch will you visit?</label>
                     <select id="visitBranch">
                       <option value="">Loading branches…</option>
@@ -225,6 +228,7 @@
                     <div class="helper-text">You'll get a reservation code to present at this branch — no Stylist is
                       assigned until you
                       arrive.</div>
+                    <div class="helper-text field-error" id="branchFieldError" style="display:none;color:#dc3545;margin-top:5px;"></div>
                   </div>
 
                   <div class="field full" id="addAddressWrap" style="display:none;">
@@ -332,8 +336,7 @@
             <span>Total</span>
             <span id="summaryTotal">₦0</span>
           </div>
-          <p class="helper-text" style="margin-top: 12px; font-size: 12px; color: #666;">Final amount confirmed at
-            payment stage</p>
+          <p id="summaryPriceNote" class="helper-text" style="margin-top: 12px; font-size: 12px; color: #666;">Walk-in prices shown for the selected branch</p>
         </aside>
       </div>
     </section>
