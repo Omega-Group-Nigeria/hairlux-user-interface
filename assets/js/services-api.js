@@ -27,6 +27,8 @@ var ServicesAPI = (function () {
    * @param {string} [params.categoryId]  Filter by category ID
    * @param {string} [params.search]      Search services by name
    * @param {string} [params.status]      ACTIVE | INACTIVE (default: ACTIVE)
+   * @param {string} [params.branchId]    Scope to branch — resolves walkInPrice to the branch override
+   * @param {string} [params.bookingType] WALK_IN | HOME_SERVICE — filters availability and adds effectivePrice
    * @returns {Promise<{ success: boolean, data: Array }>}
    */
   function getServices(params) {
@@ -34,6 +36,8 @@ var ServicesAPI = (function () {
     var query = new URLSearchParams();
     if (p.categoryId) query.set('categoryId', p.categoryId);
     if (p.search)     query.set('search', p.search);
+    if (p.branchId)   query.set('branchId', p.branchId);
+    if (p.bookingType) query.set('bookingType', p.bookingType);
     query.set('status', p.status || 'ACTIVE');
     var qs = query.toString();
     return APIHelper.request(
@@ -44,11 +48,21 @@ var ServicesAPI = (function () {
   /**
    * Fetch a single service by its UUID.
    * @param {string} id
+   * @param {object} [params]
+   * @param {string} [params.branchId]    Scope to branch — resolves walkInPrice to the branch override
+   * @param {string} [params.bookingType] WALK_IN | HOME_SERVICE
    * @returns {Promise<{ success: boolean, data: object }>}
    */
-  function getServiceById(id) {
+  function getServiceById(id, params) {
     if (!id) return Promise.reject(new Error('Service ID is required'));
-    return APIHelper.request(API_CONFIG.ENDPOINTS.SERVICES + '/' + encodeURIComponent(id));
+    var p = params || {};
+    var query = new URLSearchParams();
+    if (p.branchId)   query.set('branchId', p.branchId);
+    if (p.bookingType) query.set('bookingType', p.bookingType);
+    var qs = query.toString();
+    return APIHelper.request(
+      API_CONFIG.ENDPOINTS.SERVICES + '/' + encodeURIComponent(id) + (qs ? '?' + qs : '')
+    );
   }
 
   return {

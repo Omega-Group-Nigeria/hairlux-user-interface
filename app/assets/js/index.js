@@ -49,7 +49,8 @@
 
       function normalizeGatewayProvider(provider) {
         const candidate = String(provider || '').trim().toLowerCase();
-        return candidate === 'monnify' ? 'monnify' : 'monnify';
+        if (candidate === 'paystack') return 'paystack';
+        return 'monnify';
       }
 
       function isFailedGatewayStatus(status) {
@@ -335,7 +336,10 @@
     function buildServiceCard(svc, idx) {
       var name  = svc.name  || svc.title || 'Service';
       var desc  = svc.description || svc.desc || '';
-      var price = Number(svc.price || svc.basePrice || svc.amount || 0);
+      var walkPrice = Number(svc.walkInPrice);
+      var price = (svc.walkInPrice != null && Number.isFinite(walkPrice) && walkPrice >= 0)
+        ? walkPrice
+        : Number(svc.price || svc.basePrice || svc.amount || 0);
       var duration = Number(svc.duration || svc.durationMinutes || svc.estimatedDuration || 0);
       var imgUrl = (svc.imageUrl || svc.image || svc.coverImage || svc.thumbnail || '');
       var bg = imgUrl
@@ -382,6 +386,14 @@
           : Array.isArray(d.items)   ? d.items
           : Array.isArray(d.results) ? d.results
           : Array.isArray(d)         ? d : [];
+        // Website is walk-in only — show services bookable at a branch.
+        list = list.filter(function (s) {
+          if (!s || s.isWalkInAvailable === false) return false;
+          var walk = Number(s.walkInPrice);
+          if (s.walkInPrice != null && Number.isFinite(walk) && walk >= 0) return true;
+          var fallback = Number((s && (s.price != null ? s.price : (s.basePrice != null ? s.basePrice : s.amount))) || 0);
+          return Number.isFinite(fallback) && fallback >= 0;
+        });
         list = list.slice(0, 3);
         if (!list.length) {
           grid.innerHTML = '<div class="bookings-state" style="grid-column:1/-1;">No services available right now.</div>';

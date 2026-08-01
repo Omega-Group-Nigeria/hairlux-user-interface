@@ -13,13 +13,14 @@ function getRuntimeGoogleMapsKey() {
 
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: 'https://hairlux-api-production.up.railway.app',
+  BASE_URL: 'https://dev-hairlux-api-production.up.railway.app',
   
   // Local storage keys
   STORAGE_KEYS: {
     ACCESS_TOKEN: 'hairlux_access_token',
     REFRESH_TOKEN: 'hairlux_refresh_token',
-    USER_DATA: 'hairlux_user_data'
+    USER_DATA: 'hairlux_user_data',
+    APPLICANT_TOKEN: 'hairlux_applicant_token',
   },
 
   // API Endpoints
@@ -40,8 +41,11 @@ const API_CONFIG = {
     },
     SERVICES: '/services',
     JOBS: '/jobs',
+    NIN_VERIFY: '/nin/verify',
+    APPLICATIONS: '/applications',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',
+    BRANCHES: '/branches',
     BOOKING_PAYMENTS: {
       BASE: '/bookings/payments',
       INITIALIZE: '/bookings/payments/initialize',

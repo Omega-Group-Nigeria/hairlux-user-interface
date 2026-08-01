@@ -256,7 +256,7 @@
       <div class="wallet-modal-icon">₦</div>
       <h3 class="wallet-modal-title">Deposit to Wallet</h3>
       <p class="wallet-modal-text">Choose payment provider and amount to fund your wallet securely.</p>
-      <div class="wallet-modal-field wallet-provider-group">
+      <div class="wallet-modal-field wallet-provider-group" style="display:none;">
         <label>Payment Provider</label>
         <div class="wallet-provider-options" role="radiogroup" aria-label="Wallet deposit provider">
           <div class="wallet-provider-option">
@@ -264,8 +264,8 @@
             <label class="wallet-provider-label" for="walletProviderMonnify">Monnify</label>
           </div>
           <div class="wallet-provider-option">
-            <input id="walletProviderPaystack" class="wallet-provider-input" type="radio" name="walletDepositProvider" value="paystack" disabled />
-              <label class="wallet-provider-label" for="walletProviderPaystack">Paystack (Coming soon)</label>
+            <input id="walletProviderPaystack" class="wallet-provider-input" type="radio" name="walletDepositProvider" value="paystack" />
+              <label class="wallet-provider-label" for="walletProviderPaystack">Paystack</label>
           </div>
         </div>
       </div>
