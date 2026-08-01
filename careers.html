@@ -672,7 +672,108 @@
       }
     }
 
-    /* ══════════ APPLICATION WIZARD ══════════ */
+    /* ── Track Application (ported from login.html's applicant panel) ── */
+    .track-app-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 18px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: #6B551F;
+      text-decoration: underline;
+      cursor: pointer;
+      position: relative;
+      background: none;
+      border: none;
+    }
+
+    .ta-step {}
+
+    .ta-msg {
+      margin-top: 12px;
+      font-size: 13px;
+      border-radius: 7px;
+      padding: 9px 12px;
+      display: none;
+    }
+
+    .ta-msg.error {
+      display: block;
+      background: #fdecea;
+      color: #c0392b;
+    }
+
+    .ta-msg.info {
+      display: block;
+      background: #f0f5ea;
+      color: #4a6b2a;
+    }
+
+    .ta-input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(0, 0, 0, 0.15);
+      background: #fff;
+      font-size: 13px;
+      font-family: inherit;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    .ta-input:focus {
+      outline: none;
+      border-color: #9d8248;
+    }
+
+    .ta-otp-input {
+      width: 100%;
+      text-align: center;
+      font-size: 26px;
+      border-radius: 999px;
+      letter-spacing: 10px;
+      font-weight: 700;
+      border: 1px solid #d0d8c8;
+      padding: 14px 10px;
+      outline: none;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+
+    .ta-resend-row {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+    }
+
+    .ta-resend-btn {
+      background: none;
+      border: none;
+      color: #9d8248;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+
+    .ta-resend-btn:disabled {
+      color: #bbb;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+
+    .ta-back-link {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+    }
+
     .app-modal {
       max-width: 640px;
     }
@@ -1090,6 +1191,9 @@
           that puts quality first — we want to hear from you.</p>
         <div class="jobs-stats-pill"><span id="jobsCountStat">—</span>&nbsp;open roles <span class="dot"></span> 3
           branches</div>
+        <br>
+        <button type="button" class="track-app-link" id="openTrackAppBtn">Already applied? Track your application
+          →</button>
       </div>
     </section>
 
@@ -1341,11 +1445,61 @@
           <div class="app-confirmation-icon">🎉</div>
           <div class="app-confirmation-title">Application Submitted Successfully!</div>
           <div class="app-confirmation-text">Your reference number is <strong
-              id="apply-ref-number">HL-APP-2026-0001</strong>. A confirmation email has been sent to <strong
-              id="apply-confirm-email"></strong></div>
+              id="apply-ref-number">HL-APP-2026-0001</strong>. A
+            confirmation email has been sent to <strong id="apply-confirm-email"></strong></div>
           <button type="button" class="app-btn app-btn-primary" id="applyDoneBtn">Done</button>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Track Application Modal (applicant login, ported from login.html) -->
+  <div class="job-modal-overlay" id="trackAppModal" role="dialog" aria-modal="true">
+    <div class="job-modal" style="max-width:440px;">
+      <div class="job-modal-top-bar">
+        <button class="job-modal-close-btn" id="trackAppModalClose" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="job-modal-body" style="padding:8px 32px 40px;">
+        <h2 class="job-modal-title" style="text-align:center; margin-bottom:8px;">Track Your Application</h2>
+        <p style="text-align:center; font-size:13px; color:#888; margin-bottom:24px;" id="ta-subtext">Applied for a
+          role?
+          Enter your details to check your status.</p>
+
+        <!-- Step 1: application code + email -->
+        <div class="ta-step" id="ta-step-1">
+          <input class="ta-input" type="text" id="ta-app-code"
+            placeholder="Application code (e.g. HL-APP-2026-004821)" />
+          <input class="ta-input" type="email" id="ta-app-email" placeholder="Email used on your application"
+            autocomplete="email" />
+          <button type="button" class="app-btn app-btn-primary" id="ta-request-otp-btn" style="width:100%;">Send Login
+            Code</button>
+          <div class="ta-msg" id="ta-step1-msg"></div>
+        </div>
+
+        <!-- Step 2: OTP entry -->
+        <div class="ta-step" id="ta-step-2" style="display:none;">
+          <p style="text-align:center; font-size:13px; color:#666; margin-bottom:10px;">
+            Enter the 6-digit code sent to <strong id="ta-email-display"></strong>
+          </p>
+          <input class="ta-otp-input" type="text" id="ta-otp-code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+            placeholder="000000" autocomplete="one-time-code" />
+          <button type="button" class="app-btn app-btn-primary" id="ta-verify-otp-btn"
+            style="width:100%; margin-top:16px;">Verify &amp; Continue</button>
+          <div class="ta-msg" id="ta-step2-msg"></div>
+          <div class="ta-resend-row">
+            Didn't receive it?
+            <button type="button" class="ta-resend-btn" id="ta-resend-btn" disabled>Resend Code (<span
+                id="ta-countdown">60</span>s)</button>
+          </div>
+          <div class="ta-back-link" id="ta-back-link">&larr; Use a different application code</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1945,6 +2099,192 @@
       };
     })();
   </script>
+
+  <!-- Track Application (applicant login, ported from login.html — no
+         staff/customer toggle needed here, this page only tracks applications) -->
+  <script>
+    (function () {
+      var countdownTimer = null;
+      var currentAppCode = '';
+      var currentEmail = '';
+
+      var overlay = document.getElementById('trackAppModal');
+      var openBtn = document.getElementById('openTrackAppBtn');
+      var closeBtn = document.getElementById('trackAppModalClose');
+      var step1 = document.getElementById('ta-step-1');
+      var step2 = document.getElementById('ta-step-2');
+      var step1Msg = document.getElementById('ta-step1-msg');
+      var step2Msg = document.getElementById('ta-step2-msg');
+      var requestBtn = document.getElementById('ta-request-otp-btn');
+      var verifyBtn = document.getElementById('ta-verify-otp-btn');
+      var resendBtn = document.getElementById('ta-resend-btn');
+      var countdownEl = document.getElementById('ta-countdown');
+
+      function showMsg(el, text, type) {
+        el.textContent = text;
+        el.className = 'ta-msg ' + type;
+      }
+      function clearMsg(el) {
+        el.textContent = '';
+        el.className = 'ta-msg';
+      }
+
+      function resetTrackAppModal() {
+        document.getElementById('ta-app-code').value = '';
+        document.getElementById('ta-app-email').value = '';
+        document.getElementById('ta-otp-code').value = '';
+        clearMsg(step1Msg);
+        clearMsg(step2Msg);
+        step1.style.display = 'block';
+        step2.style.display = 'none';
+        requestBtn.disabled = false;
+        requestBtn.textContent = 'Send Login Code';
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Verify & Continue';
+        clearInterval(countdownTimer);
+      }
+
+      function openTrackAppModal() {
+        resetTrackAppModal();
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeTrackAppModal() {
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        clearInterval(countdownTimer);
+      }
+
+      openBtn.addEventListener('click', openTrackAppModal);
+      closeBtn.addEventListener('click', closeTrackAppModal);
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeTrackAppModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) closeTrackAppModal();
+      });
+
+      // ── Step 1: request OTP ──
+      function requestOtp() {
+        var code = document.getElementById('ta-app-code').value.trim();
+        var email = document.getElementById('ta-app-email').value.trim();
+        clearMsg(step1Msg);
+
+        if (!code || !email) {
+          showMsg(step1Msg, 'Enter your application code and email.', 'error');
+          return;
+        }
+
+        requestBtn.disabled = true;
+        requestBtn.textContent = 'Sending…';
+
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS + '/request-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ applicationCode: code, email: email })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function () {
+            // Backend always returns a generic success message, whether or not
+            // the code/email actually matched — don't reveal that here either.
+            currentAppCode = code;
+            currentEmail = email;
+            document.getElementById('ta-email-display').textContent = email;
+            step1.style.display = 'none';
+            step2.style.display = 'block';
+            startCountdown();
+          })
+          .catch(function () {
+            showMsg(step1Msg, 'Something went wrong. Please check your connection and try again.', 'error');
+          })
+          .finally(function () {
+            requestBtn.disabled = false;
+            requestBtn.textContent = 'Send Login Code';
+          });
+      }
+
+      requestBtn.addEventListener('click', requestOtp);
+
+      // ── Step 2: verify OTP ──
+      verifyBtn.addEventListener('click', function () {
+        var otp = document.getElementById('ta-otp-code').value.trim();
+        clearMsg(step2Msg);
+
+        if (!/^\d{6}$/.test(otp)) {
+          showMsg(step2Msg, 'Enter the 6-digit code.', 'error');
+          return;
+        }
+
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying…';
+
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS + '/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ applicationCode: currentAppCode, otp: otp })
+        })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            if (res.ok && res.data && res.data.success) {
+              localStorage.setItem('hairlux_applicant_token', res.data.data.accessToken);
+              window.location.href = 'applicant-dashboard.html';
+            } else {
+              showMsg(step2Msg, (res.data && res.data.message) || 'Invalid or expired code.', 'error');
+              verifyBtn.disabled = false;
+              verifyBtn.textContent = 'Verify & Continue';
+            }
+          })
+          .catch(function () {
+            showMsg(step2Msg, 'Something went wrong. Please check your connection and try again.', 'error');
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify & Continue';
+          });
+      });
+
+      // ── Resend + countdown ──
+      function startCountdown() {
+        var seconds = 60;
+        resendBtn.disabled = true;
+        countdownEl.textContent = seconds;
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(function () {
+          seconds -= 1;
+          countdownEl.textContent = seconds;
+          if (seconds <= 0) {
+            clearInterval(countdownTimer);
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'Resend Code';
+          }
+        }, 1000);
+      }
+
+      resendBtn.addEventListener('click', function () {
+        clearMsg(step2Msg);
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS + '/request-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ applicationCode: currentAppCode, email: currentEmail })
+        })
+          .then(function () {
+            showMsg(step2Msg, 'A new code has been sent.', 'info');
+            startCountdown();
+          })
+          .catch(function () {
+            showMsg(step2Msg, 'Could not resend right now. Please try again.', 'error');
+          });
+      });
+
+      // ── Back to step 1 ──
+      document.getElementById('ta-back-link').addEventListener('click', function () {
+        clearInterval(countdownTimer);
+        step2.style.display = 'none';
+        step1.style.display = 'block';
+        clearMsg(step2Msg);
+      });
+    })();
+  </script>
+
   <script src="assets/js/config.js"></script>
   <script src="assets/js/auth-api.js"></script>
   <script src="assets/js/nav-auth.js"></script>
