@@ -335,6 +335,27 @@
       letter-spacing: -0.02em;
     }
 
+    .summary-total-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .summary-total .summary-total-loading span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .summary-total-spinner {
+      animation: spin 1s linear infinite;
+      transform-origin: center;
+      flex-shrink: 0;
+    }
+
     /* ── Discount toggle ───────────────────────────────────────────── */
     .discount-section {
       margin-top: 20px;
