@@ -45,6 +45,7 @@ const API_CONFIG = {
     APPLICATIONS: '/applications',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',
+    BRANCHES: '/branches',
     BOOKING_PAYMENTS: {
       BASE: '/bookings/payments',
       INITIALIZE: '/bookings/payments/initialize',

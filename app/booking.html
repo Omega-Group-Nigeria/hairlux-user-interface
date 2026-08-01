@@ -94,8 +94,8 @@
       <div class="booking-hero">
         <div class="title-tag small">Multi-Step Booking</div>
         <h1 class="h-l">Book your service in 3 easy steps</h1>
-        <p class="p-regular booking-subtext">Pick a service, choose date and time, select your saved address (or add a
-          new one), then review and submit.</p>
+        <p class="p-regular booking-subtext">Pick a service, choose date and time, select your preferred branch, then
+          review and submit.</p>
       </div>
 
       <div class="booking-layout">
@@ -218,15 +218,14 @@
                     </select>
                   </div>
 
-                  <!-- Branch section: shown only for WALK_IN -->
-                  <div class="field full" id="branchSection" style="display:none;">
+                  <!-- Branch section: always shown (walk-in only) -->
+                  <div class="field full" id="branchSection">
                     <label for="visitBranch">Which branch will you visit?</label>
                     <select id="visitBranch">
                       <option value="">Loading branches…</option>
                     </select>
-                    <div class="helper-text">You'll get a reservation code to present at this branch — no Stylist is
-                      assigned until you
-                      arrive.</div>
+                    <div class="helper-text">Prices shown reflect the walk-in rates for the branch you select.</div>
+                    <div class="helper-text field-error" id="branchFieldError" style="display:none;color:#dc3545;margin-top:5px;"></div>
                   </div>
 
                   <div class="field full" id="addAddressWrap" style="display:none;">
@@ -311,14 +310,13 @@
             <div class="summary-row"><span>Service</span><span>-</span></div>
             <div class="summary-row"><span>Date</span><span>-</span></div>
             <div class="summary-row"><span>Time</span><span>-</span></div>
-            <div class="summary-row"><span>Address</span><span>-</span></div>
+            <div class="summary-row"><span>Branch</span><span>-</span></div>
           </div>
           <div class="summary-total">
             <span>Total</span>
             <span id="summaryTotal">₦0</span>
           </div>
-          <p class="helper-text" style="margin-top: 12px; font-size: 12px; color: #666;">Final amount confirmed at
-            payment stage</p>
+          <p id="summaryPriceNote" class="helper-text" style="margin-top: 12px; font-size: 12px; color: #666;">Walk-in prices shown for the selected branch</p>
         </aside>
       </div>
     </section>

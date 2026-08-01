@@ -76,6 +76,17 @@ var BookingAPI = (function () {
     };
   }
 
+  /**
+   * Public — no auth required. Used to populate the branch picker so walk-in
+   * prices can be resolved per selected branch.
+   * @returns {Promise<Array<{id: string, name: string}>>}
+   */
+  async function getBranches() {
+    var response = await APIHelper.request(API_CONFIG.ENDPOINTS.BRANCHES, { method: 'GET' });
+    var data = (response && response.data) || [];
+    return Array.isArray(data) ? data : (data.branches || data.data || []);
+  }
+
   function bookingPaymentsEndpoints() {
     var defaults = {
       BASE: '/bookings/payments',
@@ -275,6 +286,7 @@ var BookingAPI = (function () {
 
   return {
     create: create,
+    getBranches: getBranches,
     initializeBookingPayment: initializeBookingPayment,
     verifyBookingPayment: verifyBookingPayment,
     getBookingPaymentStatus: getBookingPaymentStatus,

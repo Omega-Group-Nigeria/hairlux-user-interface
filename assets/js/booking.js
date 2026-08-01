@@ -122,6 +122,8 @@
   const bookingTimeEl   = document.getElementById('bookingTime');
   const savedAddressEl  = document.getElementById('savedAddress');
   const addressSection  = document.getElementById('addressSection');
+  const branchSection   = document.getElementById('branchSection');
+  const visitBranchEl   = document.getElementById('visitBranch');
   const notesEl         = document.getElementById('notes');
   const addAddressWrap  = document.getElementById('addAddressWrap');
   const saveAddressBtn  = document.getElementById('saveAddressBtn');
@@ -143,6 +145,21 @@
     showFieldError(dateFieldError, '');
     showFieldError(timeFieldError, '');
     showFieldError(branchFieldError, '');
+  }
+
+  let branchesLoaded = false;
+  async function ensureBranchesLoaded() {
+    if (branchesLoaded || !visitBranchEl) return;
+    branchesLoaded = true;
+    try {
+      const branches = await BookingAPI.getBranches();
+      visitBranchEl.innerHTML = branches.length
+        ? '<option value="">Select a branch…</option>' + branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('')
+        : '<option value="">No branches available</option>';
+    } catch (e) {
+      visitBranchEl.innerHTML = '<option value="">Failed to load branches</option>';
+      branchesLoaded = false;
+    }
   }
 
   // Booking-for
@@ -341,16 +358,16 @@
   }
 
   function applyBookingTypeAvailability() {
-    bookingTypeCapabilities = computeBookingTypeCapabilities();
+    // Website is walk-in only — mobile/home-service booking moved to the app.
+    bookingTypeCapabilities = { home: false, walk: true };
+    bookingType = 'WALK_IN';
 
-    bookingType = bookingTypeCapabilities.home ? 'HOME_SERVICE' : 'WALK_IN';
-
-    const needsAddress = bookingTypeCapabilities.home;
-    if (addressSection) addressSection.classList.toggle('visible', needsAddress);
-    if (!needsAddress) {
-      addAddressWrap.style.display = 'none';
-      if (savedAddressEl) savedAddressEl.value = '';
-    }
+    // Walk-in paid booking: no delivery address, branch required for pricing.
+    if (addressSection) addressSection.classList.remove('visible');
+    if (addAddressWrap) addAddressWrap.style.display = 'none';
+    if (savedAddressEl) savedAddressEl.value = '';
+    if (branchSection) branchSection.style.display = '';
+    ensureBranchesLoaded();
   }
 
   // ── Utilities ─────────────────────────────────────────────────────
@@ -1016,6 +1033,15 @@
     }
   }
 
+  function showSummaryTotalLoading() {
+    if (!summaryTotal) return;
+    summaryTotal.innerHTML =
+      '<span class="summary-total-loading">' +
+      '<svg class="summary-total-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">' +
+      '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
+      '</svg><span>Calculating…</span></span>';
+  }
+
   // ── Step 3: Review ────────────────────────────────────────────────
   function buildReview() {
     const services = getSelectedServices();
@@ -1159,7 +1185,8 @@
     if (currentStep === 2) {
       const dateTimeOk = Boolean(bookingDateEl.value && bookingTimeEl.value);
       const addrOk = !hasAnyMobileService() || Boolean(getSelectedAddress());
-      return dateTimeOk && addrOk;
+      const branchOk = hasAnyMobileService() || Boolean(visitBranchEl && visitBranchEl.value);
+      return dateTimeOk && addrOk && branchOk;
     }
     return true;
   }
@@ -1361,6 +1388,7 @@
       date: source.date,
       time: source.time,
       bookingType: source.bookingType,
+      branchId: source.branchId,
       addressId: source.addressId,
       guestName: source.guestName,
       guestPhone: source.guestPhone,
@@ -1518,6 +1546,7 @@
       date:            bookingDateEl.value,
       time:            bookingTimeEl.value,
       bookingType:     bType,
+      branchId:        (visitBranchEl && visitBranchEl.value) || undefined,
       guestName:       gName  || undefined,
       guestPhone:      gPhone || undefined,
       guestEmail:      guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
@@ -1872,6 +1901,7 @@
       showFieldError(branchFieldError, '');
 
       if (activeBranchId) {
+        showSummaryTotalLoading();
         try {
           await hydrateSelectedServicesPricing(activeBranchId);
         } catch (_) {
