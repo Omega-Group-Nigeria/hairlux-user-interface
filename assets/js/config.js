@@ -41,7 +41,7 @@ const API_CONFIG = {
     },
     SERVICES: '/services',
     JOBS: '/jobs',
-    NIN_VERIFY: '/nin/verify',
+    NIN_VERIFY: '/applications/verify-nin',
     APPLICATIONS: '/applications',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',

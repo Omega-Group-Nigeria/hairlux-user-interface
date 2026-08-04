@@ -1768,6 +1768,7 @@
     (function () {
       var currentJob = null;
       var uploadedCvKey = null;
+      var verifiedApplicationId = null;
 
       window.openApplyModal = function (job) {
         currentJob = job || null;
@@ -1931,6 +1932,7 @@
           .then(function (res) {
             if (res.ok && res.data && res.data.verified) {
               var bio = res.data.bio || {};
+              verifiedApplicationId = res.data.applicationId || null;
               document.getElementById('bio-name').value = fullName;
               document.getElementById('bio-dob').value = bio.dob || '';
               if (bio.gender) document.getElementById('bio-gender').value = bio.gender;
@@ -2044,6 +2046,7 @@
         btn.textContent = 'Submitting…';
 
         var payload = {
+          applicationId: verifiedApplicationId || undefined,
           jobId: (currentJob && currentJob.id) ? currentJob.id : undefined,
           appliedRole: (currentJob && currentJob.title) ? currentJob.title : undefined,
           firstName: getVal('nin-first-name'),
