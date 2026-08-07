@@ -1604,17 +1604,17 @@
     }
 
     function formatDate(iso) {
-      if (!iso) return '';
-      var d = new Date(iso);
-      return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
-    }
+        if (!iso) return '';
+        var d = new Date(iso);
+        return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' });
+      }
 
-    function formatDateTime(iso) {
-      if (!iso) return '';
-      var d = new Date(iso);
-      return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) +
-        ' · ' + d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit' });
-    }
+      function formatDateTime(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' }) +
+          ' · ' + d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' });
+      }
 
     function escapeHtml(str) {
       var div = document.createElement('div');
