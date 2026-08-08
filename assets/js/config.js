@@ -43,6 +43,7 @@ const API_CONFIG = {
     JOBS: '/jobs',
     NIN_VERIFY: '/applications/verify-nin',
     APPLICATIONS: '/applications',
+    BRANCHES: '/branches',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',
     BRANCHES: '/branches',

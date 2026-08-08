@@ -1185,10 +1185,15 @@
       <div class="container-m center" style="position:relative;">
         <p class="jobs-eyebrow">CAREERS AT HAIRLUX</p>
         <h1 class="jobs-headline">Crafted by hand,<br>built by us.</h1>
-        <p class="jobs-sub">We're a fast-growing luxury mobile beauty and wellness brand redefining how Nigerians
-          experience self-care. Our team is made up of passionate stylists, wellness experts, and operators who take
-          pride in delivering excellence at every doorstep. If you're driven, skilled, and ready to grow with a brand
-          that puts quality first — we want to hear from you.</p>
+        <p class="jobs-sub">Join a team that's shaping the future of beauty, wellness, and customer experience. At
+          Hairlux Beauty & Wellness, we
+          believe exceptional people build exceptional brands. Whether your expertise is in beauty, operations, customer
+          service,
+          technology, administration, sales, marketing, or management, you'll find opportunities to grow, make an
+          impact, and
+          build a rewarding career with us. If you're passionate about excellence, innovation, and continuous growth,
+          we'd love to
+          welcome you to our team.</p>
         <div class="jobs-stats-pill"><span id="jobsCountStat">—</span>&nbsp;open roles <span class="dot"></span> 3
           branches</div>
         <br>
@@ -1405,10 +1410,7 @@
               <div class="app-form-group">
                 <label class="app-label">Branch Preference <span class="app-req">*</span></label>
                 <select class="app-input app-select" id="exp-branch">
-                  <option selected>Academy Branch, Ibadan</option>
-                  <option>Ife Branch</option>
-                  <option>Oyo Branch</option>
-                  <option>No Preference</option>
+                  <option selected disabled>Loading branches…</option>
                 </select>
               </div>
             </div>
@@ -1702,6 +1704,28 @@
       }
 
       /* ── Fetch ── */
+      function loadBranchOptions() {
+        var select = document.getElementById('exp-branch');
+        if (!select) return;
+        fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BRANCHES)
+          .then(function (res) { return res.json(); })
+          .then(function (json) {
+            var branches = (json && json.data) || [];
+            console.log('Loaded branches:', branches);
+            var options = '<option value="" selected disabled>Select a branch…</option>' +
+              branches.map(function (b) {
+                return '<option value="' + b.id + '">' + b.name + '</option>';
+              }).join('') +
+              '<option value="">No Preference</option>';
+            select.innerHTML = options;
+          })
+          .catch(function () {
+            // Leave the loading placeholder in place rather than silently
+            // reverting to the old hardcoded/mismatched branch names.
+            select.innerHTML = '<option value="" selected disabled>Could not load branches — try refreshing</option><option value="">No Preference</option>';
+          });
+      }
+
       function loadJobs(type) {
         var url = BASE + JOBS_EP + (type ? '?type=' + type : '');
         document.getElementById('jobsList').innerHTML = '<div class="jobs-loading">Loading open vacancies…</div>';
@@ -1722,6 +1746,7 @@
 
       document.addEventListener('DOMContentLoaded', function () {
         loadJobs('');
+        loadBranchOptions();
 
         document.getElementById('jobModalClose').addEventListener('click', closeModal);
         document.getElementById('jobModal').addEventListener('click', function (e) {
@@ -1768,7 +1793,6 @@
     (function () {
       var currentJob = null;
       var uploadedCvKey = null;
-      var verifiedApplicationId = null;
 
       window.openApplyModal = function (job) {
         currentJob = job || null;
@@ -1932,7 +1956,6 @@
           .then(function (res) {
             if (res.ok && res.data && res.data.verified) {
               var bio = res.data.bio || {};
-              verifiedApplicationId = res.data.applicationId || null;
               document.getElementById('bio-name').value = fullName;
               document.getElementById('bio-dob').value = bio.dob || '';
               if (bio.gender) document.getElementById('bio-gender').value = bio.gender;
@@ -1986,6 +2009,12 @@
         document.querySelector('.app-modal-body').scrollTop = 0;
       };
 
+      function branchLabel() {
+        var sel = document.getElementById('exp-branch');
+        var opt = sel && sel.options[sel.selectedIndex];
+        return (opt && opt.textContent) ? opt.textContent : '—';
+      }
+
       function populateApplyReview() {
         var val = function (id) { var el = document.getElementById(id); return (el && el.value) ? el.value : '—'; };
         var body = document.getElementById('apply-review-body');
@@ -2005,7 +2034,7 @@
           '<div class="app-review-item"><div class="lbl">Experience</div><div class="val">' + val('exp-years') + '</div></div>' +
           '<div class="app-review-item"><div class="lbl">Previous Employer</div><div class="val">' + val('exp-employer') + '</div></div>' +
           '</div>' +
-          '<div class="app-review-item" style="margin-bottom:14px"><div class="lbl">Branch Preference</div><div class="val">' + val('exp-branch') + '</div></div>' +
+          '<div class="app-review-item" style="margin-bottom:14px"><div class="lbl">Branch Preference</div><div class="val">' + branchLabel() + '</div></div>' +
           '<div class="app-review-item"><div class="lbl">Cover Note</div><div class="val" style="font-weight:400">' + val('exp-cover-note') + '</div></div>';
       }
 
@@ -2046,7 +2075,6 @@
         btn.textContent = 'Submitting…';
 
         var payload = {
-          applicationId: verifiedApplicationId || undefined,
           jobId: (currentJob && currentJob.id) ? currentJob.id : undefined,
           appliedRole: (currentJob && currentJob.title) ? currentJob.title : undefined,
           firstName: getVal('nin-first-name'),
@@ -2061,7 +2089,12 @@
           yearsOfExperience: getVal('exp-years') || undefined,
           previousEmployer: getVal('exp-employer') || undefined,
           coverNote: getVal('exp-cover-note'),
-          preferredBranchText: getVal('exp-branch') || undefined,
+          preferredLocationId: getVal('exp-branch') || undefined,
+          preferredBranchText: (function () {
+            var sel = document.getElementById('exp-branch');
+            var opt = sel && sel.options[sel.selectedIndex];
+            return (opt && opt.value) ? opt.text : undefined;
+          })(),
           cvUrl: uploadedCvKey || undefined,
           // portfolioUrl still omitted — no upload UI for it yet.
         };
