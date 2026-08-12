@@ -238,9 +238,11 @@ const AuthAPI = {
    * @returns {Promise<object>} Login response
    */
   async login(credentials) {
+    // Always disambiguate the account with the type param (USER customer site).
+    const requestBody = Object.assign({}, credentials, { type: credentials.type || 'USER' });
     const response = await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
       method: 'POST',
-      body: JSON.stringify(credentials)
+      body: JSON.stringify(requestBody)
     });
 
     // Save tokens and user data
@@ -301,7 +303,7 @@ const AuthAPI = {
   async forgotPassword(email) {
     return await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD, {
       method: 'POST',
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, type: 'USER' })
     });
   },
 
@@ -327,9 +329,10 @@ const AuthAPI = {
    * @returns {Promise<object>} Verify OTP response
    */
   async verifyOtp(otpData) {
+    const requestBody = Object.assign({}, otpData, { type: otpData.type || 'USER' });
     const response = await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, {
       method: 'POST',
-      body: JSON.stringify(otpData)
+      body: JSON.stringify(requestBody)
     });
 
     // Save tokens and user data if returned
@@ -352,7 +355,7 @@ const AuthAPI = {
   async resendOtp(email) {
     return await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.RESEND_OTP, {
       method: 'POST',
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, type: 'USER' })
     });
   },
 

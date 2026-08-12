@@ -13,7 +13,7 @@ function getRuntimeGoogleMapsKey() {
 
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: 'https://api.hairlux.com.ng',
+  BASE_URL: 'https://dev-hairlux-api.up.railway.app',
   
   // Local storage keys
   STORAGE_KEYS: {

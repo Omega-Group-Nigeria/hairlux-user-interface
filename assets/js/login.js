@@ -21,6 +21,13 @@
     const togglePasswordBtn = document.getElementById('toggle-login-password');
     const eyeIconLogin = document.getElementById('eye-icon-login');
 
+    // Prefill email when arriving from the "create an account" / login redirects.
+    const urlEmail = (UIHelper.getQueryParam('email') || '').trim();
+    if (urlEmail) {
+      const emailInputEl = document.getElementById('Email-7');
+      if (emailInputEl && !emailInputEl.value) emailInputEl.value = urlEmail;
+    }
+
     if (togglePasswordBtn && passwordInput && eyeIconLogin) {
       togglePasswordBtn.addEventListener('click', function () {
         const type = passwordInput.type === 'password' ? 'text' : 'password';
@@ -77,16 +84,22 @@
       UIHelper.setButtonLoading(submitButton, true);
 
       try {
-        // Call login API
+        // Call login API for the USER (customer) account.
         const response = await AuthAPI.login({
           email: email,
-          password: password
+          password: password,
+          type: 'USER'
         });
 
         UIHelper.showToast(response.message || 'Login successful!', 'success');
-        
-        // Log user data for debugging
-        console.log('Login successful:', response.data);
+
+        // Route the UI from the response, not from the requested type.
+        const data = response && response.data ? response.data : response;
+        const user = data && data.user ? data.user : {};
+        const { role, roles = [] } = user;
+        // USER → normal customer UI; if roles includes "STAFF", staff views may also be unlocked.
+        console.log('Login successful:', { role, roles }, data);
+
         setTimeout(() => {
           UIHelper.redirect('app/index.html');
         }, 700);
@@ -105,6 +118,11 @@
              // Show OTP modal and stop error flow
              showOtpModal(email);
              return; 
+          } else if ((error.message || '').toLowerCase().indexOf('no user account exists for this email') !== -1) {
+            // No USER account for this email → don't imply a wrong password.
+            // Show a "create one" CTA instead.
+            showNoAccountCta(email);
+            return;
           } else {
             errorMessage = 'Invalid email or password';
           }
@@ -224,6 +242,46 @@
         otpModal.style.display = 'none';
       }
       clearOtpTimer();
+    }
+
+    // Show an inline "no account — create one" CTA inside the login form.
+    function showNoAccountCta(email) {
+      const existing = document.getElementById('hl-no-account-cta');
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+      const banner = document.createElement('div');
+      banner.id = 'hl-no-account-cta';
+      banner.setAttribute('role', 'status');
+      banner.style.cssText = 'margin:0 0 18px;background:#fdf3ec;border:1px solid #edc9a8;border-radius:12px;padding:16px 18px;text-align:center;';
+
+      const title = document.createElement('p');
+      title.style.cssText = 'margin:0 0 6px;font-size:14px;font-weight:600;color:#7a4a1d;';
+      title.textContent = 'No user account exists for this email.';
+
+      const sub = document.createElement('p');
+      sub.style.cssText = 'margin:0 0 14px;font-size:13px;color:#8a5a2a;';
+      sub.textContent = 'Create a customer account to start booking with HairLux.';
+
+      const link = document.createElement('a');
+      link.href = 'sign-up.html' + (email ? '?email=' + encodeURIComponent(email) : '');
+      link.textContent = 'Create an account';
+      link.style.cssText = 'display:inline-block;background:#2d3622;color:#fff;border-radius:100px;padding:11px 24px;font-size:13px;font-weight:600;text-decoration:none;';
+
+      banner.appendChild(title);
+      banner.appendChild(sub);
+      banner.appendChild(link);
+
+      const formGap = loginForm.querySelector('.form-gap');
+      const submitBtn = loginForm.querySelector('input[type="submit"]');
+      if (formGap) {
+        formGap.insertBefore(banner, formGap.firstChild);
+      } else if (submitBtn && submitBtn.parentNode) {
+        submitBtn.parentNode.insertBefore(banner, submitBtn);
+      } else {
+        loginForm.insertBefore(banner, loginForm.firstChild);
+      }
+
+      if (banner.scrollIntoView) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function startOtpTimer() {
