@@ -44,7 +44,7 @@ const APIHelper = {
   async request(endpoint, options = {}, _isRetry = false) {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
     const isAuthEndpoint = endpoint.startsWith('/auth/');
-    
+
     const defaultOptions = {
       headers: {
         'Content-Type': 'application/json'
@@ -69,7 +69,7 @@ const APIHelper = {
     try {
       console.log('Making request to:', url);
       console.log('Request config:', config);
-      
+
       const response = await fetch(url, config);
       console.log('Response received:', response);
 
@@ -119,7 +119,7 @@ const APIHelper = {
       return data;
     } catch (error) {
       console.error('Request error:', error);
-      
+
       // Handle network errors (CORS, connection refused, etc.)
       if (!error.status) {
         // Check if it's a CORS error
@@ -255,6 +255,28 @@ const AuthAPI = {
   },
 
   /**
+   * Sign in or sign up with Google
+   * @param {string} idToken - The ID token returned by Google Sign-In
+   * @returns {Promise<object>} Login response — same shape as login()
+   */
+  async googleSignIn(idToken) {
+    const response = await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.GOOGLE, {
+      method: 'POST',
+      body: JSON.stringify({ idToken: idToken })
+    });
+
+    // Save tokens and user data — identical handling to login()
+    if (response && response.data && response.data.accessToken && response.data.refreshToken) {
+      APIHelper.saveTokens(response.data.accessToken, response.data.refreshToken);
+      if (response.data.user) {
+        APIHelper.saveUserData(response.data.user);
+      }
+    }
+
+    return response;
+  },
+
+  /**
    * Logout user (clear local storage)
    */
   logout() {
@@ -267,7 +289,7 @@ const AuthAPI = {
    */
   async refreshToken() {
     const refreshToken = APIHelper.getRefreshToken();
-    
+
     if (!refreshToken) {
       throw {
         status: 401,
