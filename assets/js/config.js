@@ -19,7 +19,7 @@ const API_CONFIG = {
 
   // Public Google OAuth Client ID (not the Client Secret — that's never exposed in client-side code)
   GOOGLE_CLIENT_ID: '696072592207-g6irgnk1v9jjgvrlcmhd1bfr3frqn7ip.apps.googleusercontent.com',
-  
+
   // Local storage keys
   STORAGE_KEYS: {
     ACCESS_TOKEN: 'hairlux_access_token',
@@ -67,9 +67,10 @@ const API_CONFIG = {
     BOOKINGS_BUSINESS_EXCEPTIONS: '/bookings/business-exceptions',
     DISCOUNTS_VALIDATE: '/discounts/validate',
     WALLET: '/wallet',
+    STATS: '/stats',
     INFLUENCER: {
-      ME:      '/influencer/me',
-      CODES:   '/influencer/me/codes',
+      ME: '/influencer/me',
+      CODES: '/influencer/me/codes',
       REWARDS: '/influencer/me/rewards'
     }
   },
