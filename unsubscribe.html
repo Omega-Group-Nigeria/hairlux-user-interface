@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Unsubscribe — Hairlux Salon &amp; Spa</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/" rel="preconnect" />
+    <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous" />
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+    <script
+        type="text/javascript">WebFont.load({ google: { families: ["Merriweather:400,700", "Inter:300,400,500,600"] } });</script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f5ea;
+            font-family: 'Inter', sans-serif;
+            padding: 24px;
+        }
+
+        .uc-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, .12);
+        }
+
+        .uc-brand {
+            font-family: 'Merriweather', serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #2d3622;
+            letter-spacing: .02em;
+            margin-bottom: 24px;
+        }
+
+        .uc-state {
+            display: none;
+        }
+
+        .uc-state.active {
+            display: block;
+        }
+
+        .uc-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f0f5ea;
+            border-top-color: #9d8248;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            animation: uc-spin 0.8s linear infinite;
+        }
+
+        @keyframes uc-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .uc-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 24px;
+        }
+
+        .uc-icon.confirm {
+            background: #f0f5ea;
+            color: #9d8248;
+        }
+
+        .uc-icon.success {
+            background: #f0f5ea;
+            color: #3f6b2c;
+        }
+
+        .uc-icon.error {
+            background: #fdecea;
+            color: #b71c1c;
+        }
+
+        .uc-title {
+            font-family: 'Merriweather', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .uc-text {
+            font-size: 13px;
+            color: #6b6b6b;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        .uc-channel {
+            display: inline-block;
+            background: #f7f7f5;
+            color: #2d3622;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 2px 8px;
+        }
+
+        .uc-btn {
+            display: inline-block;
+            width: 100%;
+            border: none;
+            border-radius: 100px;
+            padding: 13px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .uc-btn-primary {
+            background: #2d3622;
+            color: #fff;
+        }
+
+        .uc-btn-primary:disabled {
+            opacity: .6;
+            cursor: default;
+        }
+
+        .uc-btn-secondary {
+            background: none;
+            color: #6b6b6b;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .uc-footer {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="uc-card">
+        <div class="uc-brand">HAIRLUX SALON &amp; SPA</div>
+
+        <div class="uc-state active" id="uc-loading">
+            <div class="uc-spinner"></div>
+            <div style="font-size:13px;color:#6b6b6b;">Checking your link…</div>
+        </div>
+
+        <div class="uc-state" id="uc-confirm">
+            <div class="uc-icon confirm">✉</div>
+            <div class="uc-title">Unsubscribe from <span class="uc-channel" id="uc-channel-label"></span>?</div>
+            <div class="uc-text">You'll stop receiving these messages from Hairlux. You can always turn them back on
+                later by contacting us.</div>
+            <button class="uc-btn uc-btn-primary" id="uc-confirm-btn">Yes, Unsubscribe</button>
+            <button class="uc-btn uc-btn-secondary" onclick="window.close()">Never mind, keep me subscribed</button>
+        </div>
+
+        <div class="uc-state" id="uc-success">
+            <div class="uc-icon success">✓</div>
+            <div class="uc-title">You're unsubscribed</div>
+            <div class="uc-text">You won't receive any more <span class="uc-channel" id="uc-success-channel"></span>
+                messages like this one from Hairlux.</div>
+        </div>
+
+        <div class="uc-state" id="uc-error">
+            <div class="uc-icon error">✕</div>
+            <div class="uc-title">This link isn't working</div>
+            <div class="uc-text" id="uc-error-text">This unsubscribe link is invalid or has expired. If you'd still like
+                to stop receiving these messages, please contact us directly.</div>
+        </div>
+
+        <div class="uc-footer">hairlux.com.ng</div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script>
+        (function () {
+            // Deliberately a plain, standalone fetch -- never the app's
+            // authenticated request helper. This page must work identically for
+            // any recipient, logged in or not, and for a walk-in Customer who
+            // may have no login account at all.
+            var CHANNEL_LABELS = { EMAIL: 'Email', SMS: 'SMS', PUSH: 'Push' };
+            var token = new URLSearchParams(window.location.search).get('token');
+
+            function showState(id) {
+                document.querySelectorAll('.uc-state').forEach(function (el) { el.classList.remove('active'); });
+                document.getElementById(id).classList.add('active');
+            }
+
+            async function verifyToken() {
+                if (!token) {
+                    document.getElementById('uc-error-text').textContent = 'This unsubscribe link is missing its token.';
+                    showState('uc-error');
+                    return;
+                }
+                try {
+                    var res = await fetch(API_CONFIG.BASE_URL + '/unsubscribe/verify?token=' + encodeURIComponent(token));
+                    var body = await res.json().catch(function () { return {}; });
+                    if (!res.ok) throw new Error(body.message || 'Invalid link');
+
+                    var channel = body.data.channel;
+                    var label = CHANNEL_LABELS[channel] || channel;
+                    document.getElementById('uc-channel-label').textContent = label;
+                    document.getElementById('uc-success-channel').textContent = label;
+                    showState('uc-confirm');
+                } catch (err) {
+                    document.getElementById('uc-error-text').textContent = (err && err.message) || 'This unsubscribe link is invalid or has expired.';
+                    showState('uc-error');
+                }
+            }
+
+            async function confirmUnsubscribe() {
+                var btn = document.getElementById('uc-confirm-btn');
+                btn.disabled = true;
+                btn.textContent = 'Unsubscribing…';
+                try {
+                    var res = await fetch(API_CONFIG.BASE_URL + '/unsubscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: token }),
+                    });
+                    if (!res.ok) {
+                        var body = await res.json().catch(function () { return {}; });
+                        throw new Error(body.message || 'Could not unsubscribe');
+                    }
+                    showState('uc-success');
+                } catch (err) {
+                    document.getElementById('uc-error-text').textContent = (err && err.message) || 'Something went wrong. Please try again.';
+                    showState('uc-error');
+                }
+            }
+
+            document.getElementById('uc-confirm-btn').addEventListener('click', confirmUnsubscribe);
+
+            verifyToken();
+        })();
+    </script>
+</body>
+
+</html>

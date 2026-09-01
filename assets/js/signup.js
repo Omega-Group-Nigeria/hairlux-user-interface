@@ -43,6 +43,54 @@
         .catch(() => APIHelper.clearAuth());
     }
 
+    /* ── Google Sign-In ─────────────────────────────────────────────────── */
+    // Same backend endpoint as the login page — googleSignIn() on the
+    // server handles both "create a new account" and "log in an existing
+    // one" in a single call, so this one button covers both signup and
+    // login without needing to know which the person actually wants.
+    function initGoogleSignIn() {
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+        setTimeout(initGoogleSignIn, 200);
+        return;
+      }
+      google.accounts.id.initialize({
+        client_id: API_CONFIG.GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+      });
+      var container = document.getElementById('hl-google-btn-container');
+      if (container) {
+        google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          width: 320,
+          text: 'continue_with',
+        });
+      }
+    }
+
+    async function handleGoogleCredential(response) {
+      try {
+        var result = await AuthAPI.googleSignIn(response.credential);
+        UIHelper.showToast(result.message || 'Signed in successfully!', 'success');
+        setTimeout(function () {
+          UIHelper.redirect('app/index.html');
+        }, 700);
+      } catch (error) {
+        console.error('Google sign-in error:', error);
+        var errorMessage = 'Google sign-in failed. Please try again.';
+        if (error.status === 401 && error.message) {
+          errorMessage = error.message;
+        } else if (error.status === 0) {
+          errorMessage = 'Network error. Please check your connection.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        UIHelper.showToast(errorMessage, 'error');
+      }
+    }
+
+    initGoogleSignIn();
+
     // Password toggle buttons
     const togglePasswordBtn = document.getElementById('toggle-password');
     const toggleConfirmPasswordBtn = document.getElementById('toggle-confirm-password');

@@ -13,8 +13,13 @@ function getRuntimeGoogleMapsKey() {
 
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: 'https://api.hairlux.com.ng',
-  
+  // BASE_URL: 'https://api.hairlux.com.ng',
+  BASE_URL: 'https://dev-hairlux-api.up.railway.app',
+  // BASE_URL: 'http://localhost:3000',
+
+  // Public Google OAuth Client ID (not the Client Secret — that's never exposed in client-side code)
+  GOOGLE_CLIENT_ID: '696072592207-g6irgnk1v9jjgvrlcmhd1bfr3frqn7ip.apps.googleusercontent.com',
+
   // Local storage keys
   STORAGE_KEYS: {
     ACCESS_TOKEN: 'hairlux_access_token',
@@ -28,6 +33,7 @@ const API_CONFIG = {
     AUTH: {
       REGISTER: '/auth/register',
       LOGIN: '/auth/login',
+      GOOGLE: '/auth/google',
       REFRESH_TOKEN: '/auth/refresh-token',
       FORGOT_PASSWORD: '/auth/forgot-password',
       RESET_PASSWORD: '/auth/reset-password',
@@ -37,7 +43,10 @@ const API_CONFIG = {
     USER: {
       PROFILE: '/user/profile',
       PASSWORD: '/user/password',
-      ADDRESSES: '/user/addresses'
+      ADDRESSES: '/user/addresses',
+      PHONE_REQUEST_OTP: '/user/phone/request-otp',
+      PHONE_VERIFY_OTP: '/user/phone/verify-otp',
+      SET_PASSWORD: '/user/set-password'
     },
     SERVICES: '/services',
     JOBS: '/jobs',
@@ -58,9 +67,10 @@ const API_CONFIG = {
     BOOKINGS_BUSINESS_EXCEPTIONS: '/bookings/business-exceptions',
     DISCOUNTS_VALIDATE: '/discounts/validate',
     WALLET: '/wallet',
+    STATS: '/stats',
     INFLUENCER: {
-      ME:      '/influencer/me',
-      CODES:   '/influencer/me/codes',
+      ME: '/influencer/me',
+      CODES: '/influencer/me/codes',
       REWARDS: '/influencer/me/rewards'
     }
   },
