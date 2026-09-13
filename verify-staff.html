@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>Verify Staff — Hairlux Salon &amp; Spa</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link href="https://fonts.googleapis.com/" rel="preconnect" />
+  <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous" />
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <script
+    type="text/javascript">WebFont.load({ google: { families: ["Merriweather:400,700", "Inter:300,400,500,600"] } });</script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f5ea;
+      font-family: 'Inter', sans-serif;
+      padding: 24px;
+    }
+
+    .vs-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, .12);
+    }
+
+    .vs-brand {
+      font-family: 'Merriweather', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d3622;
+      letter-spacing: .02em;
+      margin-bottom: 4px;
+    }
+
+    .vs-brand-sub {
+      font-size: 10px;
+      color: #9d8248;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .vs-state {
+      display: none;
+    }
+
+    .vs-state.active {
+      display: block;
+    }
+
+    .vs-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #f0f5ea;
+      border-top-color: #9d8248;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: vs-spin 0.8s linear infinite;
+    }
+
+    @keyframes vs-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .vs-photo {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 3px solid #9d8248;
+      margin: 0 auto 18px;
+      background: #f0f5ea;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #9d8248;
+      overflow: hidden;
+    }
+
+    .vs-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0f5ea;
+      color: #3f6b2c;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+
+    .vs-badge.vs-badge-fail {
+      background: #fdecea;
+      color: #b71c1c;
+    }
+
+    .vs-name {
+      font-family: 'Merriweather', serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .vs-role {
+      font-size: 13px;
+      color: #9d8248;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .vs-branch {
+      font-size: 12px;
+      color: #6b6b6b;
+      margin-bottom: 14px;
+    }
+
+    .vs-code {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #6b6b6b;
+      background: #f7f7f5;
+      border-radius: 6px;
+      padding: 4px 10px;
+      letter-spacing: .04em;
+    }
+
+    .vs-fail-title {
+      font-family: 'Merriweather', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .vs-fail-text {
+      font-size: 13px;
+      color: #6b6b6b;
+      line-height: 1.6;
+    }
+
+    .vs-footer {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #eee;
+      font-size: 11px;
+      color: #999;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="vs-card">
+    <div class="vs-brand">HAIRLUX SALON &amp; SPA</div>
+    <div class="vs-brand-sub">Staff Verification</div>
+
+    <div class="vs-state active" id="vs-loading">
+      <div class="vs-spinner"></div>
+      <div style="font-size:13px;color:#6b6b6b;">Checking…</div>
+    </div>
+
+    <div class="vs-state" id="vs-verified">
+      <div class="vs-photo" id="vs-photo"></div>
+      <div class="vs-badge">✓ Verified Hairlux Employee</div>
+      <div class="vs-name" id="vs-name"></div>
+      <div class="vs-role" id="vs-role"></div>
+      <div class="vs-branch" id="vs-branch"></div>
+      <div class="vs-code" id="vs-code"></div>
+    </div>
+
+    <div class="vs-state" id="vs-not-verified">
+      <div class="vs-badge vs-badge-fail">✕ Not Verified</div>
+      <div class="vs-fail-title">This ID could not be verified</div>
+      <div class="vs-fail-text">This code does not match a current Hairlux employee. If you believe this is an
+        error, please contact the branch directly.</div>
+    </div>
+
+    <div class="vs-footer">hairlux.com.ng</div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script>
+    (function () {
+      // Deliberately a plain, standalone fetch — never the app's
+      // authenticated request helper, which redirects to the login page on
+      // a 401. This page must behave identically for every scanner,
+      // whether or not they happen to be logged into their own account.
+      // API_CONFIG.BASE_URL comes from config.js — same single source of
+      // truth every other page on this site already uses per environment.
+
+      function showState(id) {
+        document.querySelectorAll('.vs-state').forEach(function (el) { el.classList.remove('active'); });
+        document.getElementById(id).classList.add('active');
+      }
+
+      function initials(name) {
+        return (name || '').split(' ').filter(Boolean).map(function (p) { return p[0]; }).join('').slice(0, 2).toUpperCase();
+      }
+
+      async function verify() {
+        var params = new URLSearchParams(window.location.search);
+        var code = params.get('code');
+        if (!code) {
+          showState('vs-not-verified');
+          return;
+        }
+
+        try {
+          var res = await fetch(API_CONFIG.BASE_URL + '/staff/verify/' + encodeURIComponent(code));
+          var body = await res.json().catch(function () { return {}; });
+          var data = body && body.data ? body.data : body;
+
+          if (!data || !data.verified) {
+            showState('vs-not-verified');
+            return;
+          }
+
+          document.getElementById('vs-name').textContent = data.name || '';
+          document.getElementById('vs-role').textContent = data.role || '';
+          document.getElementById('vs-branch').textContent = data.branch || '';
+          document.getElementById('vs-code').textContent = data.staffCode || '';
+
+          var photoEl = document.getElementById('vs-photo');
+          if (data.photoUrl) {
+            photoEl.style.backgroundImage = 'url(' + data.photoUrl + ')';
+            photoEl.textContent = '';
+          } else {
+            photoEl.textContent = initials(data.name);
+          }
+
+          showState('vs-verified');
+        } catch (err) {
+          showState('vs-not-verified');
+        }
+      }
+
+      verify();
+    })();
+  </script>
+</body>
+
+</html>

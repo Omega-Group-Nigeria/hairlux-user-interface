@@ -14,7 +14,7 @@
         );
       }
       return JSON.parse(json);
-    } catch(e) { return null; }
+    } catch (e) { return null; }
   }
 
   // ── Resolve selected services ─────────────────────────────────────
@@ -26,7 +26,7 @@
     try {
       const stored = JSON.parse(sessionStorage.getItem('selectedServices') || 'null');
       if (Array.isArray(stored) && stored.length > 0) return stored;
-    } catch(e) {}
+    } catch (e) { }
 
     // 2. Encoded ?d= param (fallback for direct/shared links)
     const d = params.get('d');
@@ -36,13 +36,13 @@
         if (decoded && Array.isArray(decoded.services) && decoded.services.length > 0) {
           return decoded.services;
         }
-      } catch(e) {}
+      } catch (e) { }
     }
 
     // 3. Legacy single-service URL params (backwards compat)
-    const id       = params.get('serviceId') || '';
-    const name     = params.get('name')      || '';
-    const price    = Number(params.get('price')    || 0);
+    const id = params.get('serviceId') || '';
+    const name = params.get('name') || '';
+    const price = Number(params.get('price') || 0);
     const duration = Number(params.get('duration') || 0);
     if (id && name) return [{ id, name, price, duration }];
 
@@ -51,7 +51,7 @@
 
   // ── Helpers ───────────────────────────────────────────────────────
   function getSelectedServices() { return allSelectedServices; }
-  function getSelectedService()  { return allSelectedServices[0] || null; }
+  function getSelectedService() { return allSelectedServices[0] || null; }
   function normalizeServiceMode(value) {
     const mode = String(value || '').trim().toUpperCase();
     if (mode === 'HOME_SERVICE' || mode === 'MOBILE') return 'HOME_SERVICE';
@@ -102,36 +102,36 @@
     const fallback = Number((service && (service.price || service.basePrice || service.amount)) || 0);
     return Number.isFinite(fallback) ? fallback : 0;
   }
-  function getTotalPrice()       { return allSelectedServices.reduce((s, x) => s + getServicePriceForType(x), 0); }
-  function getTotalDuration()    { return allSelectedServices.reduce((s, x) => s + x.duration, 0); }
-  function getServiceNames()     { return allSelectedServices.map(s => s.name).join(', ') || '-'; }
-  function getDiscountedTotal()  {
+  function getTotalPrice() { return allSelectedServices.reduce((s, x) => s + getServicePriceForType(x), 0); }
+  function getTotalDuration() { return allSelectedServices.reduce((s, x) => s + x.duration, 0); }
+  function getServiceNames() { return allSelectedServices.map(s => s.name).join(', ') || '-'; }
+  function getDiscountedTotal() {
     const base = getTotalPrice();
     if (!discountInfo || !discountInfo.percentage) return base;
     return Math.round(base * (1 - discountInfo.percentage / 100));
   }
 
   // ── DOM refs ──────────────────────────────────────────────────────
-  const serviceIdEl           = document.getElementById('serviceId');
-  const selectedServiceBox    = document.getElementById('selectedServiceBox');
-  const selectedServiceTitle  = document.getElementById('selectedServiceTitle');
+  const serviceIdEl = document.getElementById('serviceId');
+  const selectedServiceBox = document.getElementById('selectedServiceBox');
+  const selectedServiceTitle = document.getElementById('selectedServiceTitle');
   const servicesListContainer = document.getElementById('servicesListContainer');
-  const selectedServiceHelp   = document.getElementById('selectedServiceHelp');
+  const selectedServiceHelp = document.getElementById('selectedServiceHelp');
 
-  const bookingDateEl   = document.getElementById('bookingDate');
-  const bookingTimeEl   = document.getElementById('bookingTime');
-  const savedAddressEl  = document.getElementById('savedAddress');
-  const addressSection  = document.getElementById('addressSection');
-  const branchSection   = document.getElementById('branchSection');
-  const visitBranchEl   = document.getElementById('visitBranch');
-  const notesEl         = document.getElementById('notes');
-  const addAddressWrap  = document.getElementById('addAddressWrap');
-  const saveAddressBtn  = document.getElementById('saveAddressBtn');
+  const bookingDateEl = document.getElementById('bookingDate');
+  const bookingTimeEl = document.getElementById('bookingTime');
+  const savedAddressEl = document.getElementById('savedAddress');
+  const addressSection = document.getElementById('addressSection');
+  const branchSection = document.getElementById('branchSection');
+  const visitBranchEl = document.getElementById('visitBranch');
+  const notesEl = document.getElementById('notes');
+  const addAddressWrap = document.getElementById('addAddressWrap');
+  const saveAddressBtn = document.getElementById('saveAddressBtn');
 
   // Inline field validation
   const serviceFieldError = document.getElementById('serviceFieldError');
-  const dateFieldError   = document.getElementById('dateFieldError');
-  const timeFieldError   = document.getElementById('timeFieldError');
+  const dateFieldError = document.getElementById('dateFieldError');
+  const timeFieldError = document.getElementById('timeFieldError');
   const branchFieldError = document.getElementById('branchFieldError');
 
   function showFieldError(el, message) {
@@ -163,60 +163,60 @@
   }
 
   // Booking-for
-  const forSelfCard      = document.getElementById('forSelfCard');
-  const forGuestCard     = document.getElementById('forGuestCard');
-  const guestFieldsWrap  = document.getElementById('guestFieldsWrap');
-  const guestNameEl      = document.getElementById('guestName');
-  const guestPhoneEl     = document.getElementById('guestPhone');
-  const guestEmailEl     = document.getElementById('guestEmail');
+  const forSelfCard = document.getElementById('forSelfCard');
+  const forGuestCard = document.getElementById('forGuestCard');
+  const guestFieldsWrap = document.getElementById('guestFieldsWrap');
+  const guestNameEl = document.getElementById('guestName');
+  const guestPhoneEl = document.getElementById('guestPhone');
+  const guestEmailEl = document.getElementById('guestEmail');
 
   // Booking type
-  const homeServiceCard  = document.getElementById('homeServiceCard');
-  const walkInCard       = document.getElementById('walkInCard');
-  const bookingTypeGrid  = homeServiceCard ? homeServiceCard.parentElement : (walkInCard ? walkInCard.parentElement : null);
+  const homeServiceCard = document.getElementById('homeServiceCard');
+  const walkInCard = document.getElementById('walkInCard');
+  const bookingTypeGrid = homeServiceCard ? homeServiceCard.parentElement : (walkInCard ? walkInCard.parentElement : null);
 
   const newFullAddress = document.getElementById('newFullAddress');
   const newAddressSuggestions = document.getElementById('newAddressSuggestions');
   const bookingAddressMapEl = document.getElementById('bookingAddressMap');
   const bookingMapStatusEl = document.getElementById('bookingMapStatus');
   const newStreetAddress = document.getElementById('newStreetAddress');
-  const newCity        = document.getElementById('newCity');
-  const newState       = document.getElementById('newState');
-  const newCountry     = document.getElementById('newCountry');
-  const newPlaceId     = document.getElementById('newPlaceId');
+  const newCity = document.getElementById('newCity');
+  const newState = document.getElementById('newState');
+  const newCountry = document.getElementById('newCountry');
+  const newPlaceId = document.getElementById('newPlaceId');
 
-  const nextStepBtn   = document.getElementById('nextStep');
-  const prevStepBtn   = document.getElementById('prevStep');
+  const nextStepBtn = document.getElementById('nextStep');
+  const prevStepBtn = document.getElementById('prevStep');
   const stepActionsEl = document.querySelector('.step-actions');
-  const stepPills     = document.querySelectorAll('[data-step-pill]');
-  const stepPanes     = document.querySelectorAll('[data-step-pane]');
+  const stepPills = document.querySelectorAll('[data-step-pill]');
+  const stepPanes = document.querySelectorAll('[data-step-pane]');
 
   const reviewContainer = document.getElementById('reviewContainer');
-  const liveSummary     = document.getElementById('liveSummary');
-  const summaryTotal    = document.getElementById('summaryTotal');
+  const liveSummary = document.getElementById('liveSummary');
+  const summaryTotal = document.getElementById('summaryTotal');
 
-  const bookingPayModal    = document.getElementById('bookingPayModal');
-  const bookingPaidModal   = document.getElementById('bookingPaidModal');
-  const modalService       = document.getElementById('modalService');
-  const modalDateTime      = document.getElementById('modalDateTime');
-  const modalBookingType   = document.getElementById('modalBookingType');
-  const modalAddress       = document.getElementById('modalAddress');
-  const modalAddressRow    = document.getElementById('modalAddressRow');
-  const modalGuest         = document.getElementById('modalGuest');
-  const modalGuestRow      = document.getElementById('modalGuestRow');
-  const modalWalletRow     = document.getElementById('modalWalletRow');
-  const modalStatus        = document.getElementById('modalStatus');
-  const modalStatusRow     = document.getElementById('modalStatusRow');
-  const modalSubtext       = document.getElementById('modalSubtext');
+  const bookingPayModal = document.getElementById('bookingPayModal');
+  const bookingPaidModal = document.getElementById('bookingPaidModal');
+  const modalService = document.getElementById('modalService');
+  const modalDateTime = document.getElementById('modalDateTime');
+  const modalBookingType = document.getElementById('modalBookingType');
+  const modalAddress = document.getElementById('modalAddress');
+  const modalAddressRow = document.getElementById('modalAddressRow');
+  const modalGuest = document.getElementById('modalGuest');
+  const modalGuestRow = document.getElementById('modalGuestRow');
+  const modalWalletRow = document.getElementById('modalWalletRow');
+  const modalStatus = document.getElementById('modalStatus');
+  const modalStatusRow = document.getElementById('modalStatusRow');
+  const modalSubtext = document.getElementById('modalSubtext');
   const modalWalletBalance = document.getElementById('modalWalletBalance');
-  const modalDebitAmount   = document.getElementById('modalDebitAmount');
-  const payLaterBtn          = document.getElementById('payLaterBtn');
-  const payWithPaystackBtn   = document.getElementById('payWithPaystackBtn');
-  const makePaymentBtn       = document.getElementById('makePaymentBtn');
+  const modalDebitAmount = document.getElementById('modalDebitAmount');
+  const payLaterBtn = document.getElementById('payLaterBtn');
+  const payWithPaystackBtn = document.getElementById('payWithPaystackBtn');
+  const makePaymentBtn = document.getElementById('makePaymentBtn');
   const paidModalBookingId = document.getElementById('paidModalBookingId');
-  const paidModalService   = document.getElementById('paidModalService');
-  const paidModalDateTime  = document.getElementById('paidModalDateTime');
-  const paidModalAmount    = document.getElementById('paidModalAmount');
+  const paidModalService = document.getElementById('paidModalService');
+  const paidModalDateTime = document.getElementById('paidModalDateTime');
+  const paidModalAmount = document.getElementById('paidModalAmount');
 
   // Set first serviceId on hidden input (sent to API)
   const firstService = getSelectedService();
@@ -228,7 +228,7 @@
   let walletBalance = 0;
   let bookingPaymentReference = '';
   let bookingPaymentProvider = BOOKING_GATEWAY_PROVIDER;
-  let bookingType    = 'WALK_IN'; // Website is walk-in only — 'WALK_IN' | 'HOME_SERVICE' (app only)
+  let bookingType = 'WALK_IN'; // Website is walk-in only — 'WALK_IN' | 'HOME_SERVICE' (app only)
   let bookingTypeCapabilities = { home: true, walk: true };
   let activeBranchId = '';
   let branchPricingToken = 0;
@@ -242,7 +242,7 @@
   let bookingPredictionDebounceTimer = null;
   const defaultMapCenter = { lat: 6.5244, lng: 3.3792 };
 
-  function getBookingType()   { return bookingType; }
+  function getBookingType() { return bookingType; }
   function getPaymentMethod() { return 'WALLET'; }
   function isBookingForSelf() { return bookingForSelf; }
 
@@ -344,7 +344,7 @@
       loadingEl.className = 'selected-service-loading booking-type-loading';
       loadingEl.innerHTML =
         '<svg class="selected-service-loading-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
-          '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
+        '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
         '</svg>' +
         '<span>Loading available booking types</span>';
       bookingTypeGrid.insertAdjacentElement('afterend', loadingEl);
@@ -519,7 +519,7 @@
 
     selectedServiceBox.classList.remove('missing');
     const count = services.length;
-    const totalPrice    = getTotalPrice();
+    const totalPrice = getTotalPrice();
     const totalDuration = getTotalDuration();
 
     selectedServiceTitle.textContent =
@@ -997,7 +997,7 @@
 
   function refreshSummary() {
     const services = getSelectedServices();
-    const address  = getSelectedAddress();
+    const address = getSelectedAddress();
     const serviceLabel = services.length > 1
       ? `${services.length} services`
       : (services[0] ? services[0].name : '-');
@@ -1045,12 +1045,12 @@
   // ── Step 3: Review ────────────────────────────────────────────────
   function buildReview() {
     const services = getSelectedServices();
-    const address  = getSelectedAddress();
-    const totalPrice    = getTotalPrice();
+    const address = getSelectedAddress();
+    const totalPrice = getTotalPrice();
     const totalDuration = getTotalDuration();
     const needsAddress = hasAnyMobileService();
     const bookingPresentation = getBookingTypePresentation();
-    const gName  = guestNameEl && guestNameEl.value.trim();
+    const gName = guestNameEl && guestNameEl.value.trim();
     const gPhone = guestPhoneEl && guestPhoneEl.value.trim();
 
     // Services block
@@ -1075,16 +1075,16 @@
 
     // Details block
     const detailIcon = `<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg>`;
-    const notesVal  = notesEl.value.trim();
-    const addrVal   = needsAddress
+    const notesVal = notesEl.value.trim();
+    const addrVal = needsAddress
       ? (address ? escHtml(address.fullAddress || address.streetAddress || '-') : '-')
       : '<span class="btype-badge walkin">🏪 ' + escHtml(getSelectedBranchName() || 'Walk-In at salon') + '</span>';
-    const btBadge   = bookingPresentation.badgeHtml;
-    const gEmail   = guestEmailEl ? guestEmailEl.value.trim() : '';
-    const guestVal  = bookingForSelf
+    const btBadge = bookingPresentation.badgeHtml;
+    const gEmail = guestEmailEl ? guestEmailEl.value.trim() : '';
+    const guestVal = bookingForSelf
       ? 'Myself'
       : (gName ? `${escHtml(gName)}${gPhone ? ' &middot; ' + escHtml(gPhone) : ''}${gEmail ? '<br><span style="font-size:11px;color:var(--muted);font-weight:400;">' + escHtml(gEmail) + '</span>' : ''}` : '—');
-    const payBadge  = 'Wallet';
+    const payBadge = 'Wallet';
 
     reviewContainer.innerHTML = `
       <div class="review-block">
@@ -1166,11 +1166,11 @@
       const agreeCheckbox = document.getElementById('agreeTerms');
       const isAgreed = agreeCheckbox && agreeCheckbox.checked;
       nextStepBtn.style.pointerEvents = isAgreed ? 'auto' : 'none';
-      nextStepBtn.style.opacity       = isAgreed ? '1' : '0.5';
+      nextStepBtn.style.opacity = isAgreed ? '1' : '0.5';
       buildReview();
     } else {
       nextStepBtn.style.pointerEvents = 'auto';
-      nextStepBtn.style.opacity       = '1';
+      nextStepBtn.style.opacity = '1';
     }
   }
 
@@ -1227,7 +1227,7 @@
   const timeHelperText = document.getElementById('timeHelperText');
 
   function formatTime12h(h, m) {
-    var period   = h >= 12 ? 'PM' : 'AM';
+    var period = h >= 12 ? 'PM' : 'AM';
     var displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
     return displayH + ':' + String(m).padStart(2, '0') + ' ' + period;
   }
@@ -1263,7 +1263,7 @@
         APIHelper.request(API_CONFIG.ENDPOINTS.BOOKINGS_BUSINESS_EXCEPTIONS)
       ]);
       var businessHours = (results[0] && results[0].data) || [];
-      var exceptions    = (results[1] && results[1].data) || [];
+      var exceptions = (results[1] && results[1].data) || [];
 
       // Parse date parts to avoid UTC-offset issues
       var parts = date.split('-').map(Number);
@@ -1271,16 +1271,24 @@
       var selectedDate = new Date(yr, mo - 1, dy);
       var dayOfWeek = selectedDate.getDay(); // 0=Sun, 1=Mon … 6=Sat
 
-      // Check for a date-specific exception
-      var dateException = null;
+      // Check for a date-specific exception. Branch-specific wins over
+      // company-wide for the same date (matching the same rule already
+      // enforced server-side at submit time) — if no branch has been
+      // selected yet, only a company-wide exception can be detected here;
+      // a branch-specific one only becomes visible once a branch is
+      // actually picked (see the visitBranchEl change handler below).
+      var selectedBranchId = (visitBranchEl && visitBranchEl.value) || '';
+      var branchException = null;
+      var companyException = null;
       for (var i = 0; i < exceptions.length; i++) {
         var ex = exceptions[i];
         var exd = new Date(ex.date);
         if (exd.getUTCFullYear() === yr && exd.getUTCMonth() === mo - 1 && exd.getUTCDate() === dy) {
-          dateException = ex;
-          break;
+          if (selectedBranchId && ex.branchId === selectedBranchId) branchException = ex;
+          else if (!ex.branchId) companyException = ex;
         }
       }
+      var dateException = branchException || companyException;
 
       var openTime, closeTime;
 
@@ -1293,7 +1301,7 @@
           return;
         }
         // Exception with custom hours
-        openTime  = dateException.openTime;
+        openTime = dateException.openTime;
         closeTime = dateException.closeTime;
       } else {
         // Regular weekly hours
@@ -1307,18 +1315,18 @@
           timeHelperText.style.color = '#dc3545';
           return;
         }
-        openTime  = dayConfig.openTime;
+        openTime = dayConfig.openTime;
         closeTime = dayConfig.closeTime;
       }
 
       // Generate 30-minute slots, filtering out anything < 2 h from now
-      var now     = new Date();
+      var now = new Date();
       var minTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
-      var openParts  = openTime.split(':').map(Number);
+      var openParts = openTime.split(':').map(Number);
       var closeParts = closeTime.split(':').map(Number);
-      var openMins   = openParts[0] * 60 + (openParts[1] || 0);
-      var closeMins  = closeParts[0] * 60 + (closeParts[1] || 0);
+      var openMins = openParts[0] * 60 + (openParts[1] || 0);
+      var closeMins = closeParts[0] * 60 + (closeParts[1] || 0);
 
       // Defensive: some close times are stored as 12-hour values (e.g. "7:50"
       // meaning 7:50 PM). When close is "before" open, treat it as PM so the
@@ -1419,9 +1427,9 @@
     );
 
     paidModalBookingId.textContent = reservationCode;
-    paidModalService.textContent   = getServiceNames();
-    paidModalDateTime.textContent  = `${bookingDate} at ${bookingTime}`;
-    paidModalAmount.textContent    = formatMoney(amountPaid);
+    paidModalService.textContent = getServiceNames();
+    paidModalDateTime.textContent = `${bookingDate} at ${bookingTime}`;
+    paidModalAmount.textContent = formatMoney(amountPaid);
     openPaidModal();
 
     sessionStorage.removeItem('selectedServices');
@@ -1432,18 +1440,18 @@
   }
 
   function updateConfirmModalUI() {
-    const baseTotal     = getTotalPrice();
-    const total         = getAmountDueForPendingBooking();
-    const shortfall     = getGatewayShortfallAmount(total);
+    const baseTotal = getTotalPrice();
+    const total = getAmountDueForPendingBooking();
+    const shortfall = getGatewayShortfallAmount(total);
     const needsAddress = hasAnyMobileService();
     const bookingPresentation = getBookingTypePresentation();
-    const addr          = getSelectedAddress();
-    const gName         = guestNameEl && guestNameEl.value.trim();
-    const gPhone        = guestPhoneEl && guestPhoneEl.value.trim();
-    const gEmail        = guestEmailEl && guestEmailEl.value.trim();
+    const addr = getSelectedAddress();
+    const gName = guestNameEl && guestNameEl.value.trim();
+    const gPhone = guestPhoneEl && guestPhoneEl.value.trim();
+    const gEmail = guestEmailEl && guestEmailEl.value.trim();
 
-    modalService.textContent     = getServiceNames();
-    modalDateTime.textContent    = `${bookingDateEl.value || '-'} at ${bookingTimeEl.value || '-'}`;
+    modalService.textContent = getServiceNames();
+    modalDateTime.textContent = `${bookingDateEl.value || '-'} at ${bookingTimeEl.value || '-'}`;
     modalDebitAmount.textContent = formatMoney(total);
 
     // Show discount row if applied
@@ -1485,8 +1493,8 @@
     // WALLET — check balance
     const lowBalance = walletBalance < total;
     modalSubtext.textContent = 'Your wallet will be charged immediately upon confirmation.';
-    modalWalletRow.style.display   = '';
-    modalStatusRow.style.display   = '';
+    modalWalletRow.style.display = '';
+    modalStatusRow.style.display = '';
     modalWalletBalance.textContent = formatMoney(walletBalance);
 
     const makePaymentLabel = makePaymentBtn && makePaymentBtn.querySelector('div');
@@ -1521,10 +1529,10 @@
   // Show confirmation modal BEFORE calling the API
   async function prepareConfirmModal() {
     let address = getSelectedAddress();
-    const bType   = hasAnyMobileService() ? 'HOME_SERVICE' : 'WALK_IN';
+    const bType = hasAnyMobileService() ? 'HOME_SERVICE' : 'WALK_IN';
     const bMethod = getPaymentMethod();
-    const gName   = guestNameEl  ? guestNameEl.value.trim()  : '';
-    const gPhone  = guestPhoneEl ? guestPhoneEl.value.trim() : '';
+    const gName = guestNameEl ? guestNameEl.value.trim() : '';
+    const gPhone = guestPhoneEl ? guestPhoneEl.value.trim() : '';
 
     if (hasAnyMobileService()) {
       if (!address) {
@@ -1542,18 +1550,18 @@
     }
 
     const payload = {
-      services:        getSelectedServices().map(s => ({ serviceId: s.id, serviceMode: getSelectedModeFromService(s) || bType })),
-      date:            bookingDateEl.value,
-      time:            bookingTimeEl.value,
-      bookingType:     bType,
-      branchId:        (visitBranchEl && visitBranchEl.value) || undefined,
-      guestName:       gName  || undefined,
-      guestPhone:      gPhone || undefined,
-      guestEmail:      guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
-      paymentMethod:   bMethod,
-      notes:           notesEl.value.trim() || undefined,
-      discountCode:    discountInfo ? discountInfo.code : undefined,
-      idempotencyKey:  createBookingIdempotencyKey()
+      services: getSelectedServices().map(s => ({ serviceId: s.id, serviceMode: getSelectedModeFromService(s) || bType })),
+      date: bookingDateEl.value,
+      time: bookingTimeEl.value,
+      bookingType: bType,
+      branchId: (visitBranchEl && visitBranchEl.value) || undefined,
+      guestName: gName || undefined,
+      guestPhone: gPhone || undefined,
+      guestEmail: guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
+      paymentMethod: bMethod,
+      notes: notesEl.value.trim() || undefined,
+      discountCode: discountInfo ? discountInfo.code : undefined,
+      idempotencyKey: createBookingIdempotencyKey()
     };
 
     if (hasAnyMobileService() && address && address.id) {
@@ -1572,7 +1580,7 @@
   }
 
   async function submitBookingRequest() {
-    const result  = await BookingAPI.create(pendingBookingPayload);
+    const result = await BookingAPI.create(pendingBookingPayload);
     showBookingSuccessModal(result, getAmountDueForPendingBooking());
   }
 
@@ -1756,43 +1764,43 @@
   var discountInfo = null; // { id, code, name, percentage } or null
 
   async function validateDiscount() {
-    const codeInput   = document.getElementById('discountCodeInput');
-    const statusEl    = document.getElementById('discountStatus');
-    const badgeEl     = document.getElementById('discountBadge');
+    const codeInput = document.getElementById('discountCodeInput');
+    const statusEl = document.getElementById('discountStatus');
+    const badgeEl = document.getElementById('discountBadge');
     const badgeCodeEl = document.getElementById('discountBadgeCode');
-    const badgeText   = document.getElementById('discountBadgeText');
-    const inputRow    = document.getElementById('discountInputRow');
-    const applyBtn    = document.getElementById('applyDiscountBtn');
+    const badgeText = document.getElementById('discountBadgeText');
+    const inputRow = document.getElementById('discountInputRow');
+    const applyBtn = document.getElementById('applyDiscountBtn');
     const code = codeInput.value.trim().toUpperCase();
 
     if (!code) {
       statusEl.textContent = 'Please enter a discount code.';
-      statusEl.className   = 'discount-status error';
+      statusEl.className = 'discount-status error';
       return;
     }
     setButtonState(applyBtn, 'Checking\u2026', true);
     statusEl.textContent = '';
-    statusEl.className   = 'discount-status';
+    statusEl.className = 'discount-status';
 
     try {
-      const res  = await APIHelper.request(
+      const res = await APIHelper.request(
         API_CONFIG.ENDPOINTS.DISCOUNTS_VALIDATE + '/' + encodeURIComponent(code)
       );
       const data = (res && res.data) || {};
       discountInfo = {
-        id:         data.id         || '',
-        code:       data.code       || code,
-        name:       data.name       || '',
+        id: data.id || '',
+        code: data.code || code,
+        name: data.name || '',
         percentage: Number(data.percentage) || 0
       };
       badgeCodeEl.textContent = discountInfo.code;
-      badgeText.textContent   = discountInfo.name
+      badgeText.textContent = discountInfo.name
         ? discountInfo.name + ' \u2014 ' + discountInfo.percentage + '% off'
         : discountInfo.percentage + '% off';
-      badgeEl.style.display  = '';
+      badgeEl.style.display = '';
       inputRow.style.display = 'none';
-      statusEl.textContent   = '';
-      statusEl.className     = 'discount-status';
+      statusEl.textContent = '';
+      statusEl.className = 'discount-status';
       buildReview();
       refreshSummary();
     } catch (err) {
@@ -1802,7 +1810,7 @@
       } else {
         statusEl.textContent = (err && err.message) || 'Invalid or expired discount code.';
       }
-      statusEl.className   = 'discount-status error';
+      statusEl.className = 'discount-status error';
     } finally {
       setButtonState(applyBtn, '', false);
     }
@@ -1810,11 +1818,11 @@
 
   function removeDiscount() {
     discountInfo = null;
-    document.getElementById('discountCodeInput').value        = '';
-    document.getElementById('discountBadge').style.display    = 'none';
+    document.getElementById('discountCodeInput').value = '';
+    document.getElementById('discountBadge').style.display = 'none';
     document.getElementById('discountInputRow').style.display = '';
-    document.getElementById('discountStatus').textContent     = '';
-    document.getElementById('discountStatus').className       = 'discount-status';
+    document.getElementById('discountStatus').textContent = '';
+    document.getElementById('discountStatus').className = 'discount-status';
     buildReview();
     refreshSummary();
   }
@@ -1894,6 +1902,10 @@
   });
 
   // Branch change: walk-in prices may vary per branch, so re-resolve pricing.
+  // Also re-check availability — a branch-specific closure/exception can
+  // only be detected once we actually know which branch was picked, since
+  // loadAvailableSlots runs once on page load (defaulting to today) well
+  // before any branch selection happens.
   if (visitBranchEl) {
     visitBranchEl.addEventListener('change', async function () {
       const token = ++branchPricingToken;
@@ -1920,6 +1932,10 @@
         'info',
         2200
       );
+
+      if (bookingDateEl && bookingDateEl.value) {
+        loadAvailableSlots(bookingDateEl.value);
+      }
     });
   }
 
@@ -2117,7 +2133,7 @@
         opt.dataset.label = addr.label || '';
         opt.dataset.fullAddress = addr.fullAddress || '';
         opt.dataset.streetAddress = addr.streetAddress || '';
-        opt.dataset.city  = addr.city  || '';
+        opt.dataset.city = addr.city || '';
         opt.dataset.state = addr.state || '';
         opt.dataset.country = addr.country || 'Nigeria';
         opt.dataset.placeId = addr.placeId || '';
@@ -2141,32 +2157,32 @@
 
   // ── Terms Logic ──────────────────────────────────────────────────
   const agreeCheckbox = document.getElementById('agreeTerms');
-  const termsLink     = document.getElementById('termsLink');
-  const termsModal    = document.getElementById('termsModal');
+  const termsLink = document.getElementById('termsLink');
+  const termsModal = document.getElementById('termsModal');
   const closeTermsBtn = document.getElementById('closeTermsModal');
 
   if (agreeCheckbox) {
     agreeCheckbox.checked = false;
-    agreeCheckbox.addEventListener('change', function() {
+    agreeCheckbox.addEventListener('change', function () {
       if (step === 3) {
         nextStepBtn.style.pointerEvents = this.checked ? 'auto' : 'none';
-        nextStepBtn.style.opacity       = this.checked ? '1' : '0.5';
+        nextStepBtn.style.opacity = this.checked ? '1' : '0.5';
       }
     });
   }
 
   if (termsLink && termsModal) {
-    termsLink.addEventListener('click', function(e) {
+    termsLink.addEventListener('click', function (e) {
       e.preventDefault();
       termsModal.classList.add('show');
     });
-    termsModal.addEventListener('click', function(e) {
+    termsModal.addEventListener('click', function (e) {
       if (e.target === termsModal) termsModal.classList.remove('show');
     });
   }
 
   if (closeTermsBtn && termsModal) {
-    closeTermsBtn.addEventListener('click', function(e) {
+    closeTermsBtn.addEventListener('click', function (e) {
       e.preventDefault();
       termsModal.classList.remove('show');
     });

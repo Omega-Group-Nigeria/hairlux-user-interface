@@ -875,6 +875,96 @@
       line-height: 1;
     }
 
+    /* Blocking, non-dismissible -- z-index above every other modal on this
+       page (9999) so it can never be hidden behind one, and there is
+       deliberately no .show-toggle-off affordance anywhere in this rule
+       set: no close button, no click-outside handler wired to it in JS. */
+    .sp-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .sp-modal.show {
+      display: flex;
+    }
+
+    .sp-modal-card {
+      background: #fff;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 22px 60px rgba(20, 24, 16, 0.28);
+      border: 1px solid #e7ecdf;
+      padding: 26px;
+      animation: walletModalIn 0.25s ease;
+    }
+
+    .sp-modal-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 22px;
+      color: #fff;
+      background: linear-gradient(135deg, #8c5e1a, #b47d2d);
+      box-shadow: 0 10px 18px rgba(140, 94, 26, 0.28);
+    }
+
+    .sp-modal-title {
+      text-align: center;
+      color: var(--primary);
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .sp-modal-text {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .sp-modal-error {
+      background: #fdecea;
+      color: #b71c1c;
+      font-size: 12px;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
+
+    .sp-modal-field {
+      margin-bottom: 12px;
+    }
+
+    .sp-modal-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .sp-modal-field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #dfe3d8;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
     .wallet-modal {
       display: none;
       position: fixed;

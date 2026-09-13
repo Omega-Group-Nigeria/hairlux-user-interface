@@ -808,7 +808,7 @@
             <li class="list-item"><a href="terms-of-service.html" class="link-nav-footer">Terms of Service</a></li>
             <li class="list-item"><a href="privacy-policy.html" class="link-nav-footer">Privacy Policy</a></li>
             <li class="list-item"><a href="refund-policy.html" class="link-nav-footer">Refund & Cancellation</a></li>
-            <li class="list-item"><a href="faqs.html" class="link-nav-footer">FAQs</a></li>
+            <li class="list-item"><a href="faq.html" class="link-nav-footer">FAQs</a></li>
             <li class="list-item"><a href="blog.html" class="link-nav-footer">Blog</a></li>
           </ul>
         </div>
@@ -838,8 +838,7 @@
             <li class="list-item" style="margin-bottom: 8px;">
               <a href="mailto:support@hairlux.com.ng" class="link-nav-footer">support@hairlux.com.ng</a>
             </li>
-            <li class="list-item" style="margin-bottom: 8px;">Mon - Sat: 8:00 AM - 8:00 PM</li>
-            <li class="list-item">OMEGA Plaza, Along Academy Olomi, Near Owode Market, Ibadan</li>
+            <li class="list-item">Ibadan | Lagos, Nigeria</li>
           </ul>
         </div>
 
@@ -854,11 +853,10 @@
             <li class="list-item"><a href="https://maps.google.com/?q=Hairlux+Oyo" target="_blank" rel="noopener"
                 class="link-nav-footer">Oyo</a></li>
             <li class="list-item" style="color: rgba(255,255,255,0.4); font-size: 0.9rem;">Ado Ekiti (Coming Soon)</li>
-            <li class="list-item" style="color: rgba(255,255,255,0.4); font-size: 0.9rem;">Lagos (Coming Soon)</li>
           </ul>
         </div>
 
-        <!-- 6. Follow Us & Newsletter -->
+        <!-- 6. Follow Us -->
         <div class="footer-links-wrapper">
           <div class="footer-heading-small" style="font-weight: 600; margin-bottom: 8px;">Follow Us</div>
           <div style="margin-bottom: 16px;">
@@ -872,7 +870,7 @@
             <a href="https://www.tiktok.com/@hairluxspa_salon?_r=1&_t=ZS-93eAxSxDLPh" target="_blank" rel="noopener"
               class="link-nav-footer">TikTok</a>
           </div>
-          <div style="margin-bottom: 24px;">
+          <div>
             <strong
               style="display:block; font-size: 0.8rem; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px;">Hairlux
               Mobile</strong>
@@ -883,9 +881,13 @@
             <a href="https://www.tiktok.com/@hairluxmobile?_r=1&_t=ZS-95cFWWRjaVj" target="_blank" rel="noopener"
               class="link-nav-footer">TikTok</a>
           </div>
+        </div>
 
-          <!-- Newsletter -->
+        <!-- 7. Newsletter -->
+        <div class="footer-links-wrapper">
           <div class="footer-heading-small" style="font-weight: 600; margin-bottom: 8px;">Newsletter</div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 12px;">Get updates on new
+            services, offers, and locations.</p>
           <form id="newsletter-form" style="display: flex; gap: 8px;">
             <input type="email" placeholder="Your email" required
               style="padding: 8px 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #fff; width: 100%; font-size: 0.85rem;" />
@@ -914,19 +916,15 @@
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
       try {
-        const response = await fetch('/api/stats'); // Replace with your actual API endpoint
-        // const data = await response.json();
+        const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.STATS);
+        const result = await response.json();
+        const data = result.data || result;
 
-        // Fallback/Sample values if API responds with structured JSON:
-        // { bookings: 12500, customers: 8400, rating: 4.9, branches: 3, professionals: 45 }
-
-        const data = { bookings: 12500, customers: 8400, rating: 4.9, branches: 3, professionals: 45 };
-
-        animateCounter("stat-bookings", data.bookings || 10000, "+");
-        animateCounter("stat-customers", data.customers || 5000, "+");
-        document.getElementById("stat-rating").innerText = (data.rating || 4.9) + " / 5.0";
-        animateCounter("stat-branches", data.branches || 3, "");
-        animateCounter("stat-professionals", data.professionals || 40, "+");
+        animateCounter("stat-bookings", data.completedBookings || 0, "+");
+        animateCounter("stat-customers", data.registeredCustomers || 0, "+");
+        document.getElementById("stat-rating").innerText = (data.averageRating || 0) + " / 5.0";
+        animateCounter("stat-branches", data.branches || 0, "");
+        animateCounter("stat-professionals", data.professionals || 0, "+");
       } catch (error) {
         console.error("Failed to load statistics:", error);
       }
