@@ -580,136 +580,151 @@
             <div class="h-l">Backed by real experiences</div>
           </div>
         </div>
+        <!-- Dev Feedback: autoscroll horizontal carousel for reviews.
+                             Continuous CSS-driven marquee rather than a "next slide every
+                             N seconds" carousel, since that's the more standard pattern
+                             for a testimonial strip on a marketing page. Cards are
+                             cloned once via JS (marked aria-hidden on the clone) so the
+                             CSS animation can translate exactly -50% and loop seamlessly
+                             -- duplicating the real markup by hand in the HTML would
+                             double the maintenance burden and give screen readers the
+                             same testimonials twice on page load. Pauses on hover/focus
+                             so a visitor can actually read one without it sliding away. -->
+        <div class="reviews-carousel">
+          <div class="reviews-track" id="reviews-track">
+            <!-- Original Testimonial (Adaeze O.) -->
+            <div class="inner-container quote">
+              <div class="center-wrapper-quote">
+                <img
+                  src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
+                  decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
+                <div class="p-m">Hairlux has completely changed how I experience selfcare. I booked a hair and facial
+                  session
+                  right from my phone, and their therapist arrived at my Lekki home fully equipped. The service was so
+                  professional and I felt like I was in a five star spa without ever leaving my living room. I won't be
+                  going back
+                  to a regular salon.</div>
+                <div class="center-wrapper">
+                  <div class="image-profile-wrapper small">
+                    <img
+                      src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=200&q=80"
+                      decoding="async" fetchpriority="low" loading="lazy" alt="Adaeze O." class="image-profile" />
+                  </div>
+                  <div id="w-node-_76244302-397d-60a4-7364-eed5dba6c1ff-f507ab76">
+                    <div class="wrapper-blurb-quote">
+                      <div><strong>Adaeze O.</strong></div>
+                      <div>Fashion Entrepreneur, Lagos</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile Service Experience -->
+            <div class="inner-container quote">
+              <div class="center-wrapper-quote">
+                <img
+                  src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
+                  decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
+                <div class="p-m">"Booking with Hairlux was effortless. The team arrived on time, fully equipped, and
+                  delivered an
+                  experience that truly exceeded my expectations. It felt like having a luxury salon in my own home."
+                </div>
+                <div class="center-wrapper">
+                  <div class="image-profile-wrapper small">
+                    <img
+                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+                      decoding="async" fetchpriority="low" loading="lazy" alt="Sarah A." class="image-profile" />
+                  </div>
+                  <div>
+                    <div class="wrapper-blurb-quote">
+                      <div><strong>Sarah A.</strong></div>
+                      <div>Doctor, Lagos</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Salon Experience -->
+            <div class="inner-container quote">
+              <div class="center-wrapper-quote">
+                <img
+                  src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
+                  decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
+                <div class="p-m">"From the moment I walked into Hairlux, I knew it was different. The atmosphere,
+                  professionalism,
+                  and attention to detail made every minute worthwhile. I'll definitely be coming back."</div>
+                <div class="center-wrapper">
+                  <div class="image-profile-wrapper small">
+                    <img
+                      src="https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=200&q=80"
+                      decoding="async" fetchpriority="low" loading="lazy" alt="Deborah O." class="image-profile" />
+                  </div>
+                  <div>
+                    <div class="wrapper-blurb-quote">
+                      <div><strong>Deborah O.</strong></div>
+                      <div>Trader, Ibadan</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Service -->
+            <div class="inner-container quote">
+              <div class="center-wrapper-quote">
+                <img
+                  src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
+                  decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
+                <div class="p-m">"What impressed me most wasn't just the quality of the service but how genuinely the
+                  team
+                  cared
+                  about my experience. Hairlux has raised the standard for beauty and wellness."</div>
+                <div class="center-wrapper">
+                  <div class="image-profile-wrapper small">
+                    <img
+                      src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80"
+                      decoding="async" fetchpriority="low" loading="lazy" alt="Chioma E." class="image-profile" />
+                  </div>
+                  <div>
+                    <div class="wrapper-blurb-quote">
+                      <div><strong>Chioma E.</strong></div>
+                      <div>Lawyer, Lagos</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Convenience -->
+            <div class="inner-container quote">
+              <div class="center-wrapper-quote">
+                <img
+                  src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
+                  decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
+                <div class="p-m">"As someone with a busy schedule, Hairlux has become my go to. Whether I book an
+                  appointment at a
+                  branch or request a home service, everything is seamless from start to finish."</div>
+                <div class="center-wrapper">
+                  <div class="image-profile-wrapper small">
+                    <img
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+                      decoding="async" fetchpriority="low" loading="lazy" alt="Tunde A." class="image-profile" />
+                  </div>
+                  <div>
+                    <div class="wrapper-blurb-quote">
+                      <div><strong>Tunde A.</strong></div>
+                      <div>Business Owner, Lagos</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="gap-s">
-          <!-- Original Testimonial (Adaeze O.) -->
-          <div class="inner-container quote">
-            <div class="center-wrapper-quote">
-              <img
-                src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
-                decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
-              <div class="p-m">Hairlux has completely changed how I experience selfcare. I booked a hair and facial
-                session
-                right from my phone, and their therapist arrived at my Lekki home fully equipped. The service was so
-                professional and I felt like I was in a five star spa without ever leaving my living room. I won't be
-                going back
-                to a regular salon.</div>
-              <div class="center-wrapper">
-                <div class="image-profile-wrapper small">
-                  <img
-                    src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=200&q=80"
-                    decoding="async" fetchpriority="low" loading="lazy" alt="Adaeze O." class="image-profile" />
-                </div>
-                <div id="w-node-_76244302-397d-60a4-7364-eed5dba6c1ff-f507ab76">
-                  <div class="wrapper-blurb-quote">
-                    <div><strong>Adaeze O.</strong></div>
-                    <div>Fashion Entrepreneur, Lagos</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Mobile Service Experience -->
-          <div class="inner-container quote">
-            <div class="center-wrapper-quote">
-              <img
-                src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
-                decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
-              <div class="p-m">"Booking with Hairlux was effortless. The team arrived on time, fully equipped, and
-                delivered an
-                experience that truly exceeded my expectations. It felt like having a luxury salon in my own home."
-              </div>
-              <div class="center-wrapper">
-                <div class="image-profile-wrapper small">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
-                    decoding="async" fetchpriority="low" loading="lazy" alt="Sarah A." class="image-profile" />
-                </div>
-                <div>
-                  <div class="wrapper-blurb-quote">
-                    <div><strong>Sarah A.</strong></div>
-                    <div>Doctor, Lagos</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Salon Experience -->
-          <div class="inner-container quote">
-            <div class="center-wrapper-quote">
-              <img
-                src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
-                decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
-              <div class="p-m">"From the moment I walked into Hairlux, I knew it was different. The atmosphere,
-                professionalism,
-                and attention to detail made every minute worthwhile. I'll definitely be coming back."</div>
-              <div class="center-wrapper">
-                <div class="image-profile-wrapper small">
-                  <img
-                    src="https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=200&q=80"
-                    decoding="async" fetchpriority="low" loading="lazy" alt="Deborah O." class="image-profile" />
-                </div>
-                <div>
-                  <div class="wrapper-blurb-quote">
-                    <div><strong>Deborah O.</strong></div>
-                    <div>Trader, Ibadan</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Customer Service -->
-          <div class="inner-container quote">
-            <div class="center-wrapper-quote">
-              <img
-                src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
-                decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
-              <div class="p-m">"What impressed me most wasn't just the quality of the service but how genuinely the team
-                cared
-                about my experience. Hairlux has raised the standard for beauty and wellness."</div>
-              <div class="center-wrapper">
-                <div class="image-profile-wrapper small">
-                  <img
-                    src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80"
-                    decoding="async" fetchpriority="low" loading="lazy" alt="Chioma E." class="image-profile" />
-                </div>
-                <div>
-                  <div class="wrapper-blurb-quote">
-                    <div><strong>Chioma E.</strong></div>
-                    <div>Lawyer, Lagos</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Convenience -->
-          <div class="inner-container quote">
-            <div class="center-wrapper-quote">
-              <img
-                src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/675c8e48ca0e0fb5ab4212f4_quote-icon.svg"
-                decoding="async" fetchpriority="low" loading="lazy" alt="" class="quote-icon small" />
-              <div class="p-m">"As someone with a busy schedule, Hairlux has become my go to. Whether I book an
-                appointment at a
-                branch or request a home service, everything is seamless from start to finish."</div>
-              <div class="center-wrapper">
-                <div class="image-profile-wrapper small">
-                  <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
-                    decoding="async" fetchpriority="low" loading="lazy" alt="Tunde A." class="image-profile" />
-                </div>
-                <div>
-                  <div class="wrapper-blurb-quote">
-                    <div><strong>Tunde A.</strong></div>
-                    <div>Business Owner, Lagos</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Call To Action -->
           <div class="card-cta">
             <div class="_w-medium">
@@ -1034,6 +1049,26 @@
       // Escape key closes
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      });
+    })();
+  </script>
+
+  <!-- Dev Feedback: autoscroll horizontal carousel for the reviews
+       section. Duplicates the track's original cards once (marking the
+       clone aria-hidden, since it's a purely visual duplicate for the
+       looping animation, not new content) so the CSS animation in
+       style-main.css can translate exactly -50% and loop with no visible
+       jump. Pausing on hover/focus is handled entirely in CSS. -->
+  <script>
+    (function () {
+      var track = document.getElementById('reviews-track');
+      if (!track) return;
+      var originalCards = Array.prototype.slice.call(track.children);
+      if (!originalCards.length) return;
+      originalCards.forEach(function (card) {
+        var clone = card.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');
+        track.appendChild(clone);
       });
     })();
   </script>

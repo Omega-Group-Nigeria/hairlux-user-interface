@@ -7504,6 +7504,56 @@ figcaption {
   display: flex;
 }
 
+/* Dev Feedback: autoscroll horizontal carousel for the reviews section.
+   Continuous marquee-style scroll, pauses on hover/focus so a visitor
+   can actually read a card. The track's content is doubled by JS
+   (index.html) so translateX(-50%) loops seamlessly back to the start
+   with no visible jump or gap. */
+.reviews-carousel {
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+}
+
+.reviews-track {
+  display: flex;
+  flex-flow: row;
+  width: max-content;
+  grid-column-gap: 16px;
+  grid-row-gap: 16px;
+  animation: reviews-scroll 45s linear infinite;
+}
+
+.reviews-carousel:hover .reviews-track,
+.reviews-carousel:focus-within .reviews-track {
+  animation-play-state: paused;
+}
+
+.reviews-track .inner-container.quote {
+  width: 380px;
+  flex: 0 0 auto;
+}
+
+@keyframes reviews-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    /* Track content is duplicated once by JS, so -50% is exactly one
+       full original set's width -- the loop point where the clone
+       occupies the same visual position the original started at. */
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviews-track {
+    animation: none;
+  }
+}
+
 .flex-col-s {
   align-self: flex-start;
 }

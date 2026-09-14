@@ -289,34 +289,86 @@
     <div class="wallet-modal-card">
       <div class="wallet-modal-icon">₦</div>
       <h3 class="wallet-modal-title">Deposit to Wallet</h3>
-      <p class="wallet-modal-text">Choose payment provider and amount to fund your wallet securely.</p>
-      <div class="wallet-modal-field wallet-provider-group" style="display:none;">
-        <label>Payment Provider</label>
-        <div class="wallet-provider-options" role="radiogroup" aria-label="Wallet deposit provider">
-          <div class="wallet-provider-option">
-            <input id="walletProviderMonnify" class="wallet-provider-input" type="radio" name="walletDepositProvider"
-              value="monnify" checked />
-            <label class="wallet-provider-label" for="walletProviderMonnify">Monnify</label>
-          </div>
-          <div class="wallet-provider-option">
-            <input id="walletProviderPaystack" class="wallet-provider-input" type="radio" name="walletDepositProvider"
-              value="paystack" />
-            <label class="wallet-provider-label" for="walletProviderPaystack">Paystack</label>
-          </div>
+      <p class="wallet-modal-text">Choose how you'd like to fund your wallet.</p>
+
+      <!-- Dev Feedback Round 9: dedicated/reserved account numbers for
+               deposits -- a second way to fund the wallet, alongside the
+               existing pay-online flow below, not a replacement for it. -->
+      <div class="wallet-provider-options" role="tablist" aria-label="Deposit method" style="margin-bottom:16px;">
+        <div class="wallet-provider-option">
+          <input id="walletDepositTabOnline" class="wallet-provider-input" type="radio" name="walletDepositTab"
+            value="online" checked />
+          <label class="wallet-provider-label" for="walletDepositTabOnline">Pay Online</label>
+        </div>
+        <div class="wallet-provider-option">
+          <input id="walletDepositTabTransfer" class="wallet-provider-input" type="radio" name="walletDepositTab"
+            value="transfer" />
+          <label class="wallet-provider-label" for="walletDepositTabTransfer">Bank Transfer</label>
         </div>
       </div>
-      <div class="wallet-modal-field">
-        <label for="walletDepositAmount">Amount (NGN)</label>
-        <input id="walletDepositAmount" class="wallet-modal-input" type="number" min="1" step="1"
-          placeholder="e.g. 5000" />
+
+      <div id="walletDepositOnlinePanel">
+        <div class="wallet-modal-field wallet-provider-group" style="display:none;">
+          <label>Payment Provider</label>
+          <div class="wallet-provider-options" role="radiogroup" aria-label="Wallet deposit provider">
+            <div class="wallet-provider-option">
+              <input id="walletProviderMonnify" class="wallet-provider-input" type="radio" name="walletDepositProvider"
+                value="monnify" checked />
+              <label class="wallet-provider-label" for="walletProviderMonnify">Monnify</label>
+            </div>
+            <div class="wallet-provider-option">
+              <input id="walletProviderPaystack" class="wallet-provider-input" type="radio" name="walletDepositProvider"
+                value="paystack" />
+              <label class="wallet-provider-label" for="walletProviderPaystack">Paystack</label>
+            </div>
+          </div>
+        </div>
+        <div class="wallet-modal-field">
+          <label for="walletDepositAmount">Amount (NGN)</label>
+          <input id="walletDepositAmount" class="wallet-modal-input" type="number" min="1" step="1"
+            placeholder="e.g. 5000" />
+        </div>
+        <div class="wallet-modal-actions">
+          <a href="#" id="walletDepositCancel" class="button-outline w-inline-block">
+            <div>Cancel</div>
+          </a>
+          <a href="#" id="walletDepositProceed" class="button-green w-inline-block">
+            <div>Deposit</div>
+          </a>
+        </div>
       </div>
-      <div class="wallet-modal-actions">
-        <a href="#" id="walletDepositCancel" class="button-outline w-inline-block">
-          <div>Cancel</div>
-        </a>
-        <a href="#" id="walletDepositProceed" class="button-green w-inline-block">
-          <div>Deposit</div>
-        </a>
+
+      <!-- Dev Feedback Round 9: dedicated/reserved account numbers for
+               deposits -- shows the customer's own permanent account number;
+               they can transfer any amount to it, at any time, and their
+               wallet is credited automatically once Paystack's webhook for
+               that transfer arrives. Provisioned lazily the first time this
+               tab is opened (WalletAPI.ensureDedicatedAccount is idempotent
+               -- safe to call every time without creating duplicates). -->
+      <div id="walletDepositTransferPanel" style="display:none;">
+        <div id="walletTransferLoading" class="wallet-modal-text">Loading your account details…</div>
+        <div id="walletTransferError" class="wallet-modal-text" style="display:none;color:#c0392b;"></div>
+        <div id="walletTransferDetails" style="display:none;">
+          <p class="wallet-modal-text">Transfer any amount to this account — your wallet is credited automatically as
+            soon
+            as the transfer arrives.</p>
+          <div class="wallet-success-details">
+            <div class="wallet-success-row"><span>Bank</span><span id="walletTransferBank"
+                class="wallet-success-value">-</span></div>
+            <div class="wallet-success-row"><span>Account Number</span><span id="walletTransferAccountNumber"
+                class="wallet-success-value">-</span></div>
+            <div class="wallet-success-row"><span>Account Name</span><span id="walletTransferAccountName"
+                class="wallet-success-value">-</span></div>
+          </div>
+        </div>
+        <div class="wallet-modal-actions">
+          <a href="#" id="walletTransferCancel" class="button-outline w-inline-block">
+            <div>Close</div>
+          </a>
+          <a href="#" id="walletTransferCopy" class="button-green w-inline-block" style="display:none;">
+            <div>Copy Account Number</div>
+          </a>
+        </div>
       </div>
     </div>
   </div>
