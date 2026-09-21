@@ -175,6 +175,30 @@ const UIHelper = {
   },
 
   /**
+   * Where to send the user after a successful login/signup: the ?returnTo=
+   * query param when the login/signup page was reached from a guest-browsable
+   * page (course/training catalogue or detail) trying to enroll/register,
+   * or the normal dashboard otherwise. Only ever a root-relative in-site path
+   * (e.g. "app/course-detail.html?id=..."), never an absolute/external URL,
+   * to avoid turning this into an open redirect.
+   * @returns {string}
+   */
+  getPostAuthRedirect() {
+    const raw = this.getQueryParam('returnTo');
+    const fallback = 'app/index.html';
+    if (!raw) return fallback;
+    try {
+      const decoded = decodeURIComponent(raw);
+      if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(decoded) || decoded.indexOf('//') === 0) {
+        return fallback; // absolute / protocol-relative URL -- refuse it
+      }
+      return decoded;
+    } catch (_) {
+      return fallback;
+    }
+  },
+
+  /**
    * Get query parameter from URL
    * @param {string} param - Parameter name
    * @returns {string|null} Parameter value
