@@ -42,6 +42,11 @@
       var loginLink = document.querySelector('a.link[href="log-in.html"]');
       if (loginLink) loginLink.href = 'log-in.html?returnTo=' + encodeURIComponent(returnTo);
     })();
+    // Prefill email when arriving from the login page's "no account" CTA.
+    const prefillEmail = (UIHelper.getQueryParam('email') || '').trim();
+    if (prefillEmail && emailInput && !emailInput.value) {
+      emailInput.value = prefillEmail;
+    }
 
     // If already logged in, refresh token and go straight to the app
     if (APIHelper.isAuthenticated()) {
@@ -233,21 +238,30 @@
       } catch (error) {
         console.error('Registration error:', error);
         let errorMessage = 'Registration failed. Please try again.';
+
         if (error.status === 409 || error.statusCode === 409) {
           const msg = (error.message || '').toLowerCase();
           if (msg.includes('phone')) {
             errorMessage = 'This phone number is already associated with an account.';
+            UIHelper.showToast(errorMessage, 'error');
+          } else if (msg.includes('user with this email already exists')) {
+            // The email already belongs to a USER/ADMIN/STAFF account.
+            // Linked beautician registrations succeed, so this 409 means it is NOT ours → go to login.
+            UIHelper.showToast('This email already has an account. Taking you to login...', 'info');
+            setTimeout(function () {
+              UIHelper.redirect('log-in.html' + (email ? '?email=' + encodeURIComponent(email) : ''));
+            }, 1200);
           } else {
             errorMessage = 'This email is already registered. Please login instead.';
+            UIHelper.showToast(errorMessage, 'error');
           }
         } else if (error.status === 400 || error.statusCode === 400) {
-          errorMessage = error.message || 'Invalid registration data. Please check your inputs.';
+          UIHelper.showToast(error.message || 'Invalid registration data. Please check your inputs.', 'error');
         } else if (error.status === 0) {
-          errorMessage = 'Network error. Please check your connection.';
+          UIHelper.showToast('Network error. Please check your connection.', 'error');
         } else if (error.message) {
-          errorMessage = Array.isArray(error.message) ? error.message.join(', ') : error.message;
+          UIHelper.showToast(Array.isArray(error.message) ? error.message.join(', ') : error.message, 'error');
         }
-        UIHelper.showToast(errorMessage, 'error');
         resetSubmitButton();
       }
     });
