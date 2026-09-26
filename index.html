@@ -22,6 +22,7 @@
   <meta content="summary_large_image" name="twitter:card" />
   <meta content="width=device-width, initial-scale=1" name="viewport" />
   <link href="assets/style-main.css" rel="stylesheet" type="text/css" />
+  <script src="assets/js/theme-toggle.js"></script>
   <link href="https://fonts.googleapis.com/" rel="preconnect" />
   <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous" />
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
@@ -182,6 +183,38 @@
     .flyer-close:active {
       transform: scale(.92);
     }
+
+    /* ── Dark mode ── */
+    [data-theme="dark"] .sticky-container-01 {
+      background-color: var(--surface, #14171c);
+    }
+    [data-theme="dark"] .track-l {
+      background-color: var(--surface, #14171c);
+    }
+    [data-theme="dark"] .framer-overlayer {
+      background-color: var(--surface, #14171c);
+    }
+    [data-theme="dark"] .content-s {
+      background-color: rgba(20, 23, 28, .88);
+    }
+    [data-theme="dark"] .inner-container.quote,
+    [data-theme="dark"] .card-cta {
+      background-color: var(--card-bg, #1c2027);
+    }
+    [data-theme="dark"] .wrapper-blurb-quote {
+      color: var(--muted, #a7adb8);
+    }
+    [data-theme="dark"] .quote-icon {
+      filter: invert(1);
+      opacity: .85;
+    }
+    [data-theme="dark"] .flyer-close {
+      background: rgba(255, 255, 255, .1);
+      color: var(--primary, #f0ede6);
+    }
+    [data-theme="dark"] .flyer-close:hover {
+      background: rgba(255, 255, 255, .18);
+    }
   </style>
 
   <!-- Schema -->
@@ -251,11 +284,15 @@
         <a href="careers.html" class="nav-link w-nav-link">Careers</a>
         <a href="contact.html" class="nav-link w-nav-link">Contact Us</a>
         <a href="../waitlist.html" class="nav-link w-nav-link">App</a>
-        <a href="https://academy.hairlux.com.ng" class="nav-link w-nav-link" target="_blank" rel="noopener">Courses</a>
+        <a href="https://academy.hairlux.com.ng" class="nav-link w-nav-link" target="_blank" rel="noopener">Academy</a>
         <a href="log-in.html" class="button-nav w-inline-block login-nav-mobile">
           <div>Login/Signup</div>
         </a>
       </nav>
+      <button type="button" class="theme-toggle-btn" data-theme-toggle aria-pressed="false" title="Switch to dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
       <div class="menu-button w-nav-button">
         <div class="menu-mobile">
           <div data-is-ix2-target="1" class="lottie-animation" data-w-id="9ddc847f-f377-4e52-c9e3-c93ed393def0"

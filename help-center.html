@@ -21,6 +21,7 @@
     <meta content="summary_large_image" name="twitter:card" />
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link href="assets/style-main.css" rel="stylesheet" type="text/css" />
+  <script src="assets/js/theme-toggle.js"></script>
     <link href="https://fonts.googleapis.com/" rel="preconnect" />
     <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous" />
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
@@ -44,6 +45,12 @@
         body {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+        }
+        .help-tip-box {
+            background: #f7f6f4;
+        }
+        [data-theme="dark"] .help-tip-box {
+            background: #20242c;
         }
     </style>
     <!--Start of Tawk.to Script-->
@@ -77,7 +84,11 @@
                     <div>Login/Signup</div>
                 </a>
             </nav>
-            <div class="menu-button w-nav-button">
+            <button type="button" class="theme-toggle-btn" data-theme-toggle aria-pressed="false" title="Switch to dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+      <div class="menu-button w-nav-button">
                 <div class="menu-mobile">
                     <div data-is-ix2-target="1" class="lottie-animation"
                         data-w-id="9ddc847f-f377-4e52-c9e3-c93ed393def0" data-animation-type="lottie"
@@ -110,25 +121,22 @@
                 <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:48px;">
 
                     <a href="tel:+2347062221259"
-                        style="flex:1;min-width:220px;display:block;padding:24px;border:1.5px solid rgba(0,0,0,0.12);border-radius:12px;text-decoration:none;color:inherit;transition:border-color .2s;"
-                        onmouseover="this.style.borderColor='rgba(0,0,0,0.3)'"
-                        onmouseout="this.style.borderColor='rgba(0,0,0,0.12)'">
+                        class="contact-social-pill"
+                        style="flex:1;min-width:220px;display:block;padding:24px;border-radius:12px;text-decoration:none;color:inherit;">
                         <h3 class="p-r semi-bold" style="margin-bottom:6px;">Call Us</h3>
                         <p class="p-s text-gray-700" style="margin-bottom:0 !important;">+234 706 222 1259</p>
                     </a>
 
                     <a href="https://wa.me/2347062221259" target="_blank" rel="noopener"
-                        style="flex:1;min-width:220px;display:block;padding:24px;border:1.5px solid rgba(0,0,0,0.12);border-radius:12px;text-decoration:none;color:inherit;transition:border-color .2s;"
-                        onmouseover="this.style.borderColor='rgba(0,0,0,0.3)'"
-                        onmouseout="this.style.borderColor='rgba(0,0,0,0.12)'">
+                        class="contact-social-pill"
+                        style="flex:1;min-width:220px;display:block;padding:24px;border-radius:12px;text-decoration:none;color:inherit;">
                         <h3 class="p-r semi-bold" style="margin-bottom:6px;">WhatsApp Us</h3>
                         <p class="p-s text-gray-700" style="margin-bottom:0 !important;">Chat with our team directly</p>
                     </a>
 
                     <a href="mailto:support@hairlux.com.ng"
-                        style="flex:1;min-width:220px;display:block;padding:24px;border:1.5px solid rgba(0,0,0,0.12);border-radius:12px;text-decoration:none;color:inherit;transition:border-color .2s;"
-                        onmouseover="this.style.borderColor='rgba(0,0,0,0.3)'"
-                        onmouseout="this.style.borderColor='rgba(0,0,0,0.12)'">
+                        class="contact-social-pill"
+                        style="flex:1;min-width:220px;display:block;padding:24px;border-radius:12px;text-decoration:none;color:inherit;">
                         <h3 class="p-r semi-bold" style="margin-bottom:6px;">Email Us</h3>
                         <p class="p-s text-gray-700" style="margin-bottom:0 !important;">support@hairlux.com.ng</p>
                     </a>
@@ -141,20 +149,20 @@
 
                 <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:48px;">
                     <a href="faq.html"
-                        style="padding:12px 20px;border:1.5px solid rgba(0,0,0,0.12);border-radius:8px;text-decoration:none;color:inherit;"
-                        class="p-s">Booking &amp; Scheduling</a>
+                        style="padding:12px 20px;border-radius:8px;text-decoration:none;color:inherit;"
+                        class="p-s contact-social-pill">Booking &amp; Scheduling</a>
                     <a href="faq.html"
-                        style="padding:12px 20px;border:1.5px solid rgba(0,0,0,0.12);border-radius:8px;text-decoration:none;color:inherit;"
-                        class="p-s">Payments &amp; Pricing</a>
+                        style="padding:12px 20px;border-radius:8px;text-decoration:none;color:inherit;"
+                        class="p-s contact-social-pill">Payments &amp; Pricing</a>
                     <a href="refund-policy.html"
-                        style="padding:12px 20px;border:1.5px solid rgba(0,0,0,0.12);border-radius:8px;text-decoration:none;color:inherit;"
-                        class="p-s">Cancellations &amp; Refunds</a>
+                        style="padding:12px 20px;border-radius:8px;text-decoration:none;color:inherit;"
+                        class="p-s contact-social-pill">Cancellations &amp; Refunds</a>
                     <a href="faq.html"
-                        style="padding:12px 20px;border:1.5px solid rgba(0,0,0,0.12);border-radius:8px;text-decoration:none;color:inherit;"
-                        class="p-s">Mobile Service Locations</a>
+                        style="padding:12px 20px;border-radius:8px;text-decoration:none;color:inherit;"
+                        class="p-s contact-social-pill">Mobile Service Locations</a>
                 </div>
 
-                <div style="padding:32px;background:#f7f6f4;border-radius:12px;margin-bottom:48px;">
+                <div class="help-tip-box" style="padding:32px;border-radius:12px;margin-bottom:48px;">
                     <h3 class="p-r semi-bold" style="margin-bottom:8px;">Looking for a specific answer?</h3>
                     <p class="p-s text-gray-700" style="margin-bottom:16px !important;">Browse our full list of
                         frequently
