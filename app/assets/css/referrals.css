@@ -10,6 +10,26 @@
       --radius-md: 14px;
     }
 
+    :root[data-theme="dark"] {
+      --card-bg: #1c2027;
+      --surface: #14171c;
+      --surface-2: #20242c;
+      --primary: #f0ede6;
+      --muted: #a7adb8;
+      --border: #30353f;
+      --shadow-soft: 0 6px 22px rgba(0, 0, 0, .35);
+    }
+
+    /* Literal (non-variable) colors from the rules below, patched for dark
+       mode. The gold/cream referral-hero card, its buttons, and the small
+       gold badges are left untouched -- brand-accent surfaces meant to look
+       the same in both themes (same call as the profile-hero gradient). */
+    [data-theme="dark"] .top-profile,
+    [data-theme="dark"] .profile-list { background: var(--card-bg); }
+    [data-theme="dark"] .referrals-table th { background: var(--surface-2); }
+    [data-theme="dark"] .referrals-table td { color: var(--primary); border-bottom-color: var(--border); }
+    [data-theme="dark"] .referrals-table tbody tr:hover td { background: var(--surface-2); }
+
     body {
       background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%) !important;
       -webkit-font-smoothing: antialiased;

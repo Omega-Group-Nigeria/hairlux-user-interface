@@ -36,6 +36,12 @@
     const phoneInput = document.getElementById('signup-phone');
     const referralCodeInput = document.getElementById('signup-referralCode');
 
+    (function forwardReturnToOnLoginLink() {
+      var returnTo = UIHelper.getQueryParam('returnTo');
+      if (!returnTo) return;
+      var loginLink = document.querySelector('a.link[href="log-in.html"]');
+      if (loginLink) loginLink.href = 'log-in.html?returnTo=' + encodeURIComponent(returnTo);
+    })();
     // Prefill email when arriving from the login page's "no account" CTA.
     const prefillEmail = (UIHelper.getQueryParam('email') || '').trim();
     if (prefillEmail && emailInput && !emailInput.value) {
@@ -45,7 +51,7 @@
     // If already logged in, refresh token and go straight to the app
     if (APIHelper.isAuthenticated()) {
       AuthAPI.refreshToken()
-        .then(() => UIHelper.redirect('app/index.html'))
+        .then(() => UIHelper.redirect(UIHelper.getPostAuthRedirect()))
         .catch(() => APIHelper.clearAuth());
     }
 
@@ -79,7 +85,7 @@
         var result = await AuthAPI.googleSignIn(response.credential);
         UIHelper.showToast(result.message || 'Signed in successfully!', 'success');
         setTimeout(function () {
-          UIHelper.redirect('app/index.html');
+          UIHelper.redirect(UIHelper.getPostAuthRedirect());
         }, 700);
       } catch (error) {
         console.error('Google sign-in error:', error);
@@ -299,7 +305,8 @@
         closeOtpModal();
         // If user closes OTP modal without verifying, clear any potential session and go to login
         APIHelper.clearAuth();
-        window.location.href = 'log-in.html';
+        var _returnTo = UIHelper.getQueryParam('returnTo');
+        window.location.href = 'log-in.html' + (_returnTo ? '?returnTo=' + encodeURIComponent(_returnTo) : '');
       });
     }
 
@@ -333,7 +340,7 @@
           clearOtpTimer();
           setTimeout(function() {
             closeOtpModal();
-            UIHelper.redirect('app/index.html');
+            UIHelper.redirect(UIHelper.getPostAuthRedirect());
           }, 1000);
         } catch (err) {
           const msg = (err && err.message) ? err.message : 'Invalid or expired OTP. Please try again.';

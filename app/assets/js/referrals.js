@@ -38,7 +38,7 @@
         elBadge.textContent = list.length;
 
         if (!list.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No referrals yet — share your code to get started! 🎉</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No referrals yet — share your code to get started!</td></tr>';
         } else {
           tbody.innerHTML = list.map(item => {
             const referred = item.referred || {};

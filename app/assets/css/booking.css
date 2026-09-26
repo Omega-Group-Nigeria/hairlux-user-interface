@@ -10,6 +10,70 @@
       --radius-lg: 18px;
       --radius-md: 14px;
     }
+    :root[data-theme="dark"] {
+      --card-bg: #1c2027;
+      --surface: #14171c;
+      --surface-2: #20242c;
+      --primary: #f0ede6;
+      --muted: #a7adb8;
+      --border: #30353f;
+      --shadow-soft: 0 6px 22px rgba(0, 0, 0, .35);
+    }
+
+    /* Literal (non-variable) colors from the rules above, patched for dark mode. */
+    [data-theme="dark"] .profile-list,
+    [data-theme="dark"] .top-profile { background: var(--card-bg); }
+    [data-theme="dark"] .step-pill:not(.active) { background: var(--surface-2); }
+    [data-theme="dark"] .field input,
+    [data-theme="dark"] .field select,
+    [data-theme="dark"] .field textarea {
+      background: var(--surface-2); color: var(--primary);
+    }
+    [data-theme="dark"] .summary-row {
+      color: var(--primary); border-bottom-color: var(--border);
+    }
+    [data-theme="dark"] .discount-toggle-check { background: var(--surface-2); border-color: var(--border); }
+/* Gold-gradient "total"/"selected" accent boxes below are intentionally kept
+   as a light decorative card in both themes, but their text uses the
+   theme-variable --primary/--muted (which flips to near-white in dark
+   mode) -- pin the text back to dark so it doesn't go invisible on the
+   still-light card. */
+[data-theme="dark"] .summary-total span:first-child,
+[data-theme="dark"] .services-total-label,
+[data-theme="dark"] .review-svc-footer-meta {
+  color: #7a5018;
+}
+[data-theme="dark"] .summary-total span:last-child,
+[data-theme="dark"] .services-total-amount,
+[data-theme="dark"] .review-svc-footer-total,
+[data-theme="dark"] .res-code {
+  color: #2d1f0a;
+}
+[data-theme="dark"] .option-card.selected .option-card-title { color: #2d1f0a; }
+[data-theme="dark"] .option-card.selected .option-card-desc { color: #7a5018; }
+    [data-theme="dark"] .discount-badge-name { color: #e8c468; }
+    [data-theme="dark"] .booking-modal-card { background: var(--card-bg); border-color: var(--border); }
+    [data-theme="dark"] .booking-modal-details { background: var(--surface-2); border-color: var(--border); }
+    [data-theme="dark"] .address-suggestions,
+    [data-theme="dark"] .booking-map-picker,
+    [data-theme="dark"] .option-card,
+    [data-theme="dark"] .option-card-dot { background: var(--card-bg); }
+    [data-theme="dark"] .address-suggestion-item:hover { background: var(--surface-2); }
+    [data-theme="dark"] .address-suggestion-main { color: var(--primary); }
+    [data-theme="dark"] .address-suggestion-sub,
+    [data-theme="dark"] .booking-map-help { color: var(--muted); }
+    [data-theme="dark"] .booking-map-canvas { background: var(--surface-2); }
+    [data-theme="dark"] .booking-map-status { color: var(--primary); }
+    [data-theme="dark"] .selected-service-box { background: var(--surface-2); }
+    [data-theme="dark"] .selected-service-box.missing {
+      background: rgba(140, 47, 47, .18); border-color: rgba(140, 47, 47, .4);
+    }
+    [data-theme="dark"] .selected-service-box.missing .selected-service-title { color: #ff8a80; }
+    [data-theme="dark"] .service-list-name,
+    [data-theme="dark"] .review-svc-name,
+    [data-theme="dark"] .review-detail-value { color: var(--primary); }
+    [data-theme="dark"] .review-block-label { background: var(--surface-2); }
+
 
     body {
       background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%) !important;
@@ -590,6 +654,21 @@
       font-size: 12px;
       margin-top: 4px;
     }
+
+    .field-error { color: #dc3545; }
+    [data-theme="dark"] .field-error { color: #ff8a80; }
+
+    .terms-agreement {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f8faf6;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    [data-theme="dark"] .terms-agreement { background: var(--surface-2); }
+
+    .status-positive-text { color: #1f7a3f; }
+    [data-theme="dark"] .status-positive-text { color: #6fcf97; }
 
     .address-suggestions {
       display: none;
