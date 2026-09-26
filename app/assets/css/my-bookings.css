@@ -10,6 +10,45 @@
       --radius-md: 14px;
     }
 
+    :root[data-theme="dark"] {
+      --card-bg: #1c2027;
+      --surface: #14171c;
+      --surface-2: #20242c;
+      --primary: #f0ede6;
+      --muted: #a7adb8;
+      --border: #30353f;
+      --shadow-soft: 0 6px 22px rgba(0, 0, 0, .35);
+    }
+
+    /* Literal (non-variable) colors from the rules below, patched for dark
+       mode. Status pills (tx-status / booking status) and the small pastel
+       badges keep their colors, which stay legible on a dark page; only the
+       plain white cards, modals, tables, and form inputs are switched. */
+    [data-theme="dark"] .top-profile,
+    [data-theme="dark"] .profile-list { background: var(--card-bg); }
+    [data-theme="dark"] .action-card,
+    [data-theme="dark"] .booking-card { background: var(--surface-2); }
+    [data-theme="dark"] .section-action-link:hover { color: #000; }
+    [data-theme="dark"] .section-action-link { color: #2d1f0a; }
+    [data-theme="dark"] .page-btn { background: var(--surface-2); border-color: var(--border); }
+    [data-theme="dark"] .transactions-select { background: var(--surface-2); color: var(--primary); }
+    [data-theme="dark"] .transactions-table-wrap { background: var(--card-bg); }
+    [data-theme="dark"] .transactions-table thead th { background: var(--surface-2); }
+    [data-theme="dark"] .transactions-table tbody td { color: var(--primary); }
+    [data-theme="dark"] tr.clickable-row:hover td { background: var(--surface-2); }
+    [data-theme="dark"] .bk-modal-card,
+    [data-theme="dark"] .bk-modal-head { background: var(--card-bg); border-color: var(--border); }
+    [data-theme="dark"] .bk-modal-close:hover { color: #ff8a80; }
+    [data-theme="dark"] .bk-detail-card { background: var(--surface-2); }
+    [data-theme="dark"] .bk-detail-row { border-bottom-color: var(--border); }
+    [data-theme="dark"] .bk-detail-row span:last-child { color: var(--primary); }
+    [data-theme="dark"] .bk-modal-footer { border-color: var(--border); }
+    [data-theme="dark"] .bk-reschedule-box { background: var(--surface-2); border-color: var(--border); }
+    [data-theme="dark"] .bk-reschedule-field input,
+    [data-theme="dark"] .bk-reschedule-field select {
+      background: var(--card-bg); color: var(--primary); border-color: var(--border);
+    }
+
     body {
       background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%) !important;
       -webkit-font-smoothing: antialiased;

@@ -83,6 +83,8 @@
               <a href="app/transactions.html" class="dropdown-link w-dropdown-link">Transactions</a>
               <a href="app/address.html" class="dropdown-link w-dropdown-link">My Addresses</a>
               <a href="app/referrals.html" class="dropdown-link w-dropdown-link">Referrals</a>
+              <a href="app/rewards.html" class="dropdown-link w-dropdown-link">Rewards &amp; Loyalty</a>
+              <a href="https://academy.hairlux.com.ng" target="_blank" rel="noopener" class="dropdown-link w-dropdown-link">Academy</a>
               ${isInfluencer ? '<a href="app/discounts.html" class="dropdown-link w-dropdown-link">Discount Rewards</a>' : ''}
               <a href="app/profile.html" class="dropdown-link w-dropdown-link">My Profile</a>
               <a href="#" id="navLogoutBtn" class="dropdown-link w-dropdown-link">Logout</a>
