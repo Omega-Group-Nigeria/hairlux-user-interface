@@ -142,10 +142,22 @@ document.addEventListener('DOMContentLoaded', async function () {
     var originalText = btnSendPhoneOtp.textContent;
     btnSendPhoneOtp.textContent = 'Sending…';
     try {
-      await APIHelper.request(API_CONFIG.ENDPOINTS.USER.PHONE_REQUEST_OTP, {
+      const res = await APIHelper.request(API_CONFIG.ENDPOINTS.USER.PHONE_REQUEST_OTP, {
         method: 'POST',
         body: JSON.stringify({ phone: phone })
       });
+      const data = (res && res.data) ? res.data : (res || {});
+      // SMS codes are temporarily switched off on the server: the number
+      // comes back already verified, so skip the code step entirely.
+      if (data.phoneVerified) {
+        currentProfile = Object.assign({}, currentProfile, {
+          phone: data.phone || phone, phoneVerified: true, phoneVerifiedAt: data.phoneVerifiedAt || new Date().toISOString()
+        });
+        try { localStorage.setItem(API_CONFIG.STORAGE_KEYS.USER_DATA, JSON.stringify(currentProfile)); } catch (_) { }
+        renderPhonePanel(currentProfile);
+        if (typeof UIHelper !== 'undefined') UIHelper.showToast('Phone number verified.', 'success');
+        return;
+      }
       if (typeof UIHelper !== 'undefined') UIHelper.showToast('Verification code sent.', 'success');
       pendingPhoneDisplay.textContent = phone;
       fieldPhoneOtp.value = '';
