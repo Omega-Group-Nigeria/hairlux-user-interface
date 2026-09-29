@@ -1,0 +1,27 @@
+{
+  "id": "./app/index.html",
+  "name": "Hairlux Salon & Spa",
+  "short_name": "Hairlux",
+  "description": "Book premium hair, beauty and wellness services — in branch or at your location — and manage your bookings, wallet and rewards.",
+  "start_url": "./app/index.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#F7F3EA",
+  "theme_color": "#ffffff",
+  "lang": "en-NG",
+  "dir": "ltr",
+  "categories": ["beauty", "lifestyle", "shopping"],
+  "icons": [
+    { "src": "assets/img/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/pwa/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/img/pwa/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Book a service", "short_name": "Book", "url": "./app/booking.html?source=pwa-shortcut", "icons": [{ "src": "assets/img/pwa/icon-maskable-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "My bookings", "short_name": "Bookings", "url": "./app/my-bookings.html?source=pwa-shortcut", "icons": [{ "src": "assets/img/pwa/icon-maskable-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Rewards", "short_name": "Rewards", "url": "./app/rewards.html?source=pwa-shortcut", "icons": [{ "src": "assets/img/pwa/icon-maskable-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}
