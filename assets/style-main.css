@@ -542,6 +542,25 @@ label {
 .w-input[disabled]:not(.w-input-disabled), .w-select[disabled]:not(.w-input-disabled), .w-input[readonly], .w-select[readonly], fieldset[disabled]:not(.w-input-disabled) .w-input, fieldset[disabled]:not(.w-input-disabled) .w-select {
   background-color: #eee;
 }
+[data-theme="dark"] .w-input,
+[data-theme="dark"] .w-select,
+[data-theme="dark"] .text-field {
+  background-color: #20242c;
+  color: #f0ede6;
+  border-color: #30353f;
+}
+[data-theme="dark"] .w-input::placeholder,
+[data-theme="dark"] .w-select::placeholder { color: #a7adb8; }
+[data-theme="dark"] .w-input:focus,
+[data-theme="dark"] .w-select:focus { border-color: #9d8248; }
+[data-theme="dark"] .w-input[disabled]:not(.w-input-disabled),
+[data-theme="dark"] .w-select[disabled]:not(.w-input-disabled),
+[data-theme="dark"] .w-input[readonly],
+[data-theme="dark"] .w-select[readonly],
+[data-theme="dark"] fieldset[disabled]:not(.w-input-disabled) .w-input,
+[data-theme="dark"] fieldset[disabled]:not(.w-input-disabled) .w-select {
+  background-color: #14171c;
+}
 
 textarea.w-input, textarea.w-select {
   height: auto;
@@ -3238,6 +3257,132 @@ body {
   font-family: Bdogrotesk Vf, sans-serif;
   line-height: 1.5;
 }
+/* ── Light/dark mode: nav chrome (shared across every page that loads this file) ── */
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--dim-grey, #303a46);
+  margin-right: 4px;
+  transition: background .16s;
+}
+.theme-toggle-btn:hover { background: rgba(0, 0, 0, .06); }
+.theme-toggle-btn .icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle-btn .icon-sun { display: none; }
+[data-theme="dark"] .theme-toggle-btn .icon-moon { display: inline-block; }
+[data-theme="dark"] .theme-toggle-btn { color: #000; }
+
+[data-theme="dark"] body { background-color: #14171c; }
+[data-theme="dark"] .nav-link,
+[data-theme="dark"] .nav-link.w--current { color: #000; }
+[data-theme="dark"] .nav-link:hover { color: #ffffffbf; background-color: #ffffff1a; }
+[data-theme="dark"] .w-dropdown-list { background: #1c2027; }
+[data-theme="dark"] .dropdown-link { background-color: #1c2027; color: #e8eaed; }
+[data-theme="dark"] .dropdown-link:hover { background-color: #2a2f38; }
+[data-theme="dark"] .dropdown-link.w--current { color: #ffffffcb; background-color: #2a2f38; }
+[data-theme="dark"] .top-profile-name { color: #e8eaed; }
+[data-theme="dark"] .top-profile-link { color: #a7adb8; }
+[data-theme="dark"] .navbar.w-nav { background-color: #14171c; }
+/* .button-nav's background (var(--main-green)) is actually a near-black
+   #161616 in both themes (legacy name), so keep its text white here too --
+   forcing it dark (as academy does for its own, genuinely light, button-nav)
+   made "Login/Signup" nearly invisible against this site's black pill. */
+[data-theme="dark"] .button-nav { color: #fff; }
+/* Generic Webflow "dark text" variables used sitewide for headings/body copy --
+   flip them for dark mode so text doesn't sit low-contrast on the new dark
+   backgrounds. (--dark-gray stays untouched: it's genuinely dual-use as both
+   text and background elsewhere in this file.) */
+:root[data-theme="dark"] {
+  --dim-grey: #e8eaed;
+  --gray-800: #d6d8db;
+  --gray-700: #a7adb8;
+}
+[data-theme="dark"] .quantity-field { background-color: #303a46; }
+[data-theme="dark"] .button-regular:hover { background-color: #303a46; }
+/* Mobile/tablet nav dropdown panel (<=991px, matches Webflow's own .nav-menu
+   breakpoint) -- was a near-white panel regardless of theme; darken it so
+   the nav link text stays readable against it. */
+@media screen and (max-width: 991px) {
+  [data-theme="dark"] .nav-menu {
+    background-color: #1c2027d6;
+    border-color: #30353f;
+  }
+}
+/* Main banner image (index.html hero) -- darken it in dark mode with a
+   translucent black overlay layered under the existing photo, so the hero
+   heading/paragraph read clearly against it. */
+[data-theme="dark"] .sub-hero-image {
+  background-image: linear-gradient(rgba(10, 12, 10, .55), rgba(10, 12, 10, .55)), url("img/hero-bg.webp");
+}
+/* Banner heading/paragraph (index.html hero) -- both carry an inline
+   text-shadow meant for the light-mode photo; in dark mode force white text
+   with no shadow (light mode is untouched -- these rules only apply under
+   [data-theme="dark"]). */
+[data-theme="dark"] .content-hero .h-xxl,
+[data-theme="dark"] .content-description-hero .p-m.normal {
+  color: #fff !important;
+  text-shadow: none !important;
+}
+
+
+/* Site-wide structural wrappers below carry a hardcoded white background
+   that fully masks the dark <body> underneath on every page that uses
+   them -- this was the main reason whole pages (not just individual
+   cards) still looked wrong in dark mode. */
+[data-theme="dark"] .section,
+[data-theme="dark"] .section.gap-m,
+[data-theme="dark"] .bg-white {
+  background-color: var(--surface, #14171c);
+}
+[data-theme="dark"] .dropdown-list {
+  background-color: var(--card-bg, #1c2027);
+  border-color: var(--border, #30353f);
+}
+/* FAQ accordion (about.html, faq.html) -- link text, divider and the
+   plus/minus icon bars are hardcoded near-black/light-gray. */
+[data-theme="dark"] .faq-link-block {
+  color: var(--primary, #f0ede6);
+  border-bottom-color: var(--border, #30353f);
+}
+[data-theme="dark"] .faq-wrapper-3 {
+  border-top-color: var(--border, #30353f);
+}
+[data-theme="dark"] .faq-stick,
+[data-theme="dark"] .faq-stick-vertical {
+  background-color: var(--primary, #f0ede6);
+}
+/* Circular icon badges (about.html "Why choose us" feature icons) */
+[data-theme="dark"] .features-icon {
+  background-color: var(--surface-2, #20242c);
+}
+/* Bottom rounded-corner mask under .end-page-divider -- transitions back
+   into the page background, which is now dark. */
+[data-theme="dark"] .rounded-b {
+  background-color: var(--surface, #14171c);
+}
+/* .text-gray-700 is a hardcoded #696c75 utility class used across ~24
+   spots sitewide (contact.html, about.html, and others) -- was only
+   patched on about.html's own page before; belongs here so every page
+   using it gets it. */
+[data-theme="dark"] .text-gray-700 {
+  color: var(--muted, #a7adb8);
+}
+/* Webflow's default form success/fail banners (contact.html,
+   reset-password.html, sign-up.html) -- flat light-gray/pink, never
+   themed. */
+[data-theme="dark"] .w-form-done {
+  background-color: rgba(26, 110, 56, .18);
+}
+[data-theme="dark"] .w-form-fail {
+  background-color: rgba(192, 57, 43, .18);
+}
+
 
 h1 {
   margin-top: 20px;
@@ -4019,6 +4164,27 @@ figcaption {
   background-color: #f8f8f8;
   border-radius: 16px;
   padding: 60px;
+}
+
+[data-theme="dark"] .inner-form.page {
+  background-color: var(--card-bg, #1c2027);
+}
+
+/* Reusable bordered pill/card used for social/contact link buttons across
+   several pages (contact.html, blog.html, help-center.html). Layout
+   (padding, display) stays inline per-usage; this only owns the border. */
+.contact-social-pill {
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  transition: border-color .2s;
+}
+.contact-social-pill:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .contact-social-pill {
+  border-color: rgba(255, 255, 255, .18);
+}
+[data-theme="dark"] .contact-social-pill:hover {
+  border-color: rgba(255, 255, 255, .4);
 }
 
 .form-container {
@@ -7173,13 +7339,14 @@ figcaption {
   grid-row-gap: 40px;
   text-align: center;
   flex-flow: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-end;
   width: 100%;
   max-width: 1180px;
   height: 100%;
   margin-left: auto;
   margin-right: auto;
+  padding-top: 80px;
   padding-bottom: 10vh;
   display: flex;
   position: relative;
@@ -7501,6 +7668,56 @@ figcaption {
   grid-row-gap: 16px;
   flex-flow: column;
   display: flex;
+}
+
+/* Dev Feedback: autoscroll horizontal carousel for the reviews section.
+   Continuous marquee-style scroll, pauses on hover/focus so a visitor
+   can actually read a card. The track's content is doubled by JS
+   (index.html) so translateX(-50%) loops seamlessly back to the start
+   with no visible jump or gap. */
+.reviews-carousel {
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+}
+
+.reviews-track {
+  display: flex;
+  flex-flow: row;
+  width: max-content;
+  grid-column-gap: 16px;
+  grid-row-gap: 16px;
+  animation: reviews-scroll 45s linear infinite;
+}
+
+.reviews-carousel:hover .reviews-track,
+.reviews-carousel:focus-within .reviews-track {
+  animation-play-state: paused;
+}
+
+.reviews-track .inner-container.quote {
+  width: 380px;
+  flex: 0 0 auto;
+}
+
+@keyframes reviews-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    /* Track content is duplicated once by JS, so -50% is exactly one
+       full original set's width -- the loop point where the clone
+       occupies the same visual position the original started at. */
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviews-track {
+    animation: none;
+  }
 }
 
 .flex-col-s {

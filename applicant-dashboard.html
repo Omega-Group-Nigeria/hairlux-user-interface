@@ -3,7 +3,17 @@
 
 <head>
   <meta charset="UTF-8">
+  <script src="assets/js/theme-toggle.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PWA: installable app (see sw.js / assets/js/pwa.js) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Hairlux" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link href="assets/img/pwa/apple-touch-icon.png" rel="apple-touch-icon" />
   <title>Hairlux — My Application</title>
   <style>
     @font-face {
@@ -52,6 +62,27 @@
       --on-dark-title: #FFFFFF;
       --on-dark-text: rgba(255, 255, 255, .62);
     }
+
+    /* ── Dark mode: this page is fully token-driven, so dark mode is just a
+       token swap. Palette matches the main site (style-main.css). ── */
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --dark: #14171c;
+      --dark2: #1c2027;
+      --white: #F2F2F2;
+      --off: #22262e;
+      --border: #30353f;
+      --border2: rgba(255, 255, 255, .06);
+      --text: #e8eaed;
+      --muted: #8b919c;
+      --light: #a7adb8;
+      --sh: 0 2px 16px rgba(0, 0, 0, .35);
+      --sh2: 0 10px 28px rgba(0, 0, 0, .45);
+    }
+
+    .theme-btn .icon-moon { display: none; }
+    [data-theme="dark"] .theme-btn .icon-sun { display: none; }
+    [data-theme="dark"] .theme-btn .icon-moon { display: inline-block; }
 
     * {
       box-sizing: border-box;
@@ -1556,6 +1587,7 @@
         </div>
       </div>
       <div class="flex gap2"><span class="badge" id="track-header-badge" style="display:none"></span><button
+          type="button" class="ico-btn theme-btn" data-theme-toggle aria-pressed="false" title="Switch to dark mode" aria-label="Toggle dark mode"><svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button><button
           class="btn btn-ghost btn-sm" onclick="handleSignOut()">Sign Out</button></div>
     </div>
     <div class="track-content" style="max-width:820px;margin:0 auto;padding:28px 20px;width:100%">
@@ -1695,7 +1727,7 @@
       var allowances = app.offerLetter.allowances ? ' + ₦' + Number(app.offerLetter.allowances).toLocaleString() + ' allowances' : '';
 
       return '<div class="banner mb4">' +
-        '<div class="tag">🎉 Offer Extended</div>' +
+        '<div class="tag">Offer Extended</div>' +
         '<h3>Congratulations — you have an offer!</h3>' +
         '<p>' + escapeHtml(app.appliedRole || 'Your applied role') + '</p>' +
         '<div class="meta">' + salary + allowances + ' · Effective ' + formatDate(app.offerLetter.effectiveDate) + '</div>' +
@@ -1803,6 +1835,7 @@
         });
     });
   </script>
+<script src="assets/js/pwa.js" defer></script>
 </body>
 
 </html>

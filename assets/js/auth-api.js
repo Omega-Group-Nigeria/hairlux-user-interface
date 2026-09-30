@@ -44,7 +44,7 @@ const APIHelper = {
   async request(endpoint, options = {}, _isRetry = false) {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
     const isAuthEndpoint = endpoint.startsWith('/auth/');
-    
+
     const defaultOptions = {
       headers: {
         'Content-Type': 'application/json'
@@ -69,7 +69,7 @@ const APIHelper = {
     try {
       console.log('Making request to:', url);
       console.log('Request config:', config);
-      
+
       const response = await fetch(url, config);
       console.log('Response received:', response);
 
@@ -119,7 +119,7 @@ const APIHelper = {
       return data;
     } catch (error) {
       console.error('Request error:', error);
-      
+
       // Handle network errors (CORS, connection refused, etc.)
       if (!error.status) {
         // Check if it's a CORS error
@@ -238,12 +238,36 @@ const AuthAPI = {
    * @returns {Promise<object>} Login response
    */
   async login(credentials) {
+    // Always disambiguate the account with the type param (USER customer site).
+    const requestBody = Object.assign({}, credentials, { type: credentials.type || 'USER' });
     const response = await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
       method: 'POST',
-      body: JSON.stringify(credentials)
+      body: JSON.stringify(requestBody)
     });
 
     // Save tokens and user data
+    if (response && response.data && response.data.accessToken && response.data.refreshToken) {
+      APIHelper.saveTokens(response.data.accessToken, response.data.refreshToken);
+      if (response.data.user) {
+        APIHelper.saveUserData(response.data.user);
+      }
+    }
+
+    return response;
+  },
+
+  /**
+   * Sign in or sign up with Google
+   * @param {string} idToken - The ID token returned by Google Sign-In
+   * @returns {Promise<object>} Login response — same shape as login()
+   */
+  async googleSignIn(idToken) {
+    const response = await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.GOOGLE, {
+      method: 'POST',
+      body: JSON.stringify({ idToken: idToken })
+    });
+
+    // Save tokens and user data — identical handling to login()
     if (response && response.data && response.data.accessToken && response.data.refreshToken) {
       APIHelper.saveTokens(response.data.accessToken, response.data.refreshToken);
       if (response.data.user) {
@@ -267,7 +291,7 @@ const AuthAPI = {
    */
   async refreshToken() {
     const refreshToken = APIHelper.getRefreshToken();
-    
+
     if (!refreshToken) {
       throw {
         status: 401,
@@ -301,7 +325,7 @@ const AuthAPI = {
   async forgotPassword(email) {
     return await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD, {
       method: 'POST',
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, type: 'USER' })
     });
   },
 
@@ -327,9 +351,10 @@ const AuthAPI = {
    * @returns {Promise<object>} Verify OTP response
    */
   async verifyOtp(otpData) {
+    const requestBody = Object.assign({}, otpData, { type: otpData.type || 'USER' });
     const response = await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, {
       method: 'POST',
-      body: JSON.stringify(otpData)
+      body: JSON.stringify(requestBody)
     });
 
     // Save tokens and user data if returned
@@ -352,7 +377,7 @@ const AuthAPI = {
   async resendOtp(email) {
     return await APIHelper.request(API_CONFIG.ENDPOINTS.AUTH.RESEND_OTP, {
       method: 'POST',
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, type: 'USER' })
     });
   },
 

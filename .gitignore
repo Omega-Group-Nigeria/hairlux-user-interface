@@ -2,3 +2,7 @@ business-info.md
 API.json
 influencer-system.md
 _to_delete
+**.py
+
+# Scratch files waiting to be deleted (patch scripts etc.)
+_to_delete/

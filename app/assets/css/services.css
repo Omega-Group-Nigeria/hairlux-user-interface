@@ -9,6 +9,53 @@
       --radius-lg: 18px;
       --radius-md: 14px;
     }
+    :root[data-theme="dark"] {
+      --card-bg: #1c2027;
+      --surface: #14171c;
+      --surface-2: #20242c;
+      --primary: #f0ede6;
+      --muted: #a7adb8;
+      --border: #30353f;
+      --shadow-soft: 0 6px 22px rgba(0, 0, 0, .35);
+    }
+
+    /* Literal (non-variable) colors from the rules above, patched for dark mode. */
+    [data-theme="dark"] .action-card,
+    [data-theme="dark"] .booking-card { background: var(--card-bg); }
+    [data-theme="dark"] .profile-list,
+    [data-theme="dark"] .selection-bar { background: var(--card-bg); }
+    [data-theme="dark"] .top-profile { background: var(--card-bg); }
+    [data-theme="dark"] .service-branch-select,
+    [data-theme="dark"] .service-search-input {
+      background: var(--surface-2); color: var(--primary);
+    }
+    [data-theme="dark"] .service-search-icon { color: var(--muted); }
+    [data-theme="dark"] .services-pagination {
+      background: linear-gradient(180deg, var(--card-bg) 0%, var(--surface) 100%);
+    }
+    [data-theme="dark"] .services-pagination-meta strong { color: var(--primary); }
+    [data-theme="dark"] .services-page-btn:not(.active) {
+      background: var(--card-bg); color: var(--primary);
+    }
+    [data-theme="dark"] .booking-status.confirmed {
+      background: rgba(31, 122, 63, .22); color: #7fd89c; border-color: rgba(31, 122, 63, .4);
+    }
+    [data-theme="dark"] .booking-status.pending {
+      background: rgba(154, 106, 9, .22); color: #e8c468; border-color: rgba(154, 106, 9, .4);
+    }
+    [data-theme="dark"] .section-action-link:hover { color: #000; }
+    [data-theme="dark"] .section-action-link { color: #2d1f0a; }
+[data-theme="dark"] .service-chip,
+[data-theme="dark"] .sel-chip {
+  background: var(--surface-2);
+}
+[data-theme="dark"] .sel-action-clear:hover {
+  background: var(--surface-2);
+}
+    [data-theme="dark"] .booking-status.completed {
+      background: rgba(52, 93, 150, .22); color: #9dc0ee; border-color: rgba(52, 93, 150, .4);
+    }
+
 
     body {
       background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%) !important;
