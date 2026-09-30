@@ -19,9 +19,18 @@
   <meta property="og:type" content="website" />
   <meta content="summary_large_image" name="twitter:card" />
   <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <!-- PWA: installable app (see sw.js / assets/js/pwa.js) -->
+  <link rel="manifest" href="../manifest.webmanifest" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Hairlux" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link href="../assets/style-main.css"
     rel="stylesheet" type="text/css" />
   <link href="../assets/toast.css" rel="stylesheet" type="text/css" />
+  <script src="../assets/js/theme-toggle.js"></script>
   <link href="https://fonts.googleapis.com/" rel="preconnect" />
   <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous" />
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
@@ -31,8 +40,7 @@
     type="text/javascript">!function (o, c) { var n = c.documentElement, t = " w-mod-"; n.className += t + "js", ("ontouchstart" in o || o.DocumentTouch && c instanceof DocumentTouch) && (n.className += t + "touch") }(window, document);</script>
   <link href="../assets/img/logo-light.webp"
     rel="shortcut icon" type="image/x-icon" />
-  <link href="../assets/img/logo-light.webp"
-    rel="apple-touch-icon" />
+  <link href="../assets/img/pwa/apple-touch-icon.png" rel="apple-touch-icon" />
 <link rel="stylesheet" href="assets/css/services.css">
 
   <script
@@ -53,6 +61,10 @@
         <a href="../waitlist.html" class="nav-link w-nav-link">App</a>
       </nav>
       <div class="mobile-nav-tools">
+        <button type="button" class="theme-toggle-btn" data-theme-toggle aria-pressed="false" title="Switch to dark mode" aria-label="Toggle dark mode">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
         <div class="menu-button w-nav-button">
           <div class="menu-mobile">
             <div data-is-ix2-target="1" class="lottie-animation" data-w-id="9ddc847f-f377-4e52-c9e3-c93ed393def0"
@@ -80,6 +92,8 @@
             <a href="address.html" aria-current="page" class="dropdown-link w-dropdown-link">My
               Addresses</a>
             <a href="referrals.html" class="dropdown-link w-dropdown-link">Referrals</a>
+            <a href="rewards.html" class="dropdown-link w-dropdown-link">Rewards &amp; Loyalty</a>
+            <a href="https://academy.hairlux.com.ng" target="_blank" rel="noopener" class="dropdown-link w-dropdown-link">Academy</a>
             <a href="discounts.html" class="dropdown-link w-dropdown-link" data-influencer-only style="display:none;">Discount Rewards</a>
             <a href="profile.html" class="dropdown-link w-dropdown-link">My Profile</a>
             <a href="../log-in.html" data-logout="true" class="dropdown-link w-dropdown-link">Logout</a>
@@ -177,6 +191,7 @@
   <script src="../assets/js/services-api.js"></script>
 
 <script src="assets/js/services.js"></script>
+<script src="../assets/js/pwa.js" defer></script>
 </body>
 
 </html>

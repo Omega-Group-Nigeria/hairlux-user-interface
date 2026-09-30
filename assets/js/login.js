@@ -41,6 +41,13 @@
       });
     }
 
+    (function forwardReturnToOnSignupLink() {
+      var returnTo = UIHelper.getQueryParam('returnTo');
+      if (!returnTo) return;
+      var signupLink = document.querySelector('a.link[href="sign-up.html"]');
+      if (signupLink) signupLink.href = 'sign-up.html?returnTo=' + encodeURIComponent(returnTo);
+    })();
+
     const authNotice = sessionStorage.getItem('hairlux_auth_notice');
     if (authNotice) {
       if (authNotice === 'logged-out') {
@@ -54,7 +61,7 @@
     // If already authenticated, attempt a quick refresh and continue to app
     if (APIHelper.isAuthenticated()) {
       AuthAPI.refreshToken()
-        .then(() => UIHelper.redirect('app/index.html'))
+        .then(() => UIHelper.redirect(UIHelper.getPostAuthRedirect()))
         .catch(() => APIHelper.clearAuth());
     }
 
@@ -87,7 +94,7 @@
         var result = await AuthAPI.googleSignIn(response.credential);
         UIHelper.showToast(result.message || 'Signed in successfully!', 'success');
         setTimeout(function () {
-          UIHelper.redirect('app/index.html');
+          UIHelper.redirect(UIHelper.getPostAuthRedirect());
         }, 700);
       } catch (error) {
         console.error('Google sign-in error:', error);
@@ -148,7 +155,7 @@
         console.log('Login successful:', { role, roles }, data);
 
         setTimeout(() => {
-          UIHelper.redirect('app/index.html');
+          UIHelper.redirect(UIHelper.getPostAuthRedirect());
         }, 700);
 
       } catch (error) {
@@ -239,7 +246,7 @@
           clearOtpTimer();
           setTimeout(function () {
             closeOtpModal();
-            UIHelper.redirect('app/index.html');
+            UIHelper.redirect(UIHelper.getPostAuthRedirect());
           }, 1000);
         } catch (err) {
           const msg = (err && err.message) ? err.message : 'Invalid or expired OTP. Please try again.';

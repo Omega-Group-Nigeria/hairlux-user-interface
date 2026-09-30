@@ -224,6 +224,9 @@
 
   let step = 1;
   let pendingBookingPayload = null;
+  // Set when the closing-hours prompt was answered "start today and complete
+  // tomorrow" -- sent with the booking so staff can see it runs past closing.
+  let continuesNextDay = false;
   let pendingBookingAmountDue = 0;
   let walletBalance = 0;
   let bookingPaymentReference = '';
@@ -1401,7 +1404,8 @@
       guestName: source.guestName,
       guestPhone: source.guestPhone,
       guestEmail: source.guestEmail,
-      discountCode: source.discountCode
+      discountCode: source.discountCode,
+      continuesNextDay: source.continuesNextDay
     };
 
     Object.keys(bookingPayload).forEach(function (key) {
@@ -1561,6 +1565,7 @@
       paymentMethod: bMethod,
       notes: notesEl.value.trim() || undefined,
       discountCode: discountInfo ? discountInfo.code : undefined,
+      continuesNextDay: continuesNextDay || undefined,
       idempotencyKey: createBookingIdempotencyKey()
     };
 
@@ -2057,6 +2062,39 @@
       return;
     }
     clearFieldErrors();
+    if (step === 2) {
+      // Closing hours: start + the services' estimated completion time past the
+      // branch's closing time -> blocking prompt (reschedule, or start today and
+      // complete tomorrow). Re-checked every time step 2 is left.
+      continuesNextDay = false;
+      nextStepBtn.style.pointerEvents = 'none';
+      nextStepBtn.style.opacity = '0.75';
+      let closing;
+      try {
+        closing = await ClosingTimeGuard.check({
+          branchId: (visitBranchEl && visitBranchEl.value) || undefined,
+          date: bookingDateEl.value,
+          time: bookingTimeEl.value,
+          services: getSelectedServices().map(function (s) { return { serviceId: s.id }; })
+        });
+      } finally {
+        nextStepBtn.style.pointerEvents = '';
+        nextStepBtn.style.opacity = '';
+      }
+      if (closing.action === 'reschedule') {
+        if (closing.date) {
+          bookingDateEl.value = closing.date;
+          await loadAvailableSlots(closing.date);
+          refreshSummary();
+        }
+        showFieldError(timeFieldError, closing.date
+          ? 'We moved your booking to ' + new Date(closing.date + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) + ' — please choose a start time.'
+          : 'Please choose another date and time.');
+        bookingTimeEl.focus();
+        return;
+      }
+      continuesNextDay = !!closing.continuesNextDay;
+    }
     if (step < 3) { setStep(step + 1); return; }
     setButtonState(nextStepBtn, 'Loading…', true);
     try {

@@ -72,7 +72,15 @@ const API_CONFIG = {
       ME: '/influencer/me',
       CODES: '/influencer/me/codes',
       REWARDS: '/influencer/me/rewards'
-    }
+    },
+    REWARDS_PROGRAM: {
+      PROFILE: '/rewards/profile',
+      TRANSACTIONS: '/rewards/transactions',
+      TRANSFER: '/rewards/transfer',
+      REDEEM_POINTS: '/rewards/redeem-points',
+      BIRTHDAY: '/rewards/birthday'
+    },
+   
   },
 
   // Public browser key for Maps JavaScript API.

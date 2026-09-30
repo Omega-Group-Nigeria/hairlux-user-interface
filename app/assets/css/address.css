@@ -18,6 +18,52 @@
       --danger-bg:    #fdf2f2;
     }
 
+    :root[data-theme="dark"] {
+      --card-bg: #1c2027;
+      --surface: #14171c;
+      --surface-2: #20242c;
+      --primary: #f0ede6;
+      --primary-d: #ffffff;
+      --primary-light: rgba(201, 168, 114, .16);
+      --muted: #a7adb8;
+      --border: #30353f;
+      --shadow-soft: 0 6px 22px rgba(0, 0, 0, .35);
+      --shadow-card: 0 2px 10px rgba(0, 0, 0, .3);
+      --danger: #ff8a80;
+      --danger-bg: rgba(192, 57, 43, .18);
+    }
+
+    /* Literal (non-variable) colors from the rules below, patched for dark
+       mode. .btn-add-addr and .btn-save get explicit black text (matching
+       Academy): both use background: var(--primary), which flips to a
+       light cream in dark mode, so their hardcoded white text was nearly
+       disappearing. .addr-stat/.addr-card already use var(--card-bg) etc
+       and flip automatically -- no separate rule needed for those. */
+    [data-theme="dark"] .top-profile,
+    [data-theme="dark"] .profile-list { background: var(--card-bg); }
+    [data-theme="dark"] .btn-add-addr { color: #000; }
+    [data-theme="dark"] .modal-box { background: var(--card-bg); }
+    [data-theme="dark"] .form-group label { color: var(--primary); }
+    [data-theme="dark"] .form-group input[type="text"] {
+      background: var(--surface-2); color: var(--primary); border-color: var(--border);
+    }
+    [data-theme="dark"] .form-group input[type="text"]:focus { background: var(--card-bg); }
+    [data-theme="dark"] .address-suggestions { background: var(--card-bg); border-color: var(--border); }
+    [data-theme="dark"] .address-suggestion-item { border-bottom-color: var(--border); }
+    [data-theme="dark"] .address-suggestion-item:hover { background: var(--surface-2); }
+    [data-theme="dark"] .address-suggestion-main { color: var(--primary); }
+    [data-theme="dark"] .address-suggestion-sub { color: var(--muted); }
+    [data-theme="dark"] .map-picker { background: var(--card-bg); border-color: var(--border); }
+    [data-theme="dark"] .btn-cancel { background: var(--card-bg); color: var(--primary); }
+    [data-theme="dark"] .btn-save { color: #000; }
+    [data-theme="dark"] .btn-edit:hover { background: rgba(201, 168, 114, .28); }
+    [data-theme="dark"] .btn-delete:hover { background: rgba(192, 57, 43, .28); }
+    [data-theme="dark"] .addr-skeleton {
+      background: linear-gradient(90deg, #20242c 25%, #262b34 50%, #20242c 75%);
+    }
+    [data-theme="dark"] .map-canvas { background: var(--surface-2); }
+    [data-theme="dark"] .modal-close:hover { color: var(--primary); }
+
     /* ── Base ────────────────────────────────────────────────── */
     body {
       background: linear-gradient(145deg, var(--surface) 0%, var(--surface-2) 100%) !important;

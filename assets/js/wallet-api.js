@@ -239,7 +239,7 @@
       };
     },
 
-    async verifyDeposit(reference, provider) {
+        async verifyDeposit(reference, provider) {
       if (typeof APIHelper === 'undefined' || typeof API_CONFIG === 'undefined') {
         throw new Error('Wallet dependencies are not loaded.');
       }
@@ -257,6 +257,48 @@
       });
     },
 
+    // Dev Feedback Round 9: dedicated/reserved account numbers for
+    // deposits -- a permanent bank account tied to this specific
+    // customer, letting them fund their wallet by transferring directly
+    // to it at any time (no "initiate a deposit" step needed, unlike
+    // everything above this).
+    async getDedicatedAccount() {
+      if (typeof APIHelper === 'undefined' || typeof API_CONFIG === 'undefined') {
+        throw new Error('Wallet dependencies are not loaded.');
+      }
+
+      const response = await APIHelper.request(`${API_CONFIG.ENDPOINTS.WALLET}/dedicated-account`, {
+        method: 'GET'
+      });
+
+      const data = extractData(response);
+      if (!data || !data.accountNumber) return null;
+
+      return {
+        accountNumber: data.accountNumber,
+        bankName: data.bankName,
+        accountName: data.accountName
+      };
+    },
+
+    /** Idempotent -- safe to call even if an account already exists; the backend just returns the existing one rather than creating a duplicate. */
+    async ensureDedicatedAccount() {
+      if (typeof APIHelper === 'undefined' || typeof API_CONFIG === 'undefined') {
+        throw new Error('Wallet dependencies are not loaded.');
+      }
+
+      const response = await APIHelper.request(`${API_CONFIG.ENDPOINTS.WALLET}/dedicated-account`, {
+        method: 'POST'
+      });
+
+      const data = extractData(response);
+      return {
+        accountNumber: data.accountNumber,
+        bankName: data.bankName,
+        accountName: data.accountName
+      };
+    },
+
     formatNaira,
     formatDate
   };
@@ -271,8 +313,66 @@
         amountInput: document.getElementById('walletDepositAmount'),
         providerInputs: document.querySelectorAll('input[name="walletDepositProvider"]'),
         cancelBtn: document.getElementById('walletDepositCancel'),
-        proceedBtn: document.getElementById('walletDepositProceed')
+        proceedBtn: document.getElementById('walletDepositProceed'),
+        onlinePanel: document.getElementById('walletDepositOnlinePanel'),
+        transferPanel: document.getElementById('walletDepositTransferPanel')
       };
+    },
+
+    // Dev Feedback Round 9: dedicated/reserved account numbers for deposits.
+    getTransferPanelEls() {
+      return {
+        tabOnline: document.getElementById('walletDepositTabOnline'),
+        tabTransfer: document.getElementById('walletDepositTabTransfer'),
+        loading: document.getElementById('walletTransferLoading'),
+        error: document.getElementById('walletTransferError'),
+        details: document.getElementById('walletTransferDetails'),
+        bankEl: document.getElementById('walletTransferBank'),
+        accountNumberEl: document.getElementById('walletTransferAccountNumber'),
+        accountNameEl: document.getElementById('walletTransferAccountName'),
+        cancelBtn: document.getElementById('walletTransferCancel'),
+        copyBtn: document.getElementById('walletTransferCopy')
+      };
+    },
+
+    /** Switches between the "Pay Online" and "Bank Transfer" panels inside the deposit modal; loads the dedicated account details the first time Bank Transfer is opened. */
+    switchDepositTab(tab) {
+      const depositEls = this.getDepositModalEls();
+      const isTransfer = tab === 'transfer';
+      if (depositEls.onlinePanel) depositEls.onlinePanel.style.display = isTransfer ? 'none' : '';
+      if (depositEls.transferPanel) depositEls.transferPanel.style.display = isTransfer ? '' : 'none';
+      if (isTransfer) this.loadDedicatedAccount();
+    },
+
+    async loadDedicatedAccount() {
+      const els = this.getTransferPanelEls();
+      if (els.loading) els.loading.style.display = '';
+      if (els.error) els.error.style.display = 'none';
+      if (els.details) els.details.style.display = 'none';
+      if (els.copyBtn) els.copyBtn.style.display = 'none';
+
+      try {
+        const account = await WalletAPI.ensureDedicatedAccount();
+        if (els.loading) els.loading.style.display = 'none';
+        if (!account || !account.accountNumber) {
+          if (els.error) {
+            els.error.textContent = 'Could not set up a dedicated account right now — please try again shortly.';
+            els.error.style.display = '';
+          }
+          return;
+        }
+        if (els.bankEl) els.bankEl.textContent = account.bankName || '-';
+        if (els.accountNumberEl) els.accountNumberEl.textContent = account.accountNumber;
+        if (els.accountNameEl) els.accountNameEl.textContent = account.accountName || '-';
+        if (els.details) els.details.style.display = '';
+        if (els.copyBtn) els.copyBtn.style.display = '';
+      } catch (err) {
+        if (els.loading) els.loading.style.display = 'none';
+        if (els.error) {
+          els.error.textContent = (err && err.message) || 'Could not load your account details.';
+          els.error.style.display = '';
+        }
+      }
     },
 
     getSelectedDepositProvider(depositEls) {
@@ -555,6 +655,15 @@
         depositEls.amountInput.value = String(Math.ceil(rawAmount));
       }
 
+      // This resume flow is specifically for completing an immediate
+      // online payment (e.g. a booking that needed top-up funds right
+      // away) -- always force back to the "Pay Online" tab regardless of
+      // whichever tab was left selected from an earlier session, since a
+      // dedicated-account transfer wouldn't arrive in time for this.
+      const transferElsForResume = this.getTransferPanelEls();
+      if (transferElsForResume.tabOnline) transferElsForResume.tabOnline.checked = true;
+      this.switchDepositTab('online');
+
       this.openModal(depositEls.modal);
 
       const reason = params.get('reason');
@@ -651,11 +760,46 @@
       const depositButtons = document.querySelectorAll('[data-wallet-deposit]');
       const depositEls = self.getDepositModalEls();
       const successEls = self.getSuccessModalEls();
+      const transferEls = self.getTransferPanelEls();
 
       if (depositEls.cancelBtn && depositEls.modal) {
         depositEls.cancelBtn.addEventListener('click', function (event) {
           event.preventDefault();
           self.closeModal(depositEls.modal);
+        });
+      }
+
+      // Dev Feedback Round 9: dedicated/reserved account numbers for deposits.
+      if (transferEls.tabOnline) {
+        transferEls.tabOnline.addEventListener('change', function () {
+          if (transferEls.tabOnline.checked) self.switchDepositTab('online');
+        });
+      }
+      if (transferEls.tabTransfer) {
+        transferEls.tabTransfer.addEventListener('change', function () {
+          if (transferEls.tabTransfer.checked) self.switchDepositTab('transfer');
+        });
+      }
+      if (transferEls.cancelBtn && depositEls.modal) {
+        transferEls.cancelBtn.addEventListener('click', function (event) {
+          event.preventDefault();
+          self.closeModal(depositEls.modal);
+        });
+      }
+      if (transferEls.copyBtn) {
+        transferEls.copyBtn.addEventListener('click', async function (event) {
+          event.preventDefault();
+          const number = transferEls.accountNumberEl ? transferEls.accountNumberEl.textContent.trim() : '';
+          if (!number || number === '-') return;
+          try {
+            await navigator.clipboard.writeText(number);
+            if (typeof UIHelper !== 'undefined' && UIHelper.showToast) {
+              UIHelper.showToast('Account number copied.', 'success');
+            }
+          } catch (_) {
+            // Clipboard API unavailable/denied -- the number is already
+            // visibly displayed for the customer to copy manually.
+          }
         });
       }
 
@@ -719,6 +863,8 @@
             depositEls.amountInput.value = '';
           }
           self.setSelectedDepositProvider(DEPOSIT_PROVIDER_FALLBACK, depositEls);
+          if (transferEls.tabOnline) transferEls.tabOnline.checked = true;
+          self.switchDepositTab('online');
           self.openModal(depositEls.modal);
         });
       });
