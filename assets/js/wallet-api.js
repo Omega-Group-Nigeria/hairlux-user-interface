@@ -339,6 +339,7 @@
     switchDepositTab(tab) {
       const depositEls = this.getDepositModalEls();
       const isTransfer = tab === 'transfer';
+      if (!isTransfer && this.phoneRedirectTimer) { clearInterval(this.phoneRedirectTimer); this.phoneRedirectTimer = null; }
       if (depositEls.onlinePanel) depositEls.onlinePanel.style.display = isTransfer ? 'none' : '';
       if (depositEls.transferPanel) depositEls.transferPanel.style.display = isTransfer ? '' : 'none';
       if (isTransfer) this.loadDedicatedAccount();
@@ -368,11 +369,75 @@
         if (els.copyBtn) els.copyBtn.style.display = '';
       } catch (err) {
         if (els.loading) els.loading.style.display = 'none';
+        if (this.isPhoneRequiredError(err)) {
+          this.showPhoneRequiredRedirect(els);
+          return;
+        }
         if (els.error) {
           els.error.textContent = (err && err.message) || 'Could not load your account details.';
           els.error.style.display = '';
         }
       }
+    },
+
+    /** The API refuses a dedicated account until a phone number is added (code PHONE_REQUIRED). */
+    isPhoneRequiredError(err) {
+      const code = err && err.data && err.data.code;
+      if (code === 'PHONE_REQUIRED') return true;
+      const msg = String((err && err.message) || '').toLowerCase();
+      return msg.includes('phone number') && (msg.includes('add') || msg.includes('required'));
+    },
+
+    profileUrl() {
+      const inApp = /\/app(\/|$)/i.test(window.location.pathname || '');
+      return (inApp ? 'profile.html' : 'app/profile.html') + '?focus=phone&returnTo=' + encodeURIComponent('wallet-transfer');
+    },
+
+    /**
+     * Popup-style notice inside the deposit modal: explains why, counts down
+     * and sends the customer to their profile to add a phone number. They
+     * can go immediately or stay (cancel stops the countdown).
+     */
+    showPhoneRequiredRedirect(els) {
+      const self = this;
+      if (this.phoneRedirectTimer) clearInterval(this.phoneRedirectTimer);
+      const target = this.profileUrl();
+      let seconds = 5;
+      if (!els.error) { window.location.href = target; return; }
+      els.error.innerHTML =
+        '<strong>Phone number required</strong><br>' +
+        'A bank transfer account needs a verified phone number. ' +
+        'Taking you to your profile to add it in <strong id="walletPhoneCountdown">' + seconds + '</strong>s…' +
+        '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">' +
+        '<a href="' + target + '" class="button-green w-inline-block" id="walletPhoneGoNow"><div>Add phone now</div></a>' +
+        '<a href="#" class="button-outline w-inline-block" id="walletPhoneStay"><div>Stay here</div></a>' +
+        '</div>';
+      els.error.style.display = '';
+      if (typeof UIHelper !== 'undefined' && UIHelper.showToast) {
+        UIHelper.showToast('Add your phone number to get a bank transfer account.', 'error', 5000);
+      }
+      const stay = document.getElementById('walletPhoneStay');
+      if (stay) {
+        stay.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (self.phoneRedirectTimer) clearInterval(self.phoneRedirectTimer);
+          self.phoneRedirectTimer = null;
+          els.error.innerHTML =
+            '<strong>Phone number required</strong><br>' +
+            'A bank transfer account needs a verified phone number. ' +
+            '<a href="' + target + '">Add it from your profile</a> whenever you\'re ready, or use Pay Online.';
+        });
+      }
+      this.phoneRedirectTimer = setInterval(function () {
+        seconds -= 1;
+        const cd = document.getElementById('walletPhoneCountdown');
+        if (cd) cd.textContent = String(Math.max(0, seconds));
+        if (seconds <= 0) {
+          clearInterval(self.phoneRedirectTimer);
+          self.phoneRedirectTimer = null;
+          window.location.href = target;
+        }
+      }, 1000);
     },
 
     getSelectedDepositProvider(depositEls) {
@@ -475,6 +540,7 @@
 
     closeModal(modal) {
       if (!modal) return;
+      if (this.phoneRedirectTimer) { clearInterval(this.phoneRedirectTimer); this.phoneRedirectTimer = null; }
       modal.classList.remove('show');
       modal.setAttribute('aria-hidden', 'true');
       if (!document.querySelector('.wallet-modal.show')) {
@@ -661,6 +727,15 @@
       // whichever tab was left selected from an earlier session, since a
       // dedicated-account transfer wouldn't arrive in time for this.
       const transferElsForResume = this.getTransferPanelEls();
+      // Back from adding a phone number on the profile page: reopen
+      // straight on the Bank Transfer tab to issue their account number.
+      if (params.get('tab') === 'transfer' && transferElsForResume.tabTransfer) {
+        transferElsForResume.tabTransfer.checked = true;
+        this.openModal(depositEls.modal);
+        this.switchDepositTab('transfer');
+        this.cleanCallbackQuery();
+        return;
+      }
       if (transferElsForResume.tabOnline) transferElsForResume.tabOnline.checked = true;
       this.switchDepositTab('online');
 
