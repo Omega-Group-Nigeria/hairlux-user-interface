@@ -114,6 +114,35 @@ document.addEventListener('DOMContentLoaded', async function () {
     renderPhonePanel(user);
   }
 
+  // ── Arrived from the wallet's Bank Transfer tab (phone required) ──
+  const pageParams = new URLSearchParams(window.location.search);
+  const focusPhone = pageParams.get('focus') === 'phone';
+  const returnToWalletTransfer = pageParams.get('returnTo') === 'wallet-transfer';
+  let phoneFocusDone = false;
+
+  function focusPhonePanelOnce(user) {
+    if (!focusPhone || phoneFocusDone) return;
+    phoneFocusDone = true;
+    const panel = phoneStateNone.closest('.profile-panel') || phoneStateNone.parentElement;
+    if (panel && panel.scrollIntoView) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (panel) {
+      panel.style.transition = 'box-shadow .3s ease';
+      panel.style.boxShadow = '0 0 0 3px rgba(5, 150, 105, .45)';
+      setTimeout(function () { panel.style.boxShadow = ''; }, 2600);
+    }
+    if (!(user && user.phone)) {
+      setTimeout(function () { try { fieldNewPhone.focus(); } catch (_) { } }, 400);
+      if (typeof UIHelper !== 'undefined') UIHelper.showToast('Add your phone number to get your bank transfer account.', 'info', 4000);
+    }
+  }
+
+  /** Once the phone is verified, send them back to finish the bank transfer setup. */
+  function returnToWalletIfRequested() {
+    if (!returnToWalletTransfer) return;
+    if (typeof UIHelper !== 'undefined') UIHelper.showToast('Phone verified — taking you back to your wallet…', 'success', 2000);
+    setTimeout(function () { window.location.href = 'index.html?openDeposit=1&tab=transfer'; }, 1800);
+  }
+
   // ── Phone verification panel ─────────────────────────────────────
   function renderPhonePanel(user) {
     phoneStateNone.style.display = 'none';
@@ -135,6 +164,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       fieldNewPhone.value = '';
       phoneStateNone.style.display = 'block';
     }
+  focusPhonePanelOnce(user);
   }
 
   async function sendPhoneOtp(phone) {
@@ -156,6 +186,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         try { localStorage.setItem(API_CONFIG.STORAGE_KEYS.USER_DATA, JSON.stringify(currentProfile)); } catch (_) { }
         renderPhonePanel(currentProfile);
         if (typeof UIHelper !== 'undefined') UIHelper.showToast('Phone number verified.', 'success');
+        returnToWalletIfRequested();
         return;
       }
       if (typeof UIHelper !== 'undefined') UIHelper.showToast('Verification code sent.', 'success');
@@ -208,6 +239,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { localStorage.setItem(API_CONFIG.STORAGE_KEYS.USER_DATA, JSON.stringify(currentProfile)); } catch (_) { }
       renderPhonePanel(currentProfile);
       if (typeof UIHelper !== 'undefined') UIHelper.showToast('Phone verified successfully.', 'success');
+      returnToWalletIfRequested();
     } catch (err) {
       const msg = Array.isArray(err && err.message) ? err.message.join(', ') : ((err && err.message) || 'Invalid or expired code.');
       if (typeof UIHelper !== 'undefined') UIHelper.showToast(msg, 'error');
