@@ -3,12 +3,12 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Coming Soon — Hairlux App</title>
+  <title>Get the Hairlux App — Now on Google Play</title>
   <meta
-    content="The Hairlux app is coming soon. Join the waitlist to be the first to know when we launch."
+    content="The Hairlux app is live on Google Play. Book premium hair, beauty and wellness services from your phone. iPhone app coming soon to the App Store."
     name="description" />
   <meta name="robots" content="index, follow" />
-  <meta content="Hairlux App — Coming Soon" property="og:title" />
+  <meta content="Hairlux App — Now on Google Play" property="og:title" />
   <meta content="summary_large_image" name="twitter:card" />
   <meta content="width=device-width, initial-scale=1" name="viewport" />
   <!-- PWA: installable app (see sw.js / assets/js/pwa.js) -->
@@ -307,6 +307,94 @@
     .wl-notify-btn:hover svg {
       transform: translateY(3px);
     }
+
+    /* ── Store buttons ── */
+    .wl-store-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .wl-store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 210px;
+      padding: 11px 22px 11px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      text-align: left;
+      transition: transform .12s, background .18s, border-color .18s;
+    }
+
+    .wl-store-btn:active { transform: scale(.97); }
+
+    .wl-store-btn small {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      opacity: .75;
+      line-height: 1.2;
+    }
+
+    .wl-store-btn strong {
+      display: block;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      line-height: 1.2;
+    }
+
+    .wl-store-btn--live {
+      background: #0f0f0f;
+      color: #fff;
+      border: 1.5px solid #0f0f0f;
+    }
+
+    .wl-store-btn--live:hover { background: #2a2a2a; }
+
+    .wl-store-btn--soon {
+      background: transparent;
+      color: #0f0f0f;
+      border: 1.5px dashed rgba(0, 0, 0, .25);
+    }
+
+    .wl-store-btn--soon:hover { border-color: #9d8248; }
+
+    .wl-store-chip {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #9d8248;
+      background: rgba(157, 130, 72, .1);
+      border-radius: 999px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    .wl-store-note {
+      font-size: 12.5px;
+      color: #999;
+      margin: 14px 0 0;
+    }
+
+    [data-theme="dark"] .wl-store-btn--live {
+      background: #f0ede6;
+      color: #14171c;
+      border-color: #f0ede6;
+    }
+    [data-theme="dark"] .wl-store-btn--live:hover { background: #ffffff; }
+    [data-theme="dark"] .wl-store-btn--soon {
+      color: var(--primary, #f0ede6);
+      border-color: var(--border, #30353f);
+    }
+    [data-theme="dark"] .wl-store-note { color: var(--muted, #a7adb8); }
 
     /* ── How it works / Steps ── */
     .wl-steps-section {
@@ -704,14 +792,22 @@
     <section class="wl-hero">
       <div class="wl-tag">
         <span class="wl-tag-dot"></span>
-        Coming Soon
+        Now live on Google Play
       </div>
-      <h1 class="wl-heading">The Hairlux app is on its way.</h1>
-      <p class="wl-sub">Book premium beauty and wellness services from your phone — anytime, anywhere. We're putting the finishing touches on something special.</p>
-      <a href="#waitlist" class="wl-notify-btn">
-        Notify me when it's live
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-      </a>
+      <h1 class="wl-heading">The Hairlux app is here.</h1>
+      <p class="wl-sub">Book premium beauty and wellness services from your phone — anytime, anywhere. Download it on Android today; the iPhone app is on its way.</p>
+      <div class="wl-store-row">
+        <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dwaitlist_page%26utm_campaign%3Dandroid_launch%26utm_content%3Dhero_button" class="wl-store-btn wl-store-btn--live js-play-link" data-utm-content="hero_button" target="_blank" rel="noopener" id="wlPlayBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.52.85l14-8.5a1 1 0 0 0 0-1.7l-14-8.5A1 1 0 0 0 5 3.5z"/></svg>
+          <span><small>Get it on</small><strong>Google Play</strong></span>
+        </a>
+        <a href="#waitlist" class="wl-store-btn wl-store-btn--soon" id="wlIosBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          <span><small>iPhone</small><strong>App Store</strong></span>
+          <span class="wl-store-chip">Soon</span>
+        </a>
+      </div>
+      <p class="wl-store-note">On iPhone? Join the list below and we'll tell you the day it lands on the App Store.</p>
     </section>
 
     <!-- App screenshot -->
@@ -730,13 +826,12 @@
           <div class="wl-step">
             <div class="wl-step-num">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
             </div>
             <div>
-              <p class="wl-step-name">Order</p>
-              <p class="wl-step-desc">Browse our services and pick exactly what you need — from hair to full spa.</p>
+              <p class="wl-step-name">Download</p>
+              <p class="wl-step-desc">Install Hairlux and pick exactly what you need — from hair to full spa.</p>
             </div>
           </div>
 
@@ -776,8 +871,8 @@
     <!-- Waitlist form -->
     <section class="wl-form-section" id="waitlist">
       <div class="wl-form-inner">
-        <h2 class="wl-form-heading">Be the first to know.</h2>
-        <p class="wl-form-desc">Drop your details below and we'll notify you the moment the app goes live.</p>
+        <h2 class="wl-form-heading">On iPhone? Be the first to know.</h2>
+        <p class="wl-form-desc">The iOS app is in review with Apple. Drop your details and we'll email you the moment it's on the App Store. On Android? <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dwaitlist_page%26utm_campaign%3Dandroid_launch%26utm_content%3Dform_link" class="js-play-link" data-utm-content="form_link" target="_blank" rel="noopener" style="color:#9d8248;font-weight:600;">Get it on Google Play</a>.</p>
 
         <form class="wl-form" id="waitlistForm" novalidate>
           <input
@@ -798,7 +893,7 @@
             autocomplete="email"
             required
           />
-          <button class="wl-submit" type="submit" id="wlSubmitBtn">Notify me when it's live</button>
+          <button class="wl-submit" type="submit" id="wlSubmitBtn">Notify me when it's on iPhone</button>
           <p class="wl-error" id="wlError" role="alert" aria-live="polite"></p>
           <p class="wl-privacy">No spam. We'll only reach out when it matters.</p>
         </form>
@@ -822,8 +917,8 @@
       <p class="wl-modal-body">
         We'll send a heads-up to<br>
         <span class="wl-modal-email-chip" id="wlModalEmail"></span><br><br>
-        the moment the Hairlux app goes live.<br>
-        You're among the first in line &mdash; expect something special.
+        the moment the Hairlux app lands on the App Store.<br>
+        Can't wait? It's already live on Google Play for Android.
       </p>
       <div class="wl-modal-actions">
         <button class="wl-modal-done" id="wlModalDone">Got it, thanks!</button>
@@ -956,7 +1051,7 @@
 
         WaitlistAPI.join(fullName, email).then(function (result) {
           btn.disabled    = false;
-          btn.textContent = "Notify me when it's live";
+          btn.textContent = "Notify me when it's on iPhone";
 
           if (result.success) {
             var displayName  = (result.data && result.data.fullName)  || fullName;
@@ -974,6 +1069,33 @@
       });
     })();
   </script>
+<script>
+  /* Play Store link tracking.
+     Each Google Play link carries a referrer so Play Console can attribute installs.
+     If this page was opened from a tagged link (e.g. waitlist.html?utm_source=instagram&utm_campaign=oct_promo),
+     those values are passed through to Google Play so the original source isn't lost. */
+  (function () {
+    'use strict';
+    var PLAY = 'https://play.google.com/store/apps/details?id=com.omegapathway.hairlux';
+    var DEFAULTS = { utm_source: 'hairlux_website', utm_medium: 'waitlist_page', utm_campaign: 'android_launch' };
+    var page = new URLSearchParams(window.location.search);
+    var SAFE = /^[A-Za-z0-9_.\-]{1,60}$/;
+
+    function pick(key) {
+      var v = page.get(key);
+      return v && SAFE.test(v) ? v : DEFAULTS[key];
+    }
+
+    document.querySelectorAll('.js-play-link').forEach(function (link) {
+      var ref = new URLSearchParams();
+      ref.set('utm_source', pick('utm_source'));
+      ref.set('utm_medium', pick('utm_medium'));
+      ref.set('utm_campaign', pick('utm_campaign'));
+      ref.set('utm_content', link.getAttribute('data-utm-content') || 'link');
+      link.href = PLAY + '&referrer=' + encodeURIComponent(ref.toString());
+    });
+  })();
+</script>
 <script src="assets/js/pwa.js" defer></script>
 </body>
 
