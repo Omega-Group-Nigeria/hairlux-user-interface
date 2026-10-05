@@ -3,9 +3,9 @@
  * Handles service catalog and category fetching.
  *
  * Endpoints used:
- *   GET /services/categories  — all categories with service counts
- *   GET /services             — all services (filterable by categoryId / search / status)
- *   GET /services/{id}        — single service detail (available for future use)
+ *   GET /services/categories: all categories with service counts
+ *   GET /services: all services (filterable by categoryId / search / status)
+ *   GET /services/{id}: single service detail (available for future use)
  */
 
 /* global API_CONFIG, APIHelper */
@@ -27,8 +27,8 @@ var ServicesAPI = (function () {
    * @param {string} [params.categoryId]  Filter by category ID
    * @param {string} [params.search]      Search services by name
    * @param {string} [params.status]      ACTIVE | INACTIVE (default: ACTIVE)
-   * @param {string} [params.branchId]    Scope to branch — resolves walkInPrice to the branch override
-   * @param {string} [params.bookingType] WALK_IN | HOME_SERVICE — filters availability and adds effectivePrice
+   * @param {string} [params.branchId]    Scope to branch: resolves walkInPrice to the branch override
+   * @param {string} [params.bookingType] WALK_IN | HOME_SERVICE: filters availability and adds effectivePrice
    * @returns {Promise<{ success: boolean, data: Array }>}
    */
   function getServices(params) {
@@ -49,7 +49,7 @@ var ServicesAPI = (function () {
    * Fetch a single service by its UUID.
    * @param {string} id
    * @param {object} [params]
-   * @param {string} [params.branchId]    Scope to branch — resolves walkInPrice to the branch override
+   * @param {string} [params.branchId]    Scope to branch: resolves walkInPrice to the branch override
    * @param {string} [params.bookingType] WALK_IN | HOME_SERVICE
    * @returns {Promise<{ success: boolean, data: object }>}
    */

@@ -58,7 +58,7 @@
       return Number.isFinite(fallback) && fallback >= 0 ? fallback : 0;
     }
 
-    // Website books walk-in only — mobile/home-service moved to the app.
+    // Website books walk-in only: mobile/home-service moved to the app.
     function isWalkInBookable(svc) {
       if (!svc || svc.isWalkInAvailable === false) return false;
       var walk = Number(svc.walkInPrice);
@@ -127,7 +127,7 @@
 
         items.forEach(function (item) {
           if (!item || !item.id) return;
-          // Website is walk-in only — mobile/home-service bookings happen in the app.
+          // Website is walk-in only: mobile/home-service bookings happen in the app.
           var selectedMode = 'WALK_IN';
           selected.set(String(item.id), {
             id: String(item.id),
@@ -228,7 +228,7 @@
       var chosenMode = normalizeMode(mode);
       if (!chosenMode) return;
 
-      // Website is walk-in only — mobile/home-service moved to the app.
+      // Website is walk-in only: mobile/home-service moved to the app.
       if (chosenMode === 'HOME_SERVICE') {
         showToast('Mobile (home) service is available in the Hairlux app.', 'info', 2600);
         return;
@@ -275,14 +275,14 @@
       var selectedSvc = selected.get(String(svc.id));
       var isSelected = Boolean(selectedSvc);
       var canWalkIn = isWalkInBookable(svc);
-      // Website is walk-in only — mobile/home-service moved to the app.
+      // Website is walk-in only: mobile/home-service moved to the app.
       var canHomeService = false;
 
       var div = document.createElement('div');
       div.className = 'service-item' + (isSelected ? ' selected' : '');
       div.style.backgroundImage = 'url(\'' + escapeHtml(imgUrl) + '\')';
 
-      // Hidden data attributes — the real UUID is stored here
+      // Hidden data attributes: the real UUID is stored here
       div.dataset.serviceId       = svc.id;
       div.dataset.serviceName     = svc.name;
       div.dataset.servicePrice    = displayPrice;
@@ -558,7 +558,7 @@
       var params = { status: 'ACTIVE', bookingType: 'WALK_IN' };
       if (activeBranchId) params.branchId = activeBranchId;
 
-      // Load all active services (walk-in only — mobile/home-service is in the app)
+      // Load all active services (walk-in only: mobile/home-service is in the app)
       ServicesAPI.getServices(params)
         .then(function (res) {
           var list = (res && res.data) || [];
@@ -606,7 +606,7 @@
           var nextBranchId = this.value || '';
           if (nextBranchId === activeBranchId) return;
 
-          // Prices may change per branch — start selection fresh.
+          // Prices may change per branch: start selection fresh.
           selected.clear();
           renderBar();
 

@@ -3,7 +3,7 @@
       // ── Helpers ──────────────────────────────────────────────────
       const fmt = (n) => '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const fmtDate = (iso) => {
-        if (!iso) return '—';
+        if (!iso) return '-';
         const d = new Date(iso);
         return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
       };
@@ -21,13 +21,13 @@
         const res = await APIHelper.request(API_CONFIG.ENDPOINTS.REFERRALS);
         const data = res && res.data ? res.data : res;
         myCode = data.code || '';
-        elCode.textContent   = myCode || '—';
+        elCode.textContent   = myCode || '-';
         elUses.textContent   = data.totalUses   != null ? data.totalUses   : '0';
         elEarned.textContent = data.totalEarned != null ? fmt(data.totalEarned) : '₦0.00';
       } catch (err) {
         elCode.textContent   = 'N/A';
-        elUses.textContent   = '—';
-        elEarned.textContent = '—';
+        elUses.textContent   = '-';
+        elEarned.textContent = '-';
         if (typeof UIHelper !== 'undefined') UIHelper.showToast('Could not load referral code.', 'error');
       }
 
@@ -38,7 +38,7 @@
         elBadge.textContent = list.length;
 
         if (!list.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No referrals yet — share your code to get started!</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No referrals yet: share your code to get started!</td></tr>';
         } else {
           tbody.innerHTML = list.map(item => {
             const referred = item.referred || {};
@@ -47,7 +47,7 @@
             const reward = Number(item.rewardAmount || 0);
             const rewardStr = reward > 0
               ? `<span class="reward-amount">${fmt(reward)}</span>`
-              : `<span class="reward-amount zero">—</span>`;
+              : `<span class="reward-amount zero">-</span>`;
             return `
               <tr>
                 <td><strong>${name}</strong></td>
@@ -92,7 +92,7 @@
         const shareUrl  = window.location.origin + '/sign-up.html?code=' + encodeURIComponent(myCode);
         const shareData = {
           title: 'Join me on Hairlux!',
-          text:  `Use my referral code ${myCode} to sign up and get a reward on Hairlux — premium mobile beauty services.`,
+          text:  `Use my referral code ${myCode} to sign up and get a reward on Hairlux: premium mobile beauty services.`,
           url:   shareUrl
         };
         if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {

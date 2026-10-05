@@ -147,7 +147,7 @@
           const timeDisplay = formatScheduleTime(tx.scheduleTime);
           const bookingTypeLabel = formatBookingType(tx.bookingType);
           const locationLabel = formatBookingLocation(tx.bookingType, tx.address);
-          const resCode     = tx.reservationCode ? `<span class="res-code">${tx.reservationCode}</span>` : `<span style="font-size:11px;color:var(--muted);">—</span>`;
+          const resCode     = tx.reservationCode ? `<span class="res-code">${tx.reservationCode}</span>` : `<span style="font-size:11px;color:var(--muted);">-</span>`;
           return `<tr class="clickable-row" data-booking-id="${tx.id}" title="Click to view details">
             <td>${resCode}</td>
             <td><div class="tx-description">${tx.serviceName}</div><div class="tx-sub">${bookingTypeLabel} &middot; ${dateDisplay} &middot; ${timeDisplay}</div></td>
@@ -197,7 +197,7 @@
         activeBookingId = tx.id;
         bkRescheduleSection.style.display = 'none';
         bkRescheduleDate.value = '';
-        bkRescheduleTime.innerHTML = '<option value="">— pick date first —</option>';
+        bkRescheduleTime.innerHTML = '<option value="">pick date first</option>';
 
         // ── helper: show/hide a row based on value ─────────────────
         function _bkSet(id, val, rowId) {
@@ -374,7 +374,7 @@
           }
           if (!slots.length) { bkRescheduleTime.innerHTML = '<option value="">No slots available</option>'; }
           else {
-            bkRescheduleTime.innerHTML = '<option value="">— select a time —</option>';
+            bkRescheduleTime.innerHTML = '<option value="">select a time</option>';
             slots.forEach(s => {
               const o = document.createElement('option');
               o.value = `${String(s.h).padStart(2,'0')}:${String(s.m).padStart(2,'0')}`;

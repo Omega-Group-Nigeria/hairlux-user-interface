@@ -77,7 +77,7 @@ var BookingAPI = (function () {
   }
 
   /**
-   * Public — no auth required. Used to populate the branch picker so walk-in
+   * Public: no auth required. Used to populate the branch picker so walk-in
    * prices can be resolved per selected branch.
    * @returns {Promise<Array<{id: string, name: string}>>}
    */

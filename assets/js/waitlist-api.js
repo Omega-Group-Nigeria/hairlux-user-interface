@@ -14,7 +14,7 @@
 
   var ENDPOINT = BASE_URL + '/waitlist';
 
-  // RFC 5321-inspired email regex — tighter than the basic /\S+@\S+/ check.
+  // RFC 5321-inspired email regex: tighter than the basic /\S+@\S+/ check.
   var EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
   /**
@@ -84,7 +84,7 @@
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      // Send only the two expected fields — nothing extra.
+      // Send only the two expected fields: nothing extra.
       body: JSON.stringify({ fullName: cleanName, email: cleanEmail })
     })
     .then(function (res) {

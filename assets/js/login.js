@@ -68,7 +68,7 @@
     /* ── Google Sign-In ─────────────────────────────────────────────────── */
     function initGoogleSignIn() {
       if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
-        // The GSI script loads async — retry shortly if it hasn't landed yet.
+        // The GSI script loads async: retry shortly if it hasn't landed yet.
         setTimeout(initGoogleSignIn, 200);
         return;
       }
@@ -298,7 +298,7 @@
       clearOtpTimer();
     }
 
-    // Show an inline "no account — create one" CTA inside the login form.
+    // Show an inline "no account: create one" CTA inside the login form.
     function showNoAccountCta(email) {
       const existing = document.getElementById('hl-no-account-cta');
       if (existing && existing.parentNode) existing.parentNode.removeChild(existing);

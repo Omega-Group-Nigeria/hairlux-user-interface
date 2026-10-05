@@ -74,7 +74,7 @@
         if (totalEl)   totalEl.textContent   = addresses.length;
         var def = addresses.find(function(a){ return a.isDefault; });
         var shortAddress = def ? (def.fullAddress || def.addressLine || '').split(' ').slice(0, 2).join(' ') : '';
-        if (defaultEl) defaultEl.textContent = def ? escHtml(def.label || shortAddress || 'Address') : '—';
+        if (defaultEl) defaultEl.textContent = def ? escHtml(def.label || shortAddress || 'Address') : '-';
       }
 
       function renderGrid() {

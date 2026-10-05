@@ -1,7 +1,7 @@
 /**
  * HairLux Influencer API Module
  * Handles all influencer self-service API calls (user endpoints).
- * All endpoints require an active influencer JWT — returns 403 if not an influencer.
+ * All endpoints require an active influencer JWT: returns 403 if not an influencer.
  */
 
 const InfluencerAPI = {

@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="Hairlux" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link href="assets/img/pwa/apple-touch-icon.png" rel="apple-touch-icon" />
-  <title>Hairlux — My Application</title>
+  <title>Hairlux | My Application</title>
   <style>
     @font-face {
       font-family: 'Bdogrotesk Vf';
@@ -1533,7 +1533,7 @@
     }
 
     /* ── This is a standalone page, not the sidebar app the shared stylesheet
-   above was written for — body{display:flex} was meant to lay a sidebar
+   above was written for: body{display:flex} was meant to lay a sidebar
    and main content side by side. With no sidebar here, that made
    #screen-track shrink to its content width and hug the left edge
    instead of filling the viewport (which is why max-width+margin:auto
@@ -1718,17 +1718,17 @@
         return '<div class="banner mb4">' +
           '<div class="tag">Offer Declined</div>' +
           '<h3>You declined this offer</h3>' +
-          '<p>Thank you for your time — we wish you the best.</p>' +
+          '<p>Thank you for your time: we wish you the best.</p>' +
           '</div>';
       }
 
-      // status === 'SENT' — awaiting response
+      // status === 'SENT': awaiting response
       var salary = '₦' + Number(app.offerLetter.baseSalary).toLocaleString();
       var allowances = app.offerLetter.allowances ? ' + ₦' + Number(app.offerLetter.allowances).toLocaleString() + ' allowances' : '';
 
       return '<div class="banner mb4">' +
         '<div class="tag">Offer Extended</div>' +
-        '<h3>Congratulations — you have an offer!</h3>' +
+        '<h3>Congratulations: you have an offer!</h3>' +
         '<p>' + escapeHtml(app.appliedRole || 'Your applied role') + '</p>' +
         '<div class="meta">' + salary + allowances + ' · Effective ' + formatDate(app.offerLetter.effectiveDate) + '</div>' +
         (app.offerLetter.compensationNote ? '<div class="meta" style="margin-top:4px">' + escapeHtml(app.offerLetter.compensationNote) + '</div>' : '') +
@@ -1766,8 +1766,8 @@
     function renderDetails(app) {
       return '<div class="card"><div class="card-h"><h3>Application Details</h3></div><div class="card-b">' +
         '<div class="info-grid">' +
-        '<div class="info-item"><div class="lbl">Position</div><div class="val">' + escapeHtml(app.appliedRole || '—') + '</div></div>' +
-        '<div class="info-item"><div class="lbl">Branch</div><div class="val">' + escapeHtml(app.preferredBranchText || '—') + '</div></div>' +
+        '<div class="info-item"><div class="lbl">Position</div><div class="val">' + escapeHtml(app.appliedRole || '-') + '</div></div>' +
+        '<div class="info-item"><div class="lbl">Branch</div><div class="val">' + escapeHtml(app.preferredBranchText || '-') + '</div></div>' +
         '<div class="info-item"><div class="lbl">Applied</div><div class="val">' + formatDate(app.createdAt) + '</div></div>' +
         '<div class="info-item"><div class="lbl">Reference</div><div class="val" style="font-family:monospace;font-size:11px">' + escapeHtml(app.applicationCode) + '</div></div>' +
         '</div></div></div>';

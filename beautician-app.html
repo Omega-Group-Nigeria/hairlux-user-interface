@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <script>
+    /* Google Play package for the Hairlux Beautician app. Change it here only:
+       the ?download redirect below and the Google Play buttons both read it. */
+    window.HAIRLUX_BEAUTICIAN_PLAY_ID = 'com.omegapathway.hairlux';
+
+    /* ?download smart link (e.g. beautician-app.html?download).
+       Android: go straight to the Beautician app on Google Play, keeping any
+       utm_ tags from this link so Play Console still credits the source.
+       iPhone, iPad and desktop: stay on this page (no App Store app yet).
+       Without ?download the page behaves as normal. */
+    (function () {
+      'use strict';
+      var page = new URLSearchParams(window.location.search);
+      if (!page.has('download')) return;
+      var ua = navigator.userAgent || '';
+      var platform = (navigator.userAgentData && navigator.userAgentData.platform) || '';
+      var isAndroid = /android/i.test(ua) || /android/i.test(platform);
+      if (!isAndroid) return;
+      var SAFE = /^[A-Za-z0-9_.\-]{1,60}$/;
+      function pick(key, fallback) {
+        var v = page.get(key);
+        return v && SAFE.test(v) ? v : fallback;
+      }
+      var ref = new URLSearchParams();
+      ref.set('utm_source', pick('utm_source', 'hairlux_website'));
+      ref.set('utm_medium', pick('utm_medium', 'beautician_page'));
+      ref.set('utm_campaign', pick('utm_campaign', 'beautician_launch'));
+      ref.set('utm_content', 'download_link');
+      // replace() so the Back button does not bounce the user into the store again
+      window.location.replace('https://play.google.com/store/apps/details?id=' + window.HAIRLUX_BEAUTICIAN_PLAY_ID + '&referrer=' + encodeURIComponent(ref.toString()));
+    })();
+  </script>
+  <title>Hairlux for Beauticians | Get Bookings on the Hairlux App</title>
+  <meta
+    content="Join Hairlux as a beautician. Get home-service and salon bookings, set your own schedule and get paid through the Hairlux Beautician app, now on Google Play."
+    name="description" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.hairlux.com.ng/beautician-app.html" />
+  <meta content="Hairlux for Beauticians | Now on Google Play" property="og:title" />
+  <meta content="summary_large_image" name="twitter:card" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <!-- PWA: installable app (see sw.js / assets/js/pwa.js) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Hairlux" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link href="assets/style-main.css" rel="stylesheet" type="text/css" />
+  <script src="assets/js/theme-toggle.js"></script>
+  <link href="https://fonts.googleapis.com/" rel="preconnect" />
+  <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous" />
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <script type="text/javascript">WebFont.load({ google: { families: ["Merriweather:300,300italic,400,400italic,700,700italic,900,900italic", "Inter:100,200,300,regular", "IBM Plex Mono:regular,500,600"] } });</script>
+  <script type="text/javascript">!function (o, c) { var n = c.documentElement, t = " w-mod-"; n.className += t + "js", ("ontouchstart" in o || o.DocumentTouch && c instanceof DocumentTouch) && (n.className += t + "touch") }(window, document);</script>
+  <link href="../assets/img/logo-light.webp" rel="shortcut icon" type="image/x-icon" />
+  <link href="assets/img/pwa/apple-touch-icon.png" rel="apple-touch-icon" />
+  <style>
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Page Layout ── */
+    .wl-page {
+      min-height: 100vh;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Hero text block ── */
+    .wl-hero {
+      text-align: center;
+      padding: 100px 24px 56px;
+    }
+
+    .wl-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #9d8248;
+      background: rgba(157, 130, 72, .09);
+      border: 1px solid rgba(157, 130, 72, .25);
+      border-radius: 999px;
+      padding: 6px 16px;
+      margin-bottom: 28px;
+    }
+
+    .wl-tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #9d8248;
+      animation: wl-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes wl-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: .4; transform: scale(.75); }
+    }
+
+    .wl-heading {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: clamp(2.6rem, 6vw, 4.6rem);
+      font-weight: 700;
+      letter-spacing: -.033em;
+      line-height: 1.07;
+      color: #0f0f0f;
+      margin: 0 auto 20px;
+      max-width: 700px;
+    }
+
+    .wl-sub {
+      font-size: 1rem;
+      line-height: 1.65;
+      color: #666;
+      max-width: 480px;
+      margin: 0 auto 0;
+      font-weight: 400;
+    }
+
+    /* ── App screenshot ── */
+    .wl-mockup-section {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      min-height: 520px;
+      padding: 0 24px 0;
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      /* feather top and bottom edges into surrounding white */
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 76%, transparent 100%);
+              mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 76%, transparent 100%);
+    }
+
+    /* soft yellow radial glow: anchored at the bottom where the image sits */
+    .wl-mockup-section::before {
+      content: "";
+      position: absolute;
+      bottom: -8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 780px;
+      height: 780px;
+      border-radius: 50%;
+      background: radial-gradient(
+        ellipse at center,
+        rgba(253, 211, 60, 0.54) 0%,
+        rgba(252, 224, 90, 0.24) 38%,
+        rgba(255, 247, 180, 0.08) 62%,
+        transparent 78%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wl-mockup-img {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 340px;
+      display: block;
+      margin: 0 auto;
+      filter: drop-shadow(0 24px 48px rgba(0, 0, 0, .13));
+    }
+
+    /* ── Waitlist form section ── */
+    .wl-form-section {
+      background-color: var(--gray-30, #f8f8f8);
+      padding: 72px 24px 80px;
+    }
+
+    .wl-form-inner {
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .wl-form-heading {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      color: #0f0f0f;
+      margin: 0 0 8px;
+    }
+
+    .wl-form-desc {
+      font-size: .9rem;
+      color: #777;
+      line-height: 1.6;
+      margin: 0 0 36px;
+    }
+
+    .wl-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .wl-input {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-family: inherit;
+      border: 1.5px solid rgba(0, 0, 0, .12);
+      border-radius: 10px;
+      background: #fff;
+      color: #0f0f0f;
+      outline: none;
+      transition: border-color .18s;
+      box-sizing: border-box;
+    }
+
+    .wl-input::placeholder {
+      color: #aaa;
+    }
+
+    .wl-input:focus {
+      border-color: #9d8248;
+      box-shadow: 0 0 0 3px rgba(157, 130, 72, .1);
+    }
+
+    .wl-input--error {
+      border-color: #b91c1c !important;
+      box-shadow: 0 0 0 3px rgba(185, 28, 28, .1) !important;
+    }
+
+    .wl-submit {
+      width: 100%;
+      padding: 15px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: .02em;
+      color: #fff;
+      background: #415326;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .18s, transform .12s;
+    }
+
+    .wl-submit:hover {
+      background: #344220;
+    }
+
+    .wl-submit:active {
+      transform: scale(.98);
+    }
+
+    .wl-submit:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .wl-privacy {
+      font-size: 11.5px;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    /* ── Success state ── */
+    .wl-success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 28px 20px;
+      background: #fff;
+      border: 1.5px solid rgba(65, 83, 38, .2);
+      border-radius: 14px;
+    }
+
+    .wl-success-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #eaf3d8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wl-success-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f0f0f;
+      margin: 0;
+    }
+
+    .wl-success-text {
+      font-size: 13.5px;
+      color: #666;
+      margin: 0;
+    }
+
+    /* ── Notify-me anchor button ── */
+    .wl-notify-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 13px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: .02em;
+      color: #fff;
+      background: linear-gradient(135deg, #8c5e1a 0%, #b47d2d 100%);
+      border-radius: 999px;
+      text-decoration: none;
+      transition: background .18s, transform .12s;
+    }
+
+    .wl-notify-btn:hover {
+      background: #344220;
+    }
+
+    .wl-notify-btn:active {
+      transform: scale(.97);
+    }
+
+    .wl-notify-btn svg {
+      transition: transform .2s;
+    }
+
+    .wl-notify-btn:hover svg {
+      transform: translateY(3px);
+    }
+
+    /* ── Store buttons ── */
+    .wl-store-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .wl-store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 210px;
+      padding: 11px 22px 11px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      text-align: left;
+      transition: transform .12s, background .18s, border-color .18s;
+    }
+
+    .wl-store-btn:active { transform: scale(.97); }
+
+    .wl-store-btn small {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      opacity: .75;
+      line-height: 1.2;
+    }
+
+    .wl-store-btn strong {
+      display: block;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      line-height: 1.2;
+    }
+
+    .wl-store-btn--live {
+      background: #0f0f0f;
+      color: #fff;
+      border: 1.5px solid #0f0f0f;
+    }
+
+    .wl-store-btn--live:hover { background: #2a2a2a; }
+
+    .wl-store-btn--soon {
+      background: transparent;
+      color: #0f0f0f;
+      border: 1.5px dashed rgba(0, 0, 0, .25);
+    }
+
+    .wl-store-btn--soon:hover { border-color: #9d8248; }
+
+    .wl-store-chip {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #9d8248;
+      background: rgba(157, 130, 72, .1);
+      border-radius: 999px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    .wl-store-note {
+      font-size: 12.5px;
+      color: #999;
+      margin: 14px 0 0;
+    }
+
+    [data-theme="dark"] .wl-store-btn--live {
+      background: #f0ede6;
+      color: #14171c;
+      border-color: #f0ede6;
+    }
+    [data-theme="dark"] .wl-store-btn--live:hover { background: #ffffff; }
+    [data-theme="dark"] .wl-store-btn--soon {
+      color: var(--primary, #f0ede6);
+      border-color: var(--border, #30353f);
+    }
+    [data-theme="dark"] .wl-store-note { color: var(--muted, #a7adb8); }
+
+    /* ── QR code (desktop/tablet only: you can't scan your own phone screen) ── */
+    .wl-qr {
+      display: none;
+      align-items: center;
+      gap: 18px;
+      max-width: 430px;
+      margin: 28px auto 0;
+      padding: 14px 20px 14px 14px;
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, .08);
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, .06);
+      text-align: left;
+    }
+
+    .wl-qr img {
+      width: 148px;
+      height: 148px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      image-rendering: pixelated;
+    }
+
+    .wl-qr-title {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f0f0f;
+      margin: 0 0 4px;
+    }
+
+    .wl-qr-text {
+      font-size: .82rem;
+      color: #777;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    @media (min-width: 769px) {
+      .wl-qr { display: flex; }
+    }
+
+    /* QR stays black-on-white in dark mode so phone cameras can read it */
+    [data-theme="dark"] .wl-qr {
+      background: var(--card-bg, #1c2027);
+      border-color: var(--border, #30353f);
+    }
+    [data-theme="dark"] .wl-qr img { background: #fff; padding: 4px; }
+    [data-theme="dark"] .wl-qr-title { color: var(--primary, #f0ede6); }
+    [data-theme="dark"] .wl-qr-text { color: var(--muted, #a7adb8); }
+
+    /* ── How it works / Steps ── */
+    .wl-steps-section {
+      padding: 80px 24px 80px;
+      background: #fff;
+    }
+
+    .wl-steps-inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .wl-steps-label {
+      display: block;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #9d8248;
+      margin-bottom: 14px;
+    }
+
+    .wl-steps-title {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      color: #0f0f0f;
+      text-align: center;
+      margin: 0 auto 52px;
+      max-width: 420px;
+    }
+
+    .wl-steps-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      position: relative;
+    }
+
+    /* connecting line between steps */
+    .wl-steps-grid::before {
+      content: "";
+      position: absolute;
+      top: 28px;
+      left: calc(100% / 6);
+      right: calc(100% / 6);
+      height: 1.5px;
+      background: linear-gradient(90deg, rgba(65,83,38,.12), rgba(65,83,38,.25), rgba(65,83,38,.12));
+      z-index: 0;
+    }
+
+    .wl-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wl-step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1.5px solid rgba(65, 83, 38, .2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 12px rgba(65,83,38,.08);
+    }
+
+    .wl-step-num svg {
+      color: #415326;
+    }
+
+    .wl-step-name {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -.015em;
+      color: #0f0f0f;
+      margin: 0 0 8px;
+    }
+
+    .wl-step-desc {
+      font-size: .85rem;
+      color: #777;
+      line-height: 1.6;
+      margin: 0;
+      max-width: 200px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .wl-hero {
+        padding: 80px 20px 44px;
+      }
+
+      .wl-steps-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+
+      .wl-steps-grid::before {
+        display: none;
+      }
+
+      .wl-step {
+        flex-direction: row;
+        text-align: left;
+        gap: 20px;
+        padding: 0;
+      }
+
+      .wl-step-num {
+        margin-bottom: 0;
+        flex-shrink: 0;
+      }
+
+      .wl-step-desc {
+        max-width: none;
+      }
+
+      .wl-mockup-img {
+        max-width: 100%;
+      }
+
+      .wl-form-section {
+        padding: 56px 20px 64px;
+      }
+    }
+
+    /* ── Inline form error ── */
+    .wl-error {
+      display: none;
+      font-size: 13px;
+      color: #b91c1c;
+      background: #fef2f2;
+      border: 1px solid rgba(185, 28, 28, .18);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: left;
+      margin: -2px 0 0;
+      line-height: 1.5;
+    }
+
+    /* ── Thank-you Modal ── */
+    .wl-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 10, .52);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+    }
+
+    .wl-modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .wl-modal-card {
+      background: #fff;
+      border-radius: 22px;
+      width: 100%;
+      max-width: 420px;
+      padding: 48px 36px 36px;
+      position: relative;
+      text-align: center;
+      transform: translateY(24px) scale(.96);
+      transition: transform .3s cubic-bezier(.34, 1.3, .64, 1);
+      box-shadow:
+        0 4px 6px rgba(0,0,0,.04),
+        0 28px 80px rgba(0,0,0,.18);
+    }
+
+    .wl-modal-overlay.open .wl-modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .wl-modal-x {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,.06);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      transition: background .15s;
+    }
+
+    .wl-modal-x:hover { background: rgba(0,0,0,.12); }
+
+    .wl-modal-badge {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eaf3d8 0%, #d4ecb0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 0 0 8px rgba(65, 83, 38, .06);
+    }
+
+    .wl-modal-title {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: clamp(1.35rem, 3vw, 1.7rem);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      color: #0f0f0f;
+      margin: 0 0 10px;
+    }
+
+    .wl-modal-greeting {
+      font-size: .95rem;
+      color: #333;
+      margin: 0 0 10px;
+      line-height: 1.5;
+    }
+
+    .wl-modal-body {
+      font-size: .875rem;
+      color: #777;
+      line-height: 1.75;
+      margin: 0 0 28px;
+    }
+
+    .wl-modal-email-chip {
+      display: inline-block;
+      background: #f2f7ea;
+      border: 1px solid rgba(65, 83, 38, .2);
+      border-radius: 999px;
+      padding: 2px 11px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: #415326;
+      word-break: break-all;
+    }
+
+    .wl-modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wl-modal-done {
+      width: 100%;
+      padding: 14px;
+      background: #415326;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .18s, transform .12s;
+    }
+
+    .wl-modal-done:hover  { background: #344220; }
+    .wl-modal-done:active { transform: scale(.98); }
+
+    .wl-modal-home {
+      display: inline-block;
+      font-size: 13px;
+      color: #9d8248;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color .15s;
+    }
+
+    .wl-modal-home:hover { color: #7a6436; }
+
+    .wl-modal-note {
+      font-size: 11px;
+      color: #c5c5c5;
+      margin: 18px 0 0;
+    }
+
+    @media (max-width: 480px) {
+      .wl-modal-card { padding: 40px 22px 28px; }
+    }
+
+    /* ── Dark mode ── */
+    [data-theme="dark"] .wl-page { background-color: var(--surface, #14171c); }
+    [data-theme="dark"] .wl-mockup-section { background: var(--surface, #14171c); }
+    [data-theme="dark"] .wl-heading,
+    [data-theme="dark"] .wl-form-heading,
+    [data-theme="dark"] .wl-steps-title,
+    [data-theme="dark"] .wl-step-name,
+    [data-theme="dark"] .wl-success-title,
+    [data-theme="dark"] .wl-modal-title {
+      color: var(--primary, #f0ede6);
+    }
+    [data-theme="dark"] .wl-sub,
+    [data-theme="dark"] .wl-form-desc,
+    [data-theme="dark"] .wl-step-desc,
+    [data-theme="dark"] .wl-success-text,
+    [data-theme="dark"] .wl-modal-greeting,
+    [data-theme="dark"] .wl-modal-body {
+      color: var(--muted, #a7adb8);
+    }
+    [data-theme="dark"] .wl-form-section { background-color: var(--surface-2, #20242c); }
+    [data-theme="dark"] .wl-input {
+      background: var(--surface-2, #20242c);
+      color: var(--primary, #f0ede6);
+      border-color: var(--border, #30353f);
+    }
+    [data-theme="dark"] .wl-input::placeholder { color: var(--muted, #a7adb8); }
+    [data-theme="dark"] .wl-success {
+      background: var(--card-bg, #1c2027);
+      border-color: var(--border, #30353f);
+    }
+    [data-theme="dark"] .wl-steps-section { background: var(--surface, #14171c); }
+    [data-theme="dark"] .wl-step-num {
+      background: var(--surface-2, #20242c);
+      border-color: var(--border, #30353f);
+    }
+    [data-theme="dark"] .wl-step-num svg { color: var(--muted, #a7adb8); }
+    [data-theme="dark"] .wl-error {
+      background: var(--danger-bg, rgba(192,57,43,.18));
+      color: var(--danger, #ff8a80);
+      border-color: rgba(255,138,128,.3);
+    }
+    [data-theme="dark"] .wl-modal-card { background: var(--card-bg, #1c2027); }
+    [data-theme="dark"] .wl-modal-x {
+      background: rgba(255,255,255,.08);
+      color: var(--muted, #a7adb8);
+    }
+    [data-theme="dark"] .wl-modal-x:hover { background: rgba(255,255,255,.14); }
+    [data-theme="dark"] .wl-modal-note { color: var(--muted, #a7adb8); }
+    /* ── Beautician page additions ── */
+    .wl-store-btn--disabled {
+      cursor: default;
+      opacity: .75;
+      pointer-events: none;
+    }
+
+    .bt-section {
+      padding: 80px 24px;
+      background: #fff;
+    }
+
+    .bt-section--tint { background: var(--gray-30, #f8f8f8); }
+
+    .bt-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .bt-benefits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 20px;
+    }
+
+    .bt-benefit {
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, .08);
+      border-radius: 16px;
+      padding: 24px 22px;
+    }
+
+    .bt-benefit-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #f2f7ea;
+      color: #415326;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .bt-benefit h3 {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f0f0f;
+      margin: 0 0 6px;
+    }
+
+    .bt-benefit p {
+      font-size: .87rem;
+      line-height: 1.6;
+      color: #777;
+      margin: 0;
+    }
+
+    .bt-reqs {
+      list-style: none;
+      padding: 0;
+      margin: 0 auto;
+      max-width: 620px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .bt-reqs li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: .95rem;
+      line-height: 1.55;
+      color: #333;
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, .07);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .bt-reqs svg { flex-shrink: 0; margin-top: 2px; color: #415326; }
+
+    .bt-cta {
+      text-align: center;
+      padding: 72px 24px 88px;
+      background: #415326;
+      color: #fff;
+    }
+
+    .bt-cta h2 {
+      font-family: 'Bdogrotesk Vf', sans-serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      margin: 0 0 10px;
+      color: #fff;
+    }
+
+    .bt-cta p {
+      color: rgba(255, 255, 255, .8);
+      margin: 0 auto 28px;
+      max-width: 460px;
+      line-height: 1.6;
+    }
+
+    .bt-cta .wl-store-btn--live {
+      background: #fff;
+      color: #0f0f0f;
+      border-color: #fff;
+    }
+
+    [data-theme="dark"] .bt-section { background: var(--surface, #14171c); }
+    [data-theme="dark"] .bt-section--tint { background: var(--surface-2, #20242c); }
+    [data-theme="dark"] .bt-benefit,
+    [data-theme="dark"] .bt-reqs li {
+      background: var(--card-bg, #1c2027);
+      border-color: var(--border, #30353f);
+    }
+    [data-theme="dark"] .bt-benefit h3,
+    [data-theme="dark"] .bt-reqs li { color: var(--primary, #f0ede6); }
+    [data-theme="dark"] .bt-benefit p { color: var(--muted, #a7adb8); }
+    [data-theme="dark"] .bt-benefit-icon { background: rgba(255, 255, 255, .06); color: #c9d8a8; }
+  </style>
+
+</head>
+
+<body>
+  <!-- Navbar -->
+  <div data-animation="default" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease"
+    role="banner" class="navbar w-nav">
+    <div class="container-nav">
+      <div class="brand-wrapper"><a href="index.html" class="w-nav-brand"><img src="assets/img/logo-side-black.png"
+            loading="lazy" alt="Hairlux" class="image-brand" /></a></div>
+      <nav role="navigation" class="nav-menu w-nav-menu">
+        <a href="index.html" class="nav-link w-nav-link">Home</a>
+        <a href="about.html" class="nav-link w-nav-link">About Us</a>
+        <a href="careers.html" class="nav-link w-nav-link">Careers</a>
+        <a href="contact.html" class="nav-link w-nav-link">Contact Us</a>
+        <a href="../mobile-apps.html" class="nav-link w-nav-link">Mobile Apps</a>
+        <a href="log-in.html" class="button-nav w-inline-block login-nav-mobile">
+          <div>Login/Signup</div>
+        </a>
+      </nav>
+      <button type="button" class="theme-toggle-btn" data-theme-toggle aria-pressed="false" title="Switch to dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+      <div class="menu-button w-nav-button">
+        <div class="menu-mobile">
+          <div data-is-ix2-target="1" class="lottie-animation" data-w-id="9ddc847f-f377-4e52-c9e3-c93ed393def0"
+            data-animation-type="lottie"
+            data-src="https://cdn.prod.website-files.com/60cc0ce7858143ba7e80ab3c/61270db44a79a4716d7ead46_9789-burger-menu%20(1).json"
+            data-loop="0" data-direction="1" data-autoplay="0" data-renderer="svg" data-default-duration="3"
+            data-duration="0" data-ix2-initial-state="0"></div>
+        </div>
+      </div>
+      <div class="button-wrapper"><a href="log-in.html" class="button-nav w-inline-block">
+          <div>Login/Signup</div>
+        </a></div>
+    </div>
+  </div>
+
+
+  <div class="wl-page">
+
+    <!-- Hero -->
+    <section class="wl-hero">
+      <div class="wl-tag">
+        <span class="wl-tag-dot"></span>
+        Hairlux for Beauticians: now on Google Play
+      </div>
+      <h1 class="wl-heading">Get booked. Get paid. Grow your craft.</h1>
+      <p class="wl-sub">The Hairlux Beautician app connects skilled stylists and beauty professionals with customers who want salon quality at home. You choose your hours; we bring the bookings.</p>
+      <div class="wl-store-row">
+        <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dbeautician_page%26utm_campaign%3Dbeautician_launch%26utm_content%3Dhero_button" class="wl-store-btn wl-store-btn--live js-play-link" data-utm-content="hero_button" target="_blank" rel="noopener" id="btPlayBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.52.85l14-8.5a1 1 0 0 0 0-1.7l-14-8.5A1 1 0 0 0 5 3.5z"/></svg>
+          <span><small>Get it on</small><strong>Google Play</strong></span>
+        </a>
+        <span class="wl-store-btn wl-store-btn--soon wl-store-btn--disabled" aria-disabled="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          <span><small>iPhone</small><strong>App Store</strong></span>
+          <span class="wl-store-chip">Soon</span>
+        </span>
+      </div>
+      <div class="wl-qr">
+        <img src="assets/img/qr/beautician-app-web.svg" alt="QR code to open the Hairlux Beautician app page on your phone" width="148" height="148" />
+        <div>
+          <p class="wl-qr-title">Scan to download</p>
+          <p class="wl-qr-text">Point your Android phone's camera at the code, then tap Google Play to install the Beautician app.</p>
+        </div>
+      </div>
+      <p class="wl-store-note">The iPhone version is in progress. Android users can start today.</p>
+    </section>
+
+    <!-- Why Hairlux -->
+    <section class="bt-section bt-section--tint">
+      <div class="bt-inner">
+        <span class="wl-steps-label">Why join Hairlux</span>
+        <h2 class="wl-steps-title">Built for beauty professionals.</h2>
+        <div class="bt-benefits">
+          <div class="bt-benefit">
+            <div class="bt-benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <h3>Steady bookings</h3>
+            <p>Receive home-service and salon requests from Hairlux customers near you.</p>
+          </div>
+          <div class="bt-benefit">
+            <div class="bt-benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <h3>Your schedule</h3>
+            <p>Set when you are available and accept the jobs that fit your day.</p>
+          </div>
+          <div class="bt-benefit">
+            <div class="bt-benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg></div>
+            <h3>Paid through the app</h3>
+            <p>Track every job and your earnings in one place, with no chasing customers for payment.</p>
+          </div>
+          <div class="bt-benefit">
+            <div class="bt-benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></div>
+            <h3>Grow with the Academy</h3>
+            <p>Sharpen your skills with Hairlux Academy training and certifications.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="wl-steps-section">
+      <div class="wl-steps-inner">
+        <span class="wl-steps-label">How it works</span>
+        <h2 class="wl-steps-title">Start earning in three steps.</h2>
+        <div class="wl-steps-grid">
+          <div class="wl-step">
+            <div class="wl-step-num">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+            <div>
+              <p class="wl-step-name">Download and register</p>
+              <p class="wl-step-desc">Install the Beautician app and create your profile with your skills and services.</p>
+            </div>
+          </div>
+          <div class="wl-step">
+            <div class="wl-step-num">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            </div>
+            <div>
+              <p class="wl-step-name">Get verified</p>
+              <p class="wl-step-desc">Confirm your identity so customers know they are booking a trusted professional.</p>
+            </div>
+          </div>
+          <div class="wl-step">
+            <div class="wl-step-num">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <p class="wl-step-name">Accept bookings</p>
+              <p class="wl-step-desc">Take the jobs you want, deliver great service and get paid.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Requirements -->
+    <section class="bt-section bt-section--tint">
+      <div class="bt-inner">
+        <span class="wl-steps-label">Who can join</span>
+        <h2 class="wl-steps-title">What you need to get started.</h2>
+        <ul class="bt-reqs">
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Proven skill in hair, nails, makeup, lashes, skincare or another beauty service</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>An Android phone with mobile data</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>A valid means of identification for verification</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>A professional attitude and commitment to quality service</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Final call to action -->
+    <section class="bt-cta">
+      <h2>Ready to take bookings?</h2>
+      <p>Download the Hairlux Beautician app and set up your profile in minutes.</p>
+      <div class="wl-store-row">
+        <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dbeautician_page%26utm_campaign%3Dbeautician_launch%26utm_content%3Dfooter_button" class="wl-store-btn wl-store-btn--live js-play-link" data-utm-content="footer_button" target="_blank" rel="noopener">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.52.85l14-8.5a1 1 0 0 0 0-1.7l-14-8.5A1 1 0 0 0 5 3.5z"/></svg>
+          <span><small>Get it on</small><strong>Google Play</strong></span>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=675c8e48ca0e0fb5ab421239"
+    type="text/javascript" defer integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/js/zuno-template.schunk.f3a08821b4e31f89.js"
+    type="text/javascript" defer></script>
+  <script src="assets/schunk.js" type="text/javascript" defer></script>
+  <script src="assets/js/config.js" defer></script>
+  <script src="assets/js/auth-api.js" defer></script>
+  <script src="assets/js/nav-auth.js" defer></script>
+  <script src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/js/zuno-template.43895104.17a27cf99b30c8e2.js"
+    type="text/javascript" defer></script>
+
+<script>
+  /* Play Store link tracking (same approach as mobile-apps.html).
+     The package id comes from HAIRLUX_BEAUTICIAN_PLAY_ID at the top of this page.
+     Also update the id= in the two Google Play links above (used if JavaScript is off). */
+  (function () {
+    'use strict';
+    var PLAY_APP_ID = window.HAIRLUX_BEAUTICIAN_PLAY_ID || 'com.omegapathway.hairlux';
+    var PLAY = 'https://play.google.com/store/apps/details?id=' + PLAY_APP_ID;
+    var DEFAULTS = { utm_source: 'hairlux_website', utm_medium: 'beautician_page', utm_campaign: 'beautician_launch' };
+    var page = new URLSearchParams(window.location.search);
+    var SAFE = /^[A-Za-z0-9_.\-]{1,60}$/;
+
+    function pick(key) {
+      var v = page.get(key);
+      return v && SAFE.test(v) ? v : DEFAULTS[key];
+    }
+
+    document.querySelectorAll('.js-play-link').forEach(function (link) {
+      var ref = new URLSearchParams();
+      ref.set('utm_source', pick('utm_source'));
+      ref.set('utm_medium', pick('utm_medium'));
+      ref.set('utm_campaign', pick('utm_campaign'));
+      ref.set('utm_content', link.getAttribute('data-utm-content') || 'link');
+      link.href = PLAY + '&referrer=' + encodeURIComponent(ref.toString());
+    });
+  })();
+</script>
+<script src="assets/js/pwa.js" defer></script>
+</body>
+
+</html>

@@ -386,7 +386,7 @@ async function loadDashboardServices() {
       : Array.isArray(d.items) ? d.items
         : Array.isArray(d.results) ? d.results
           : Array.isArray(d) ? d : [];
-    // Website is walk-in only — show services bookable at a branch.
+    // Website is walk-in only: show services bookable at a branch.
     list = list.filter(function (s) {
       if (!s || s.isWalkInAvailable === false) return false;
       var walk = Number(s.walkInPrice);
@@ -593,7 +593,7 @@ async function loadMiniReferral() {
     const data = res && res.data ? res.data : res;
     const code = data.code || '';
     const el = document.getElementById('miniRefCode');
-    if (el) el.textContent = code || '—';
+    if (el) el.textContent = code || '-';
     document.getElementById('miniCopyBtn').addEventListener('click', async function () {
       if (!code) return;
       const link = window.location.origin + '/sign-up.html?code=' + encodeURIComponent(code);
@@ -610,7 +610,7 @@ async function loadMiniReferral() {
     });
   } catch (_) {
     const el = document.getElementById('miniRefCode');
-    if (el) el.textContent = '—';
+    if (el) el.textContent = '-';
   }
 }
 

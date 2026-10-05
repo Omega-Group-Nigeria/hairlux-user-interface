@@ -96,10 +96,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Info rows
     profileInfoRows.innerHTML = [
-      { label: 'First Name', value: user.firstName || '—' },
-      { label: 'Last Name', value: user.lastName || '—' },
-      { label: 'Email', value: user.email || '—' },
-      { label: 'Phone', value: user.phone || '—' },
+      { label: 'First Name', value: user.firstName || '-' },
+      { label: 'Last Name', value: user.lastName || '-' },
+      { label: 'Email', value: user.email || '-' },
+      { label: 'Phone', value: user.phone || '-' },
     ].map(r => `
           <div class="info-row">
             <span class="info-label">${r.label}</span>
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   /** Once the phone is verified, send them back to finish the bank transfer setup. */
   function returnToWalletIfRequested() {
     if (!returnToWalletTransfer) return;
-    if (typeof UIHelper !== 'undefined') UIHelper.showToast('Phone verified — taking you back to your wallet…', 'success', 2000);
+    if (typeof UIHelper !== 'undefined') UIHelper.showToast('Phone verified: taking you back to your wallet…', 'success', 2000);
     setTimeout(function () { window.location.href = 'index.html?openDeposit=1&tab=transfer'; }, 1800);
   }
 
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       verifiedPhoneDisplay.textContent = user.phone;
       phoneStateVerified.style.display = 'block';
     } else if (user.phone && !user.phoneVerified) {
-      // A phone is on file but not yet verified — e.g. the OTP was
+      // A phone is on file but not yet verified: e.g. the OTP was
       // requested but never confirmed. Straight to the pending state
       // so they can pick up where they left off, rather than
       // re-requesting a code they may not have needed a new one for.
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // Both "use a different number" (mid-verification) and "change
-  // number" (already verified) land on the same blank-input state —
+  // number" (already verified) land on the same blank-input state
   // neither clears the phone server-side; that only happens once a
   // new number is actually sent and verified.
   btnChangePhoneNumber.addEventListener('click', function () {

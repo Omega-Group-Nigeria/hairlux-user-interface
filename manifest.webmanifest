@@ -2,7 +2,7 @@
   "id": "./app/index.html",
   "name": "Hairlux Salon & Spa",
   "short_name": "Hairlux",
-  "description": "Book premium hair, beauty and wellness services — in branch or at your location — and manage your bookings, wallet and rewards.",
+  "description": "Book premium hair, beauty and wellness services, in branch or at your location, and manage your bookings, wallet and rewards.",
   "start_url": "./app/index.html?source=pwa",
   "scope": "./",
   "display": "standalone",

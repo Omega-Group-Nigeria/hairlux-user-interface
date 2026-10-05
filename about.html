@@ -86,7 +86,7 @@
         <a href="about.html" class="nav-link w-nav-link">About Us</a>
         <a href="careers.html" class="nav-link w-nav-link">Careers</a>
         <a href="contact.html" class="nav-link w-nav-link">Contact Us</a>
-        <a href="../app.html" class="nav-link w-nav-link">App</a>
+        <a href="../mobile-apps.html" class="nav-link w-nav-link">Mobile Apps</a>
         <a href="https://academy.hairlux.com.ng" class="nav-link w-nav-link" target="_blank" rel="noopener">Academy</a>
         <a href="log-in.html" class="button-nav w-inline-block login-nav-mobile">
           <div>Login/Signup</div>
@@ -163,7 +163,7 @@
               </div>
               <div class="content-gap-s">
                 <h3 class="h-s">Seamless Booking</h3>
-                <p class="p-s text-gray-700">Book your appointment online in seconds — choose your service, set your
+                <p class="p-s text-gray-700">Book your appointment online in seconds: choose your service, set your
                   location, and pay straight from your wallet. Simple, fast, and built around your schedule.</p>
               </div>
             </div>
@@ -192,7 +192,7 @@
               </div>
               <div class="content-gap-s">
                 <h3 class="h-s">Premium Products Only</h3>
-                <p class="p-s text-gray-700">Every treatment uses carefully selected, high-quality products — because
+                <p class="p-s text-gray-700">Every treatment uses carefully selected, high-quality products: because
                   the experience doesn't end with the service.</p>
               </div>
             </div>
@@ -420,13 +420,25 @@
     <!-- MANAGEMENT/OUR TEAM -->
     <style>
       /* ── Team Section ── */
+      /* Flex (not grid) so an incomplete last row sits in the centre */
       .team-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 32px;
         margin-top: 48px;
-        justify-content: ;
       }
+
+      .team-grid > .team-card {
+        flex: 0 1 250px;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      @media (max-width: 560px) {
+        .team-grid { gap: 16px; }
+        .team-grid > .team-card { flex-basis: calc(50% - 8px); }
+       }
 
       .team-card {
         cursor: pointer;
@@ -859,7 +871,7 @@
             facebook: 'https://www.facebook.com/share/1HVfwyiguy/?mibextid=wwXIfr',
             instagram: 'https://www.instagram.com/omega_empiree?igsh=cmQ0OTBvOTZuanp4&utm_source=qr',
             twitter: 'https://x.com/omega_empiree',
-            bio: '<p>Qudus Jimoh’s journey into business did not begin with HairLux. By the time the brand was conceived, he had already spent years navigating different industries, learning firsthand what it takes to build, sustain, and scale. His entrepreneurial path started early, even before attending Lead City University. Armed with a diploma at a young age and shaped by early exposure to trade through his mother, Qudus stepped into business with clarity and intent. One of his earliest ventures was a laundry and dry cleaning business, which he built from scratch and managed for over three years. When he eventually relocated, he handed the business over, and it remains operational to this day—a quiet testament to the strength of what he built.</p><p>But Qudus was never interested in staying within one lane. That drive to do what others have not done finds its clearest expression in the HairLux Mobile Salon and Spa, a concept he describes not just as a business, but as a personal milestone. As one of the first of its kind in Nigeria, the mobile unit represents more than innovation; it reflects a long standing desire to break new ground. For Qudus, building HairLux is deeply fulfilling. It is the realization of a vision he has carried for years: to create something original, something bold, and something that sets a new standard for the industry. That sense of excitement is not just personal; it is embedded in the experience the brand delivers.</p><p>Over the years, he expanded his footprint across multiple sectors, including oil and gas, real estate, transportation, automobile trading, and petroleum product sourcing. Each venture added a new layer of experience, from operations and logistics to customer management and capital flow. These weren’t experiments; they were building blocks. Although his entrepreneurial journey spans close to a decade, the last four years have marked a significant shift, where experience met clarity, and results began to compound more visibly. HairLux emerged in December 2022, not as a first attempt, but as a refined expression of everything he had learned. What started as a passion driven idea quickly evolved into one of his fastest growing ventures, outpacing the trajectory of his previous businesses.</p><p>While studying Microbiology at Lead City University, Qudus sharpened his analytical mindset. He further strengthened his strategic thinking as a certified data analyst and gained recognition from the University of Ibadan Business School, where he received an Award of Honor. Today, HairLux stands as a structured, multibranch beauty brand generating millions in monthly revenue and employing more than 50 staff. The business continues to expand rapidly, supported by strategic partnerships, including collaborations with Justrite and hospitality establishments.</p><p>Yet, what truly defines Qudus is not just what he has built, but how he builds. He approaches business as a system, not a gamble. He understands people, structure, and scale. He builds with continuity in mind, creating ventures that can operate, grow, and outlive his direct involvement. HairLux, in many ways, is just one chapter. At the center of his journey is a clear and unwavering drive: to build an empire across industries, one that is resilient, scalable, and enduring. His ventures may differ in form, but they are united by a single philosophy: intentional growth, disciplined execution, and longterm vision. The results so far speak quietly, but convincingly. And the trajectory is only pointing in one direction.</p>'
+            bio: '<p>Qudus Jimoh’s journey into business did not begin with HairLux. By the time the brand was conceived, he had already spent years navigating different industries, learning firsthand what it takes to build, sustain, and scale. His entrepreneurial path started early, even before attending Lead City University. Armed with a diploma at a young age and shaped by early exposure to trade through his mother, Qudus stepped into business with clarity and intent. One of his earliest ventures was a laundry and dry cleaning business, which he built from scratch and managed for over three years. When he eventually relocated, he handed the business over, and it remains operational to this day: a quiet testament to the strength of what he built.</p><p>But Qudus was never interested in staying within one lane. That drive to do what others have not done finds its clearest expression in the HairLux Mobile Salon and Spa, a concept he describes not just as a business, but as a personal milestone. As one of the first of its kind in Nigeria, the mobile unit represents more than innovation; it reflects a long standing desire to break new ground. For Qudus, building HairLux is deeply fulfilling. It is the realization of a vision he has carried for years: to create something original, something bold, and something that sets a new standard for the industry. That sense of excitement is not just personal; it is embedded in the experience the brand delivers.</p><p>Over the years, he expanded his footprint across multiple sectors, including oil and gas, real estate, transportation, automobile trading, and petroleum product sourcing. Each venture added a new layer of experience, from operations and logistics to customer management and capital flow. These weren’t experiments; they were building blocks. Although his entrepreneurial journey spans close to a decade, the last four years have marked a significant shift, where experience met clarity, and results began to compound more visibly. HairLux emerged in December 2022, not as a first attempt, but as a refined expression of everything he had learned. What started as a passion driven idea quickly evolved into one of his fastest growing ventures, outpacing the trajectory of his previous businesses.</p><p>While studying Microbiology at Lead City University, Qudus sharpened his analytical mindset. He further strengthened his strategic thinking as a certified data analyst and gained recognition from the University of Ibadan Business School, where he received an Award of Honor. Today, HairLux stands as a structured, multibranch beauty brand generating millions in monthly revenue and employing more than 50 staff. The business continues to expand rapidly, supported by strategic partnerships, including collaborations with Justrite and hospitality establishments.</p><p>Yet, what truly defines Qudus is not just what he has built, but how he builds. He approaches business as a system, not a gamble. He understands people, structure, and scale. He builds with continuity in mind, creating ventures that can operate, grow, and outlive his direct involvement. HairLux, in many ways, is just one chapter. At the center of his journey is a clear and unwavering drive: to build an empire across industries, one that is resilient, scalable, and enduring. His ventures may differ in form, but they are united by a single philosophy: intentional growth, disciplined execution, and longterm vision. The results so far speak quietly, but convincingly. And the trajectory is only pointing in one direction.</p>'
           },
           {
             name: 'Ayodeji Alex Oyedare',
