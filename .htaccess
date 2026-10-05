@@ -9,6 +9,9 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*[^/])$ $1/index.html [L]
 
+# 3. The app page moved from /waitlist.html to /app.html (query string kept)
+RewriteRule ^waitlist\.html$ /app.html [R=301,L]
+
 DirectoryIndex index.html index.htm
 
 # ── PWA ────────────────────────────────────────────────────────────
