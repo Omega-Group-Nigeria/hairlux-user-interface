@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Careers — Hairlux Salon & Spa</title>
+  <title>Careers | Hairlux Salon & Spa</title>
   <meta
     content="Hairlux Salon & Spa delivers premium hair, beauty, and wellness services straight to your location. Book a luxury mobile spa experience today."
     name="description" />
@@ -84,7 +84,7 @@
         <a href="about.html" class="nav-link w-nav-link">About Us</a>
         <a href="careers.html" aria-current="page" class="nav-link w-nav-link w--current">Careers</a>
         <a href="contact.html" class="nav-link w-nav-link">Contact Us</a>
-        <a href="../app.html" class="nav-link w-nav-link">App</a>
+        <a href="../mobile-apps.html" class="nav-link w-nav-link">Mobile Apps</a>
         <a href="https://academy.hairlux.com.ng" class="nav-link w-nav-link" target="_blank" rel="noopener">Academy</a>
         <a href="log-in.html" class="button-nav w-inline-block login-nav-mobile">
           <div>Login/Signup</div>
@@ -434,6 +434,120 @@
     .job-view-btn:hover {
       color: #6B551F;
     }
+
+    /* ── Featured static role: Beautician (links to beautician-app.html) ── */
+    .featured-job {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin: 0 0 40px;
+      padding: 28px 32px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #415326 0%, #2f3d1b 100%);
+      color: #fff;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(65, 83, 38, .22);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+    .featured-job::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: #9d8248;
+      opacity: .25;
+      pointer-events: none;
+    }
+
+    .featured-job:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 24px 48px rgba(65, 83, 38, .3);
+    }
+
+    .featured-job-main {
+      flex: 1 1 360px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .featured-job-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .featured-job-badge {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 100px;
+      background: rgba(255, 255, 255, .14);
+      color: #fff;
+    }
+
+    .featured-job-badge--gold {
+      background: #c9a874;
+      color: #1f1a10;
+    }
+
+    .featured-job-title {
+      font-family: "Merriweather", serif;
+      font-size: clamp(20px, 3vw, 26px);
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 0 0 8px;
+      color: #fff;
+    }
+
+    .featured-job-desc {
+      font-size: 14px;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, .82);
+      margin: 0 0 10px;
+      max-width: 560px;
+    }
+
+    .featured-job-meta {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: rgba(255, 255, 255, .7);
+    }
+
+    .featured-job-cta {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: 100px;
+      background: #fff;
+      color: #2f3d1b;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .featured-job:hover .featured-job-cta svg { transform: translateX(3px); }
+    .featured-job-cta svg { transition: transform .2s; }
+
+    @media (max-width: 600px) {
+      .featured-job { padding: 24px 20px; gap: 18px; }
+      .featured-job-cta { width: 100%; justify-content: center; }
+    }
+
+    [data-theme="dark"] .featured-job { box-shadow: none; }
 
     .jobs-empty,
     .jobs-loading {
@@ -1327,7 +1441,7 @@
           build a rewarding career with us. If you're passionate about excellence, innovation, and continuous growth,
           we'd love to
           welcome you to our team.</p>
-        <div class="jobs-stats-pill"><span id="jobsCountStat">—</span>&nbsp;open roles <span class="dot"></span> 3
+        <div class="jobs-stats-pill"><span id="jobsCountStat">-</span>&nbsp;open roles <span class="dot"></span> 3
           branches</div>
         <br>
         <button type="button" class="track-app-link" id="openTrackAppBtn">Already applied? Track your application
@@ -1356,7 +1470,25 @@
           </div>
         </div>
 
-        <p class="jobs-gallery-label">Scroll to browse — hover or tap a card</p>
+        <!-- Featured role: static, hard coded. Opens the Beautician app landing page. -->
+        <a href="beautician-app.html?utm_source=careers_page" class="featured-job" id="featuredBeauticianJob">
+          <div class="featured-job-main">
+            <div class="featured-job-badges">
+              <span class="featured-job-badge featured-job-badge--gold">Featured</span>
+              <span class="featured-job-badge">Freelance</span>
+              <span class="featured-job-badge">Flexible hours</span>
+            </div>
+            <h2 class="featured-job-title">Beautician &amp; Stylist (Home Service)</h2>
+            <p class="featured-job-desc">Are you skilled in hair, nails, makeup, lashes or skincare? Take bookings from Hairlux customers on the Hairlux Beautician app, work the hours you choose and get paid through the app.</p>
+            <p class="featured-job-meta">Ibadan · Oyo · Ife &nbsp;|&nbsp; Apply through the app</p>
+          </div>
+          <span class="featured-job-cta">
+            Get the Beautician app
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+        </a>
+
+        <p class="jobs-gallery-label">Scroll to browse: hover or tap a card</p>
 
         <div class="jobs-list" id="jobsList">
           <div class="jobs-loading" id="jobsLoading">Loading open vacancies…</div>
@@ -1387,7 +1519,7 @@
   <div class="job-modal-overlay" id="applyModal" role="dialog" aria-modal="true">
     <div class="job-modal app-modal">
       <div class="job-modal-top-bar app-modal-top-bar">
-        <div class="app-modal-role" id="applyRoleLabel">Senior Hair Stylist — Academy Branch</div>
+        <div class="app-modal-role" id="applyRoleLabel">Senior Hair Stylist: Academy Branch</div>
         <button class="job-modal-close-btn" id="applyModalClose" aria-label="Close">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1416,13 +1548,13 @@
           </div>
         </div>
 
-        <!-- STEP 1 — NIN Verification -->
+        <!-- STEP 1: NIN Verification -->
         <div class="apply-step" data-apply-step="1">
           <div class="app-card">
             <div class="app-card-header">
               <div>
                 <div class="app-card-title">Verify Your Identity</div>
-                <div class="app-card-sub">Step 1 of 3 — Enter your details exactly as they appear on your NIN slip</div>
+                <div class="app-card-sub">Step 1 of 3: Enter your details exactly as they appear on your NIN slip</div>
               </div>
               <span class="app-step-badge">Step 1</span>
             </div>
@@ -1459,7 +1591,7 @@
 
               <div class="app-error" id="apply-nin-error">Please enter your 11-digit NIN, first name, and last name
                 exactly as they appear on your NIN slip.</div>
-              <div class="app-success-line" id="apply-nin-status">✓ Verified — bio data retrieved from NIMC. Review and
+              <div class="app-success-line" id="apply-nin-status">✓ Verified: bio data retrieved from NIMC. Review and
                 edit any field below.</div>
 
               <div class="app-bio-fields" id="apply-bio-fields">
@@ -1486,7 +1618,7 @@
                       class="app-req">*</span></label><input type="email" class="app-input" id="bio-email"
                     placeholder="you@email.com"></div>
                 <div class="app-helper">Name, Date of Birth, and Gender are locked to your verified NIN record. Phone
-                  Number and Residential Address were retrieved from the NIN verification service — edit either before
+                  Number and Residential Address were retrieved from the NIN verification service: edit either before
                   continuing.</div>
               </div>
             </div>
@@ -1497,13 +1629,13 @@
           </div>
         </div>
 
-        <!-- STEP 2 — Experience & CV -->
+        <!-- STEP 2: Experience & CV -->
         <div class="apply-step" data-apply-step="2" style="display:none;">
           <div class="app-card">
             <div class="app-card-header">
               <div>
                 <div class="app-card-title">Experience & Documents</div>
-                <div class="app-card-sub">Step 2 of 3 — Upload your CV and tell us about your experience</div>
+                <div class="app-card-sub">Step 2 of 3: Upload your CV and tell us about your experience</div>
               </div>
               <span class="app-step-badge">Step 2</span>
             </div>
@@ -1555,13 +1687,13 @@
           </div>
         </div>
 
-        <!-- STEP 3 — Review & Submit -->
+        <!-- STEP 3: Review & Submit -->
         <div class="apply-step" data-apply-step="3" style="display:none;">
           <div class="app-card">
             <div class="app-card-header">
               <div>
                 <div class="app-card-title">Review Your Application</div>
-                <div class="app-card-sub">Step 3 of 3 — confirm your details before submitting</div>
+                <div class="app-card-sub">Step 3 of 3: confirm your details before submitting</div>
               </div>
               <span class="app-step-badge">Step 3</span>
             </div>
@@ -1704,7 +1836,7 @@
 
       var typeLabels = { FULL_TIME: 'Full-Time', PART_TIME: 'Part-Time', CONTRACT: 'Contract', FREELANCE: 'Freelance' };
 
-      var renderedJobs = [];   // jobs currently on screen (post search+filter) — used for modal index lookup
+      var renderedJobs = [];   // jobs currently on screen (post search+filter): used for modal index lookup
       var masterJobs = [];   // full result set for the active type filter, before search is applied
       var searchTerm = '';
 
@@ -1712,7 +1844,7 @@
       var CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
       function formatDate(iso) {
-        if (!iso) return '—';
+        if (!iso) return '-';
         return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       }
 
@@ -1795,7 +1927,7 @@
 
           '<div class="job-modal-info-row">' +
           '<div><div class="job-modal-info-label">Employment Type</div><div class="job-modal-info-value">' + (typeLabels[job.type] || job.type) + '</div></div>' +
-          '<div><div class="job-modal-info-label">Location</div><div class="job-modal-info-value">' + (job.location || '—') + '</div></div>' +
+          '<div><div class="job-modal-info-label">Location</div><div class="job-modal-info-value">' + (job.location || '-') + '</div></div>' +
           '<div><div class="job-modal-info-label">Applications Close</div><div class="job-modal-info-value">' + formatDate(job.closingDate) + '</div></div>' +
           '</div>' +
 
@@ -1855,7 +1987,7 @@
           .catch(function () {
             // Leave the loading placeholder in place rather than silently
             // reverting to the old hardcoded/mismatched branch names.
-            select.innerHTML = '<option value="" selected disabled>Could not load branches — try refreshing</option><option value="">No Preference</option>';
+            select.innerHTML = '<option value="" selected disabled>Could not load branches: try refreshing</option><option value="">No Preference</option>';
           });
       }
 
@@ -1918,7 +2050,7 @@
     })();
 
     /* ══════════════════════════════════════════════════════════
-       APPLICATION WIZARD — NIN lookup → editable bio → experience → review
+       APPLICATION WIZARD: NIN lookup → editable bio → experience → review
        (mocked for now; swap verifyApplicantNIN()'s setTimeout for a real
         fetch to the NIMC verification endpoint once the backend is ready,
         and wire submitApplication() to the real applications API)
@@ -1931,7 +2063,7 @@
         currentJob = job || null;
         var label = document.getElementById('applyRoleLabel');
         label.textContent = currentJob
-          ? currentJob.title + (currentJob.location ? ' — ' + currentJob.location : '')
+          ? currentJob.title + (currentJob.location ? ': ' + currentJob.location : '')
           : 'Application Form';
 
         resetApplyWizard();
@@ -1985,7 +2117,7 @@
         goApplyStep(1);
       };
 
-      // ── CV upload — validates then uploads immediately on selection,
+      // ── CV upload: validates then uploads immediately on selection,
       // ahead of final submit, so the applicant sees success/failure right
       // away rather than discovering a problem at the very end. ──
       var CV_MAX_BYTES = 5 * 1024 * 1024;
@@ -2005,7 +2137,7 @@
           return;
         }
         if (file.size > CV_MAX_BYTES) {
-          errorEl.textContent = 'File is too large — max 5MB.';
+          errorEl.textContent = 'File is too large: max 5MB.';
           errorEl.classList.add('show');
           e.target.value = '';
           return;
@@ -2102,7 +2234,7 @@
               btn.textContent = '✓ Verified';
               btn.disabled = true; // re-enable via resetApplyWizard() / editing NIN, not by re-clicking
             } else {
-              // Distinct messaging per failure reason — a mismatch is a
+              // Distinct messaging per failure reason: a mismatch is a
               // different problem for the applicant than "NIN not found"
               // or the service being temporarily down.
               var reason = (res.data && res.data.reason) || 'VERIFICATION_UNAVAILABLE';
@@ -2145,11 +2277,11 @@
       function branchLabel() {
         var sel = document.getElementById('exp-branch');
         var opt = sel && sel.options[sel.selectedIndex];
-        return (opt && opt.textContent) ? opt.textContent : '—';
+        return (opt && opt.textContent) ? opt.textContent : '-';
       }
 
       function populateApplyReview() {
-        var val = function (id) { var el = document.getElementById(id); return (el && el.value) ? el.value : '—'; };
+        var val = function (id) { var el = document.getElementById(id); return (el && el.value) ? el.value : '-'; };
         var body = document.getElementById('apply-review-body');
         body.innerHTML =
           '<div class="app-review-row">' +
@@ -2229,7 +2361,7 @@
             return (opt && opt.value) ? opt.text : undefined;
           })(),
           cvUrl: uploadedCvKey || undefined,
-          // portfolioUrl still omitted — no upload UI for it yet.
+          // portfolioUrl still omitted: no upload UI for it yet.
         };
 
         fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.APPLICATIONS, {
@@ -2248,7 +2380,7 @@
               document.getElementById('applyStepper').style.display = 'none';
 
               document.getElementById('apply-confirm-email').textContent = application.email || getVal('bio-email');
-              document.getElementById('apply-ref-number').textContent = application.applicationCode || '—';
+              document.getElementById('apply-ref-number').textContent = application.applicationCode || '-';
               document.getElementById('apply-confirmation').classList.add('show');
             } else {
               var message = (res.data && res.data.message) ||
@@ -2269,7 +2401,7 @@
     })();
   </script>
 
-  <!-- Track Application (applicant login, ported from login.html — no
+  <!-- Track Application (applicant login, ported from login.html: no
          staff/customer toggle needed here, this page only tracks applications) -->
   <script>
     (function () {
@@ -2356,7 +2488,7 @@
           .then(function (r) { return r.json(); })
           .then(function () {
             // Backend always returns a generic success message, whether or not
-            // the code/email actually matched — don't reveal that here either.
+            // the code/email actually matched: don't reveal that here either.
             currentAppCode = code;
             currentEmail = email;
             document.getElementById('ta-email-display').textContent = email;

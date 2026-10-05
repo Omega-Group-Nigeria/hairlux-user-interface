@@ -3,12 +3,12 @@
       // ── Helpers ──────────────────────────────────────────────────
       const fmtNaira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const fmtDate  = (iso) => {
-        if (!iso) return '—';
+        if (!iso) return '-';
         const d = new Date(iso);
         return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
       };
       const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      const fmtDayMonth = (day, month) => (day && month) ? `${day} ${MONTH_NAMES[month - 1]}` : '—';
+      const fmtDayMonth = (day, month) => (day && month) ? `${day} ${MONTH_NAMES[month - 1]}` : '-';
 
       const toast = (msg, type = 'success') => {
         if (typeof UIHelper !== 'undefined') UIHelper.showToast(msg, type);
@@ -45,7 +45,7 @@
             document.getElementById('progressNote').textContent =
               p.spendNeededForNextTier > 0
                 ? `Spend ${fmtNaira(p.spendNeededForNextTier)} more within the qualifying period to reach ${p.nextTier.name}.`
-                : `You qualify for ${p.nextTier.name} — it will apply on your next review.`;
+                : `You qualify for ${p.nextTier.name}: it will apply on your next review.`;
           } else {
             progressWrap.style.display = 'none';
           }
@@ -163,7 +163,7 @@
           badge.textContent = total;
 
           if (!items.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No reward activity yet — book a service to start earning! 💰</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No reward activity yet: book a service to start earning! 💰</td></tr>';
             pagEl.style.display = 'none';
             return;
           }
@@ -186,7 +186,7 @@
                 <td><span class="rwd-reward-kind">${isPoints ? 'Points' : 'Cashback'}</span></td>
                 <td><span class="rwd-amount ${amountNum >= 0 ? 'positive' : 'negative'}">${amountStr}</span></td>
                 <td>${balanceStr}</td>
-                <td>${item.reason || '—'}</td>
+                <td>${item.reason || '-'}</td>
               </tr>`;
           }).join('');
 

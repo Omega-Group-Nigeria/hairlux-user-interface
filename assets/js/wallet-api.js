@@ -357,7 +357,7 @@
         if (els.loading) els.loading.style.display = 'none';
         if (!account || !account.accountNumber) {
           if (els.error) {
-            els.error.textContent = 'Could not set up a dedicated account right now — please try again shortly.';
+            els.error.textContent = 'Could not set up a dedicated account right now: please try again shortly.';
             els.error.style.display = '';
           }
           return;

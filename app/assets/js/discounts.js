@@ -2,7 +2,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const fmt     = (n) => '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const fmtDate = (iso) => {
-        if (!iso) return '—';
+        if (!iso) return '-';
         const d = new Date(iso);
         return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
       };
@@ -28,8 +28,8 @@
         const profile = await InfluencerAPI.getProfile();
         const user = profile.user || {};
         document.getElementById('inflName').textContent =
-          [user.firstName, user.lastName].filter(Boolean).join(' ') || '—';
-        document.getElementById('inflEmail').textContent = user.email || '—';
+          [user.firstName, user.lastName].filter(Boolean).join(' ') || '-';
+        document.getElementById('inflEmail').textContent = user.email || '-';
         document.getElementById('statTotalEarned').textContent =
           profile.totalEarned != null ? fmt(profile.totalEarned) : '₦0.00';
         document.getElementById('statWalletBalance').textContent =
@@ -50,7 +50,7 @@
         badge.textContent = codes.length;
 
         if (!codes.length) {
-          container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No discount codes yet — check back soon! 🎟️</div>';
+          container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No discount codes yet: check back soon! 🎟️</div>';
         } else {
           container.innerHTML = codes.map(c => {
             const isActive = c.isActive !== false;
@@ -106,7 +106,7 @@
           badge.textContent = total;
 
           if (!rewards.length) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No rewards yet — share your codes to start earning! 💰</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No rewards yet: share your codes to start earning! 💰</td></tr>';
             pagEl.style.display = 'none';
             return;
           }
@@ -114,12 +114,12 @@
           tbody.innerHTML = rewards.map(r => {
             const usage = r.usage || {};
             const dc    = usage.discountCode || {};
-            const codeName  = dc.code || '—';
-            const discAmt   = usage.discountAmount != null ? fmt(usage.discountAmount) : '—';
+            const codeName  = dc.code || '-';
+            const discAmt   = usage.discountAmount != null ? fmt(usage.discountAmount) : '-';
             const reward    = Number(r.rewardAmount || 0);
             const rewardStr = reward > 0
               ? `<span class="reward-amount">${fmt(reward)}</span>`
-              : `<span class="reward-amount zero">—</span>`;
+              : `<span class="reward-amount zero">-</span>`;
             return `
               <tr>
                 <td>

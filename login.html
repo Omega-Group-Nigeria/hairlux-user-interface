@@ -395,7 +395,7 @@
         <a href="about.html" class="nav-link w-nav-link">About Us</a>
         <a href="careers.html" class="nav-link w-nav-link">Careers</a>
         <a href="contact.html" class="nav-link w-nav-link">Contact Us</a>
-        <a href="../app.html" class="nav-link w-nav-link">App</a>
+        <a href="../mobile-apps.html" class="nav-link w-nav-link">Mobile Apps</a>
         <a href="log-in.html" class="button-nav w-inline-block login-nav-mobile">
           <div>Login/Signup</div>
         </a>
@@ -626,7 +626,7 @@
           .then(function (r) { return r.json(); })
           .then(function () {
             // Backend always returns a generic success message, whether or not
-            // the code/email actually matched — don't reveal that here either.
+            // the code/email actually matched: don't reveal that here either.
             currentAppCode = code;
             currentEmail = email;
             document.getElementById('hl-app-email-display').textContent = email;

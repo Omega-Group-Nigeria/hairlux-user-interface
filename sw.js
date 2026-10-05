@@ -1,11 +1,11 @@
-/* Hairlux customer site — service worker.
+/* Hairlux customer site: service worker.
  *
  * Strategy
  *  - Pages (navigations): network first, so customers always get the latest
  *    site; falls back to the last cached copy, then to offline.html.
  *  - Our own CSS/JS: network first (with a short timeout), so a deploy never
  *    pairs new HTML with stale scripts; cached copy used offline / on slow networks.
- *  - Images, fonts and CDN libraries: stale-while-revalidate — instant loads,
+ *  - Images, fonts and CDN libraries: stale-while-revalidate: instant loads,
  *    refreshed in the background.
  *  - The Hairlux API, payments (Paystack) and anything else cross-origin:
  *    NEVER intercepted or cached. Bookings, wallet balances and payments

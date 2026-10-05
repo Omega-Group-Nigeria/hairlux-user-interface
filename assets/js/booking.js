@@ -22,7 +22,7 @@
   const params = new URLSearchParams(window.location.search);
 
   const allSelectedServices = (() => {
-    // 1. sessionStorage (primary — written by services.html on Continue click)
+    // 1. sessionStorage (primary: written by services.html on Continue click)
     try {
       const stored = JSON.parse(sessionStorage.getItem('selectedServices') || 'null');
       if (Array.isArray(stored) && stored.length > 0) return stored;
@@ -60,13 +60,13 @@
   }
 
   function getSelectedModeFromService(service) {
-    // Website is walk-in only — mobile/home-service booking moved to the app.
+    // Website is walk-in only: mobile/home-service booking moved to the app.
     if (service && typeof service === 'object' && isServiceModeAvailable(service, 'WALK_IN')) return 'WALK_IN';
     return '';
   }
 
   function hasAnyMobileService() {
-    // Website is walk-in only — mobile/home-service moved to the app.
+    // Website is walk-in only: mobile/home-service moved to the app.
     return false;
   }
 
@@ -77,7 +77,7 @@
   }
 
   function getBookingTypePresentation() {
-    // Website is walk-in only — mobile/home-service moved to the app.
+    // Website is walk-in only: mobile/home-service moved to the app.
     return {
       text: 'Walk-In (Store)',
       badgeHtml: '<span class="btype-badge walkin">🏪 Walk-In (Store)</span>'
@@ -231,7 +231,7 @@
   let walletBalance = 0;
   let bookingPaymentReference = '';
   let bookingPaymentProvider = BOOKING_GATEWAY_PROVIDER;
-  let bookingType = 'WALK_IN'; // Website is walk-in only — 'WALK_IN' | 'HOME_SERVICE' (app only)
+  let bookingType = 'WALK_IN'; // Website is walk-in only: 'WALK_IN' | 'HOME_SERVICE' (app only)
   let bookingTypeCapabilities = { home: true, walk: true };
   let activeBranchId = '';
   let branchPricingToken = 0;
@@ -361,7 +361,7 @@
   }
 
   function applyBookingTypeAvailability() {
-    // Website is walk-in only — mobile/home-service booking moved to the app.
+    // Website is walk-in only: mobile/home-service booking moved to the app.
     bookingTypeCapabilities = { home: false, walk: true };
     bookingType = 'WALK_IN';
 
@@ -943,7 +943,7 @@
     }
 
     option.textContent = address.label
-      ? address.label + ' — ' + (address.fullAddress || '')
+      ? address.label + ': ' + (address.fullAddress || '')
       : (address.fullAddress || 'Saved address');
     option.dataset.label = address.label || '';
     option.dataset.fullAddress = address.fullAddress || '';
@@ -1086,7 +1086,7 @@
     const gEmail = guestEmailEl ? guestEmailEl.value.trim() : '';
     const guestVal = bookingForSelf
       ? 'Myself'
-      : (gName ? `${escHtml(gName)}${gPhone ? ' &middot; ' + escHtml(gPhone) : ''}${gEmail ? '<br><span style="font-size:11px;color:var(--muted);font-weight:400;">' + escHtml(gEmail) + '</span>' : ''}` : '—');
+      : (gName ? `${escHtml(gName)}${gPhone ? ' &middot; ' + escHtml(gPhone) : ''}${gEmail ? '<br><span style="font-size:11px;color:var(--muted);font-weight:400;">' + escHtml(gEmail) + '</span>' : ''}` : '-');
     const payBadge = 'Wallet';
 
     reviewContainer.innerHTML = `
@@ -1237,7 +1237,7 @@
 
   function resetDateTimeFields() {
     bookingDateEl.value = '';
-    bookingTimeEl.innerHTML = '<option value="">\u2014 pick a date first \u2014</option>';
+    bookingTimeEl.innerHTML = '<option value="">pick a date first</option>';
     bookingTimeEl.disabled = false;
     timeHelperText.textContent = '';
     timeHelperText.style.color = '';
@@ -1276,7 +1276,7 @@
 
       // Check for a date-specific exception. Branch-specific wins over
       // company-wide for the same date (matching the same rule already
-      // enforced server-side at submit time) — if no branch has been
+      // enforced server-side at submit time): if no branch has been
       // selected yet, only a company-wide exception can be detected here;
       // a branch-specific one only becomes visible once a branch is
       // actually picked (see the visitBranchEl change handler below).
@@ -1298,7 +1298,7 @@
       if (dateException) {
         if (dateException.isClosed) {
           var reason = dateException.reason || 'Holiday';
-          bookingTimeEl.innerHTML = '<option value="">Closed \u2014 ' + reason + '</option>';
+          bookingTimeEl.innerHTML = '<option value="">Closed: ' + reason + '</option>';
           timeHelperText.textContent = 'No appointments available on this date.';
           timeHelperText.style.color = '#dc3545';
           return;
@@ -1356,7 +1356,7 @@
         timeHelperText.textContent = 'All slots for this date are too soon. Please pick a later date or another day.';
         timeHelperText.style.color = '#888';
       } else {
-        bookingTimeEl.innerHTML = '<option value="">\u2014 select a time \u2014</option>';
+        bookingTimeEl.innerHTML = '<option value="">select a time</option>';
         slots.forEach(function (slot) {
           var opt = document.createElement('option');
           opt.value = String(slot.h).padStart(2, '0') + ':' + String(slot.m).padStart(2, '0');
@@ -1494,7 +1494,7 @@
       modalGuestRow.style.display = 'none';
     }
 
-    // WALLET — check balance
+    // WALLET: check balance
     const lowBalance = walletBalance < total;
     modalSubtext.textContent = 'Your wallet will be charged immediately upon confirmation.';
     modalWalletRow.style.display = '';
@@ -1504,7 +1504,7 @@
     const makePaymentLabel = makePaymentBtn && makePaymentBtn.querySelector('div');
     if (lowBalance) {
       modalSubtext.textContent = `Wallet contributes ${formatMoney(walletBalance)}. Complete the ${formatMoney(shortfall)} shortfall via Monnify and we will finalize your booking automatically.`;
-      modalStatus.textContent = `Wallet balance is low — pay ${formatMoney(shortfall)} shortfall via Monnify.`;
+      modalStatus.textContent = `Wallet balance is low: pay ${formatMoney(shortfall)} shortfall via Monnify.`;
       modalStatus.style.color = '#dc3545';
       if (makePaymentLabel) {
         makePaymentLabel.textContent = 'Pay with Monnify';
@@ -1516,7 +1516,7 @@
       if (payWithPaystackBtn) payWithPaystackBtn.style.display = 'none';
     } else {
       modalSubtext.textContent = 'Your wallet will be charged immediately upon confirmation.';
-      modalStatus.textContent = 'Balance sufficient — ready to book.';
+      modalStatus.textContent = 'Balance sufficient: ready to book.';
       modalStatus.style.color = '#1f7a3f';
       if (makePaymentLabel) {
         makePaymentLabel.textContent = 'Confirm & Book';
@@ -1800,7 +1800,7 @@
       };
       badgeCodeEl.textContent = discountInfo.code;
       badgeText.textContent = discountInfo.name
-        ? discountInfo.name + ' \u2014 ' + discountInfo.percentage + '% off'
+        ? discountInfo.name + ': ' + discountInfo.percentage + '% off'
         : discountInfo.percentage + '% off';
       badgeEl.style.display = '';
       inputRow.style.display = 'none';
@@ -1907,7 +1907,7 @@
   });
 
   // Branch change: walk-in prices may vary per branch, so re-resolve pricing.
-  // Also re-check availability — a branch-specific closure/exception can
+  // Also re-check availability: a branch-specific closure/exception can
   // only be detected once we actually know which branch was picked, since
   // loadAvailableSlots runs once on page load (defaulting to today) well
   // before any branch selection happens.
@@ -2032,7 +2032,7 @@
     if (this.value) {
       loadAvailableSlots(this.value);
     } else {
-      bookingTimeEl.innerHTML = '<option value="">\u2014 pick a date first \u2014</option>';
+      bookingTimeEl.innerHTML = '<option value="">pick a date first</option>';
       bookingTimeEl.disabled = false;
       timeHelperText.textContent = '';
     }
@@ -2088,7 +2088,7 @@
           refreshSummary();
         }
         showFieldError(timeFieldError, closing.date
-          ? 'We moved your booking to ' + new Date(closing.date + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) + ' — please choose a start time.'
+          ? 'We moved your booking to ' + new Date(closing.date + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) + ': please choose a start time.'
           : 'Please choose another date and time.');
         bookingTimeEl.focus();
         return;
@@ -2161,12 +2161,12 @@
     savedAddressEl.innerHTML = '<option value="">Loading addresses\u2026</option>';
     try {
       const addresses = await BookingAPI.getAddresses();
-      savedAddressEl.innerHTML = '<option value="">\u2014 select an address \u2014</option>';
+      savedAddressEl.innerHTML = '<option value="">select an address</option>';
       addresses.forEach(function (addr) {
         const opt = document.createElement('option');
         opt.value = addr.id;
         opt.textContent = addr.label
-          ? addr.label + ' \u2014 ' + addr.fullAddress
+          ? addr.label + ': ' + addr.fullAddress
           : addr.fullAddress;
         opt.dataset.label = addr.label || '';
         opt.dataset.fullAddress = addr.fullAddress || '';

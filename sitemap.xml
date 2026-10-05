@@ -18,9 +18,14 @@
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://www.hairlux.com.ng/app.html</loc>
+  <loc>https://www.hairlux.com.ng/mobile-apps.html</loc>
   <lastmod>2026-10-05T05:00:00+00:00</lastmod>
   <priority>0.90</priority>
+</url>
+<url>
+  <loc>https://www.hairlux.com.ng/beautician-app.html</loc>
+  <lastmod>2026-10-05T10:00:00+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.hairlux.com.ng/about.html</loc>
