@@ -128,6 +128,8 @@ function openBookingPaymentSuccessModal(summary) {
   const amountEl = document.getElementById('bookingSuccessAmount');
 
   if (reservationEl) reservationEl.textContent = summary.reservationCode || '-';
+  // Paid for by the customer here, so it always gets a scannable barcode.
+  if (window.HairluxBarcode) HairluxBarcode.render(document.getElementById('bookingSuccessBarcode'), summary.reservationCode);
   if (serviceEl) serviceEl.textContent = summary.service || '-';
   if (dateTimeEl) dateTimeEl.textContent = summary.dateTime || '-';
   if (amountEl) amountEl.textContent = summary.amount || '-';
@@ -491,6 +493,8 @@ function _populateDashModal(bk, allNames, primaryName) {
     `<span class="booking-status ${statusCls}" style="font-size:11px;">${status.replace(/_/g, ' ')}</span>` +
     (paymentStatus ? `<span class="tx-pill payment-${paymentStatus}" style="font-size:11px;margin-left:4px;">${paymentStatus}</span>` : '');
   document.getElementById('dashBkResCode').textContent = bk.reservationCode || '-';
+  // Barcode only for bookings the customer made (not admin dashboard ones).
+  if (window.HairluxBarcode) HairluxBarcode.renderForBooking(document.getElementById('dashBkBarcode'), bk);
   document.getElementById('dashBkId').textContent = bk.id || '-';
   document.getElementById('dashBkDate').textContent = fmtBkDate(dateStr) || '-';
   document.getElementById('dashBkTime').textContent = fmtBkTime(timeStr) || '-';

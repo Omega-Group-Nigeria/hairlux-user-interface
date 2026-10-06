@@ -1431,6 +1431,8 @@
     );
 
     paidModalBookingId.textContent = reservationCode;
+    // Booked by the customer here, so it always gets a scannable barcode.
+    if (window.HairluxBarcode) HairluxBarcode.render(document.getElementById('paidModalBarcode'), reservationCode);
     paidModalService.textContent = getServiceNames();
     paidModalDateTime.textContent = `${bookingDate} at ${bookingTime}`;
     paidModalAmount.textContent = formatMoney(amountPaid);

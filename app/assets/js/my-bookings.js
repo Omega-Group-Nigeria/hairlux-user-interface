@@ -215,6 +215,8 @@
         document.getElementById('bkModalServiceName').textContent = tx.serviceName;
         document.getElementById('bkModalId').textContent          = tx.id;
         document.getElementById('bkModalResCode').textContent     = tx.reservationCode || '-';
+        // Barcode only for bookings the customer made (not admin dashboard ones).
+        if (window.HairluxBarcode) HairluxBarcode.renderForBooking(document.getElementById('bkModalBarcode'), _raw);
         document.getElementById('bkModalDate').textContent        = formatScheduleDate(tx.scheduleDate);
         document.getElementById('bkModalTime').textContent        = formatScheduleTime(tx.scheduleTime);
         document.getElementById('bkModalBookingType').textContent = formatBookingType(bookingType);
@@ -272,6 +274,7 @@
             document.getElementById('bkModalServiceName').textContent = freshNames;
             document.getElementById('bkModalId').textContent          = d.id;
             document.getElementById('bkModalResCode').textContent     = d.reservationCode || tx.reservationCode || '-';
+            if (window.HairluxBarcode) HairluxBarcode.renderForBooking(document.getElementById('bkModalBarcode'), d);
             document.getElementById('bkModalDate').textContent        = formatScheduleDate(freshDate);
             document.getElementById('bkModalTime').textContent        = formatScheduleTime(freshTime);
             document.getElementById('bkModalBookingType').textContent = formatBookingType(freshBookingType);
