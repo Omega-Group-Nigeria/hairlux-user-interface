@@ -192,6 +192,25 @@
         if (tx) openDetailModal(tx);
       });
 
+      // ── Booking confirmation PDF: reads what the detail window shows ─
+      function bkPdfDetails(status, guestName) {
+        return function () {
+          const txt = (id) => { const el = document.getElementById(id); const v = el ? el.textContent.trim() : ''; return v && v !== '-' ? v : ''; };
+          return {
+            services: txt('bkModalService2') || txt('bkModalServiceName'),
+            date: txt('bkModalDate'),
+            time: txt('bkModalTime'),
+            bookingType: txt('bkModalBookingType'),
+            locationLabel: txt('bkModalAddressLabel') || 'Location',
+            location: txt('bkModalAddress'),
+            amount: txt('bkModalAmount'),
+            paymentMethod: txt('bkModalPayMethod'),
+            status: String(status || '').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
+            guestName: guestName || ''
+          };
+        };
+      }
+
       // ── Detail modal: open / close ────────────────────────────────
       function openDetailModal(tx) {
         activeBookingId = tx.id;
@@ -215,6 +234,8 @@
         document.getElementById('bkModalServiceName').textContent = tx.serviceName;
         document.getElementById('bkModalId').textContent          = tx.id;
         document.getElementById('bkModalResCode').textContent     = tx.reservationCode || '-';
+        // Barcode (and "Download PDF") only for bookings the customer made, not admin dashboard ones.
+        if (window.HairluxBarcode) HairluxBarcode.renderForBooking(document.getElementById('bkModalBarcode'), _raw, bkPdfDetails(tx.status, _raw.guestName));
         document.getElementById('bkModalDate').textContent        = formatScheduleDate(tx.scheduleDate);
         document.getElementById('bkModalTime').textContent        = formatScheduleTime(tx.scheduleTime);
         document.getElementById('bkModalBookingType').textContent = formatBookingType(bookingType);
@@ -272,6 +293,7 @@
             document.getElementById('bkModalServiceName').textContent = freshNames;
             document.getElementById('bkModalId').textContent          = d.id;
             document.getElementById('bkModalResCode').textContent     = d.reservationCode || tx.reservationCode || '-';
+            if (window.HairluxBarcode) HairluxBarcode.renderForBooking(document.getElementById('bkModalBarcode'), d, bkPdfDetails(freshStatus, d.guestName));
             document.getElementById('bkModalDate').textContent        = formatScheduleDate(freshDate);
             document.getElementById('bkModalTime').textContent        = formatScheduleTime(freshTime);
             document.getElementById('bkModalBookingType').textContent = formatBookingType(freshBookingType);

@@ -7682,12 +7682,17 @@ figcaption {
   mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
 }
 
+/* One review fills the whole carousel width and the strip keeps gliding,
+   so as one review is leaving the screen the next is already coming in.
+   --review-w is the carousel's own width (set by JS in index.html, the
+   fallback covers the first paint), and the animation duration is set
+   per review by the same script so the pace stays the same however many
+   reviews there are. Spacing is a margin on each card rather than a flex
+   gap so that -50% is exactly one set and the loop has no jump. */
 .reviews-track {
   display: flex;
   flex-flow: row;
   width: max-content;
-  grid-column-gap: 16px;
-  grid-row-gap: 16px;
   animation: reviews-scroll 45s linear infinite;
 }
 
@@ -7697,8 +7702,12 @@ figcaption {
 }
 
 .reviews-track .inner-container.quote {
-  width: 380px;
+  width: var(--review-w, calc(100vw - 48px));
   flex: 0 0 auto;
+  margin-right: 16px;
+  padding-left: 1.5em;
+  padding-right: 1.5em;
+  box-sizing: border-box;
 }
 
 @keyframes reviews-scroll {
