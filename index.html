@@ -1104,7 +1104,8 @@
        clone aria-hidden, since it's a purely visual duplicate for the
        looping animation, not new content) so the CSS animation in
        style-main.css can translate exactly -50% and loop with no visible
-       jump. Pausing on hover/focus is handled entirely in CSS. -->
+       jump. Pausing on hover/focus is handled entirely in CSS. Each card
+       is sized to the carousel's width so one review fills the screen. -->
   <script>
     (function () {
       var track = document.getElementById('reviews-track');
@@ -1115,6 +1116,24 @@
         var clone = card.cloneNode(true);
         clone.setAttribute('aria-hidden', 'true');
         track.appendChild(clone);
+      });
+
+      // Each review is as wide as the carousel itself (one review per
+      // screen), and the strip moves at a steady pace of SECONDS_PER_REVIEW
+      // for each review, so a new one is always sliding in as the last
+      // one slides out. Re-measured on resize / rotation.
+      var SECONDS_PER_REVIEW = 9;
+      var carousel = track.parentElement;
+      function sizeReviews() {
+        var w = carousel.clientWidth;
+        if (w) carousel.style.setProperty('--review-w', w + 'px');
+      }
+      sizeReviews();
+      track.style.animationDuration = (originalCards.length * SECONDS_PER_REVIEW) + 's';
+      var resizeTimer;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(sizeReviews, 150);
       });
     })();
   </script>
