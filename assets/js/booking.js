@@ -1431,8 +1431,26 @@
     );
 
     paidModalBookingId.textContent = reservationCode;
-    // Booked by the customer here, so it always gets a scannable barcode.
-    if (window.HairluxBarcode) HairluxBarcode.render(document.getElementById('paidModalBarcode'), reservationCode);
+    // Booked by the customer here, so it always gets a scannable barcode,
+    // plus a "Download PDF" button. Details are captured now, before the
+    // booking form is cleared below.
+    let pdfLocation = '';
+    try {
+      const addr = hasAnyMobileService() ? getSelectedAddress() : null;
+      pdfLocation = addr ? (addr.fullAddress || addr.streetAddress || '') : getSelectedBranchName();
+    } catch (e) { pdfLocation = ''; }
+    const pdfDetails = {
+      services: getServiceNames(),
+      date: bookingDate,
+      time: bookingTime,
+      bookingType: getBookingTypePresentation().text,
+      locationLabel: hasAnyMobileService() ? 'Address' : 'Branch',
+      location: pdfLocation,
+      amount: formatMoney(amountPaid),
+      status: 'Confirmed',
+      guestName: (!bookingForSelf && guestNameEl && guestNameEl.value.trim()) || ''
+    };
+    if (window.HairluxBarcode) HairluxBarcode.render(document.getElementById('paidModalBarcode'), reservationCode, pdfDetails);
     paidModalService.textContent = getServiceNames();
     paidModalDateTime.textContent = `${bookingDate} at ${bookingTime}`;
     paidModalAmount.textContent = formatMoney(amountPaid);
