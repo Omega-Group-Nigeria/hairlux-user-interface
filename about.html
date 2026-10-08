@@ -122,9 +122,37 @@
   </div>
 
   <style>
+    /* About banner: portrait photo (1024x1280) in a full-screen hero.
+       Framed on his face and the Omega sign; on wider screens the title
+       card moves to the left so it no longer covers his face. */
     .full-image-about {
-      background-image: url("assets/img/beauty/7.webp");
+      background-image: url("assets/img/jimoh-about.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: 50% 18%;
+      background-color: #2a1d12;
     }
+
+    @media (min-width: 992px) {
+      .full-image-about {
+        background-position: 50% 20%;
+      }
+
+      .full-image-about .container-m {
+        align-items: flex-start;
+      }
+
+      .full-image-about .inner-heading {
+        max-width: 520px;
+        padding-left: 32px;
+        padding-right: 32px;
+      }
+
+      .full-image-about .h-xl {
+        font-size: 4em;
+      }
+    }
+
   </style>
   <div class="page-wrapper">
     <section class="section">

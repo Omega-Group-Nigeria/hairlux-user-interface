@@ -483,7 +483,7 @@
     }
 
     .wl-steps-inner {
-      max-width: 860px;
+      max-width: 1120px;
       margin: 0 auto;
     }
 
@@ -506,12 +506,12 @@
       color: #0f0f0f;
       text-align: center;
       margin: 0 auto 52px;
-      max-width: 420px;
+      max-width: 640px;
     }
 
     .wl-steps-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(5, 1fr);
       gap: 0;
       position: relative;
     }
@@ -521,8 +521,8 @@
       content: "";
       position: absolute;
       top: 28px;
-      left: calc(100% / 6);
-      right: calc(100% / 6);
+      left: calc(100% / 10);
+      right: calc(100% / 10);
       height: 1.5px;
       background: linear-gradient(90deg, rgba(65,83,38,.12), rgba(65,83,38,.25), rgba(65,83,38,.12));
       z-index: 0;
@@ -556,6 +556,11 @@
       color: #415326;
     }
 
+    .wl-step-emoji {
+      font-size: 24px;
+      line-height: 1;
+    }
+
     .wl-step-name {
       font-family: 'Bdogrotesk Vf', sans-serif;
       font-size: 1.05rem;
@@ -574,6 +579,25 @@
     }
 
     /* ── Responsive ── */
+    /* Tablet: five steps don't fit in one row, so wrap and drop the connecting line. */
+    @media (max-width: 960px) and (min-width: 641px) {
+      .wl-steps-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        row-gap: 44px;
+      }
+
+      .wl-steps-grid::before {
+        display: none;
+      }
+
+      .wl-step {
+        flex: 0 0 33.333%;
+        box-sizing: border-box;
+      }
+    }
+
     @media (max-width: 640px) {
       .wl-hero {
         padding: 80px 20px 44px;
@@ -906,48 +930,51 @@
     <section class="wl-steps-section">
       <div class="wl-steps-inner">
         <span class="wl-steps-label">How it works</span>
-        <h2 class="wl-steps-title">Luxury at your door in three steps.</h2>
+        <h2 class="wl-steps-title">Beauty, wellness, shopping and learning in one app.</h2>
         <div class="wl-steps-grid">
 
           <!-- Step 1 -->
           <div class="wl-step">
-            <div class="wl-step-num">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-            </div>
+            <div class="wl-step-num"><span class="wl-step-emoji" aria-hidden="true">📲</span></div>
             <div>
-              <p class="wl-step-name">Download</p>
-              <p class="wl-step-desc">Install Hairlux and pick exactly what you need: from hair to full spa.</p>
+              <p class="wl-step-name">Download the App</p>
+              <p class="wl-step-desc">Download Hairlux and access beauty, wellness, shopping and learning all in one place.</p>
             </div>
           </div>
 
           <!-- Step 2 -->
           <div class="wl-step">
-            <div class="wl-step-num">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-            </div>
+            <div class="wl-step-num"><span class="wl-step-emoji" aria-hidden="true">🏢</span></div>
             <div>
-              <p class="wl-step-name">Book</p>
-              <p class="wl-step-desc">Choose a date and time that fits your schedule. Flexible, always.</p>
+              <p class="wl-step-name">Book a Service</p>
+              <p class="wl-step-desc">Book at a Hairlux location, partner location, or your preferred location whichever works best for you.</p>
             </div>
           </div>
 
           <!-- Step 3 -->
           <div class="wl-step">
-            <div class="wl-step-num">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 8v4l3 3"/>
-              </svg>
-            </div>
+            <div class="wl-step-num"><span class="wl-step-emoji" aria-hidden="true">🏡</span></div>
             <div>
-              <p class="wl-step-name">It comes to you</p>
-              <p class="wl-step-desc">Your stylist arrives at your door: fully equipped. Relax and enjoy.</p>
+              <p class="wl-step-name">Hairlux Mobile</p>
+              <p class="wl-step-desc">Want us to come to you? Choose your service, location, date and time, and a verified professional comes to you.</p>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="wl-step">
+            <div class="wl-step-num"><span class="wl-step-emoji" aria-hidden="true">🛍️</span></div>
+            <div>
+              <p class="wl-step-name">Shop Beauty</p>
+              <p class="wl-step-desc">Shop hair, beauty, wellness and personal care products directly through Hairlux.</p>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="wl-step">
+            <div class="wl-step-num"><span class="wl-step-emoji" aria-hidden="true">🎓</span></div>
+            <div>
+              <p class="wl-step-name">Hairlux Academy</p>
+              <p class="wl-step-desc">Explore available courses and follow the guide to enroll and build your beauty skills or business.</p>
             </div>
           </div>
 
