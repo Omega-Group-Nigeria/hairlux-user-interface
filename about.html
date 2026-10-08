@@ -122,9 +122,37 @@
   </div>
 
   <style>
+    /* About banner: portrait photo (1024x1280) in a full-screen hero.
+       Framed on his face and the Omega sign; on wider screens the title
+       card moves to the left so it no longer covers his face. */
     .full-image-about {
-      background-image: url("assets/img/beauty/7.webp");
+      background-image: url("assets/img/jimoh-about.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: 50% 18%;
+      background-color: #2a1d12;
     }
+
+    @media (min-width: 992px) {
+      .full-image-about {
+        background-position: 50% 20%;
+      }
+
+      .full-image-about .container-m {
+        align-items: flex-start;
+      }
+
+      .full-image-about .inner-heading {
+        max-width: 520px;
+        padding-left: 32px;
+        padding-right: 32px;
+      }
+
+      .full-image-about .h-xl {
+        font-size: 4em;
+      }
+    }
+
   </style>
   <div class="page-wrapper">
     <section class="section">
@@ -860,6 +888,7 @@
         var LINKEDIN_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>';
         var FACEBOOK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M13 22v-8h3l1-4h-4V8c0-1.16.32-1.95 1.98-1.95H17V2.42C16.66 2.37 15.48 2.25 14.1 2.25c-2.88 0-4.85 1.76-4.85 5V10H6v4h3.25v8H13z"/></svg>';
         var INSTAGRAM_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5z"/><path d="M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4z"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>';
+        var WEBSITE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
         var TWITTER_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.901 1.153h3.68l-8.036 9.187L24 22.846h-7.405l-5.8-7.584-6.637 7.584H.477l8.595-9.826L0 1.154h7.594l5.243 6.932 6.064-6.933zm-1.292 19.489h2.04L6.486 3.24H4.298l13.311 17.402z"/></svg>';
 
         var members = [
@@ -867,6 +896,7 @@
             name: 'Qudus Alao Jimoh',
             title: 'Founder & CEO',
             img: 'assets/img/team/qudus.png',
+            website: 'https://www.qudusjimoh.com/',
             linkedin: 'https://www.linkedin.com/in/qudus-jimoh',
             facebook: 'https://www.facebook.com/share/1HVfwyiguy/?mibextid=wwXIfr',
             instagram: 'https://www.instagram.com/omega_empiree?igsh=cmQ0OTBvOTZuanp4&utm_source=qr',
@@ -905,6 +935,7 @@
           var body = document.getElementById('teamModalBody');
 
           var socials =
+            socialLink(m.website, WEBSITE_ICON, 'Website') +
             socialLink(m.linkedin, LINKEDIN_ICON, 'LinkedIn') +
             socialLink(m.facebook, FACEBOOK_ICON, 'Facebook') +
             socialLink(m.instagram, INSTAGRAM_ICON, 'Instagram') +

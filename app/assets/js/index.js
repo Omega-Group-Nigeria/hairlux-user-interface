@@ -737,10 +737,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
   }
 
+  var bookingSuccessX = document.getElementById('bookingSuccessX');
+  if (bookingSuccessX) bookingSuccessX.addEventListener('click', closeBookingPaymentSuccessModal);
+
   var bookingSuccessModal = document.getElementById('bookingPaymentSuccessModal');
   if (bookingSuccessModal) {
     bookingSuccessModal.addEventListener('click', function (e) {
       if (e.target === this) closeBookingPaymentSuccessModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && bookingSuccessModal.classList.contains('show')) closeBookingPaymentSuccessModal();
     });
   }
 });

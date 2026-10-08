@@ -117,79 +117,97 @@
       pointer-events: none;
     }
 
-    /* ── Flyer modal ── */
-    .flyer-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .72);
-      backdrop-filter: blur(6px);
+    /* ── Hero: store badges ── */
+    .hero-store-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: max-content;
+      max-width: calc(100vw - 40px);
+    }
+
+    .hero-store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px 8px 12px;
+      border-radius: 12px;
+      text-decoration: none;
+      text-align: left;
+      transition: transform .12s, background .18s, border-color .18s;
+    }
+
+    .hero-store-btn:active { transform: scale(.97); }
+
+    .hero-store-btn small {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      opacity: .75;
+      line-height: 1.2;
+    }
+
+    .hero-store-btn strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      line-height: 1.2;
+    }
+
+    .hero-store-btn--live {
+      background: #0f0f0f;
+      color: #fff;
+      border: 1.5px solid #0f0f0f;
+    }
+
+    .hero-store-btn--live:hover { background: #2a2a2a; }
+
+    .hero-store-btn--soon {
+      background: rgba(255, 255, 255, .55);
+      color: #0f0f0f;
+      border: 1.5px dashed rgba(0, 0, 0, .3);
       -webkit-backdrop-filter: blur(6px);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .25s ease;
+      backdrop-filter: blur(6px);
     }
 
-    .flyer-overlay.open {
-      opacity: 1;
-      pointer-events: all;
+    .hero-store-btn--soon:hover { border-color: #9d8248; }
+
+    .hero-store-chip {
+      margin-left: auto;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #9d8248;
+      background: rgba(157, 130, 72, .12);
+      border-radius: 999px;
+      padding: 3px 7px;
+      white-space: nowrap;
     }
 
-    .flyer-card {
-      position: relative;
-      max-width: 420px;
-      width: 100%;
-      transform: scale(.92);
-      transition: transform .3s cubic-bezier(.34, 1.3, .64, 1);
+    /* Desktop / laptop: size the hero by the screen height too, so the heading,
+       text, Get started / Go to Dashboard and the store badges all fit on screen
+       (they used to fall below the fold on 768px and 720px tall laptops). */
+    @media (min-width: 992px) {
+      .hero-lp-01 .h-xxl {
+        font-size: clamp(2.8rem, min(6.2vw, 9.2vh), 7.5rem);
+      }
+
+      .hero-lp-01 .content-hero {
+        grid-row-gap: min(32px, 3.2vh);
+      }
+
+      .hero-lp-01 .content-description-hero {
+        width: 27em;
+        grid-row-gap: min(20px, 2.4vh);
+      }
     }
 
-    .flyer-overlay.open .flyer-card {
-      transform: scale(1);
-    }
-
-    .flyer-img-link {
-      display: block;
-      border-radius: 18px;
-      overflow: hidden;
-      cursor: pointer;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, .45);
-    }
-
-    .flyer-img-link img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .flyer-close {
-      position: absolute;
-      top: -14px;
-      right: -14px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #fff;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, .22);
-      color: #111;
-      transition: background .15s, transform .12s;
-      z-index: 1;
-    }
-
-    .flyer-close:hover {
-      background: #f0f0f0;
-    }
-
-    .flyer-close:active {
-      transform: scale(.92);
+    @media (max-width: 991px) {
+      .hero-store-row { justify-content: center; }
     }
 
     /* ── Dark mode ── */
@@ -216,12 +234,16 @@
       filter: invert(1);
       opacity: .85;
     }
-    [data-theme="dark"] .flyer-close {
-      background: rgba(255, 255, 255, .1);
-      color: var(--primary, #f0ede6);
+    [data-theme="dark"] .hero-store-btn--live {
+      background: #f0ede6;
+      color: #14171c;
+      border-color: #f0ede6;
     }
-    [data-theme="dark"] .flyer-close:hover {
-      background: rgba(255, 255, 255, .18);
+    [data-theme="dark"] .hero-store-btn--live:hover { background: #ffffff; }
+    [data-theme="dark"] .hero-store-btn--soon {
+      background: rgba(20, 23, 28, .55);
+      color: var(--primary, #f0ede6);
+      border-color: var(--border, #30353f);
     }
   </style>
 
@@ -333,6 +355,19 @@
                   reach.</div><a href="sign-up.html" class="button-green w-inline-block" data-auth-cta="hero">
                   <div>Get Started</div>
                 </a>
+                <!-- App store badges: Android is live; iPhone links to the App page waitlist until it is on the App Store. -->
+                <div class="hero-store-row">
+                  <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dhome_page%26utm_campaign%3Dandroid_launch%26utm_content%3Dhero_badge"
+                    class="hero-store-btn hero-store-btn--live" target="_blank" rel="noopener" aria-label="Get the Hairlux app on Google Play">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.52.85l14-8.5a1 1 0 0 0 0-1.7l-14-8.5A1 1 0 0 0 5 3.5z"/></svg>
+                    <span><small>Get it on</small><strong>Google Play</strong></span>
+                  </a>
+                  <a href="mobile-apps.html#waitlist" class="hero-store-btn hero-store-btn--soon" aria-label="Hairlux on the App Store: coming soon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.45-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-2.99-.79-1.54.02-2.96.9-3.75 2.27-1.6 2.78-.41 6.89 1.15 9.14.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.24-.02 2.02-1.12 2.77-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.39-.92-2.41-3.67zM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.02.61-2.67 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.28z"/></svg>
+                    <span><small>Download on the</small><strong>App Store</strong></span>
+                    <span class="hero-store-chip">Soon</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -1038,64 +1073,6 @@
       window.addEventListener('scroll', updatePromptVisibility, { passive: true });
       window.addEventListener('resize', updatePromptVisibility);
       updatePromptVisibility();
-    })();
-  </script>
-
-  <!-- Flyer modal -->
-  <div id="flyerModal" class="flyer-overlay" role="dialog" aria-modal="true" aria-label="Hairlux App – coming soon">
-    <div class="flyer-card">
-      <button class="flyer-close" id="flyerClose" aria-label="Close">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-      <a href="mobile-apps.html" class="flyer-img-link" id="flyerLink">
-        <img src="assets/img/flyer.jpg" alt="Hairlux App – join the waitlist" />
-      </a>
-    </div>
-  </div>
-
-  <script>
-    (function () {
-      'use strict';
-      var KEY = 'hl_flyer_visits';
-      var MAX_SHOWS = 5;
-
-      var modal = document.getElementById('flyerModal');
-      var closeBtn = document.getElementById('flyerClose');
-
-      // Count how many times the user has seen the flyer
-      var seen = parseInt(localStorage.getItem(KEY) || '0', 10);
-      if (seen < MAX_SHOWS) {
-        localStorage.setItem(KEY, String(seen + 1));
-        // Small delay so the page paints first
-        setTimeout(function () {
-          modal.classList.add('open');
-          document.body.style.overflow = 'hidden';
-        }, 600);
-      }
-
-      function closeModal() {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-      }
-
-      closeBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        closeModal();
-      });
-
-      // Backdrop click closes
-      modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-      });
-
-      // Escape key closes
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
-      });
     })();
   </script>
 

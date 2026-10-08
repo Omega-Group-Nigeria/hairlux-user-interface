@@ -1,16 +1,19 @@
-/* Hairlux customer site: booking barcode.
+/* Hairlux customer site: booking QR code.
  *
- * Draws the reservation code (e.g. HLX-A3K9) as a Code 128 barcode, so the
- * customer can either have it scanned at the front desk or read the code out.
- * Front desk scanners act like a keyboard: they type the code and press Enter
- * into the "Verify Reservation" box on the admin dashboard / staff portal.
+ * Draws the reservation code (e.g. HLX-A3K9) as a QR code, so the customer
+ * can either have it scanned at the front desk or read the code out. Front
+ * desk scanners (2D / QR capable) act like a keyboard: they type the code and
+ * press Enter into the "Verify Reservation" box on the admin dashboard /
+ * staff portal. The QR holds only the reservation code.
  *
  * Only bookings the customer made themselves (website or app, booking.source
- * === 'CUSTOMER') get a barcode. Bookings created on the admin dashboard
+ * === 'CUSTOMER') get a QR code. Bookings created on the admin dashboard
  * (source 'ADMIN') and salon / staff portal bookings never do.
  *
- * No library or network call: the SVG is generated here, so it also works
- * offline from the service worker cache.
+ * Needs assets/js/vendor/qrcode-core.min.js (window.HairluxQRCore) loaded
+ * first. No network call: the SVG and PDF are drawn here, so it also works
+ * offline from the service worker cache. (The name HairluxBarcode is kept so
+ * the pages that call it did not have to change.)
  *
  * Usage:
  *   HairluxBarcode.render(containerEl, 'HLX-A3K9');   // shows it
@@ -19,7 +22,7 @@
  *
  * Pass booking details as a third argument (an object, or a function that
  * returns one when the button is pressed) and a "Download PDF" button is
- * added under the barcode. The PDF is built here too, with no library:
+ * added under the QR code. The PDF is built here too, with no PDF library:
  *   HairluxBarcode.render(el, code, function () {
  *     return { services: '...', date: '...', time: '...', amount: '...' };
  *   });
@@ -30,23 +33,7 @@
 (function (global) {
   'use strict';
 
-  // Code 128 bar/space widths for values 0..106 (106 = STOP).
-  var PATTERNS = [
-    '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213',
-    '221312', '231212', '112232', '122132', '122231', '113222', '123122', '123221', '223211', '221132',
-    '221231', '213212', '223112', '312131', '311222', '321122', '321221', '312212', '322112', '322211',
-    '212123', '212321', '232121', '111323', '131123', '131321', '112313', '132113', '132311', '211313',
-    '231113', '231311', '112133', '112331', '132131', '113123', '113321', '133121', '313121', '211331',
-    '231131', '213113', '213311', '213131', '311123', '311321', '331121', '312113', '312311', '332111',
-    '314111', '221411', '431111', '111224', '111422', '121124', '121421', '141122', '141221', '112214',
-    '112412', '122114', '122411', '142112', '142211', '241211', '221114', '413111', '241112', '134111',
-    '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112', '421211', '212141',
-    '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311', '113141',
-    '114131', '311141', '411131', '211412', '211214', '211232', '2331112'
-  ];
-  var START_B = 104;
-  var STOP = 106;
-  var QUIET = 10; // modules of white space each side (scanner requirement)
+  var QUIET = 4; // modules of white space around the QR code (scanner requirement)
 
   var RESERVATION_CODE = /^HL[XS]-[A-Z0-9]{3,12}$/;
 
@@ -54,40 +41,33 @@
     return RESERVATION_CODE.test(String(code || '').trim().toUpperCase());
   }
 
-  /** Code 128 (set B) module widths for printable ASCII text, START to STOP. */
-  function encode(text) {
-    var values = [START_B];
-    for (var i = 0; i < text.length; i++) {
-      var v = text.charCodeAt(i) - 32;
-      if (v < 0 || v > 94) throw new Error('Unsupported character in barcode: ' + text.charAt(i));
-      values.push(v);
-    }
-    var sum = START_B;
-    for (var j = 1; j < values.length; j++) sum += values[j] * j;
-    values.push(sum % 103);
-    values.push(STOP);
-    return values.map(function (val) { return PATTERNS[val]; }).join('');
+  /**
+   * QR code modules for the text: { size, dark(row, col) }. Medium error
+   * correction, so a slightly scratched screen or print still scans.
+   */
+  function matrix(text) {
+    if (!global.HairluxQRCore) throw new Error('QR library not loaded');
+    var qr = global.HairluxQRCore.create(text, { errorCorrectionLevel: 'M' });
+    var m = qr.modules;
+    return { size: m.size, dark: function (r, c) { return !!m.get(r, c); } };
   }
 
   /** SVG markup for the code. Black on white so it scans in dark mode too. */
-  function svg(code, opts) {
-    opts = opts || {};
+  function svg(code) {
     var text = String(code || '').trim().toUpperCase();
-    var widths = encode(text);
-    var height = opts.height || 64;
-    var x = QUIET;
-    var bars = '';
-    for (var i = 0; i < widths.length; i++) {
-      var w = Number(widths.charAt(i));
-      if (i % 2 === 0) bars += '<rect x="' + x + '" y="0" width="' + w + '" height="' + height + '"/>';
-      x += w;
+    var q = matrix(text);
+    var total = q.size + QUIET * 2;
+    var path = '';
+    for (var r = 0; r < q.size; r++) {
+      for (var c = 0; c < q.size; c++) {
+        if (q.dark(r, c)) path += 'M' + (c + QUIET) + ' ' + (r + QUIET) + 'h1v1h-1z';
+      }
     }
-    var total = x + QUIET;
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + total + ' ' + height + '"' +
-      ' preserveAspectRatio="none" shape-rendering="crispEdges" role="img"' +
-      ' aria-label="Barcode for reservation code ' + text + '">' +
-      '<rect width="' + total + '" height="' + height + '" fill="#fff"/>' +
-      '<g fill="#000">' + bars + '</g></svg>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + total + ' ' + total + '"' +
+      ' shape-rendering="crispEdges" role="img"' +
+      ' aria-label="QR code for reservation code ' + text + '">' +
+      '<rect width="' + total + '" height="' + total + '" fill="#fff"/>' +
+      '<path fill="#000" d="' + path + '"/></svg>';
   }
 
   function injectStyles() {
@@ -97,7 +77,7 @@
     style.textContent =
       '.hlx-barcode{margin-top:12px;background:#fff;border:1.5px solid #e8cc94;border-radius:14px;padding:14px 16px 12px;text-align:center;}' +
       '.hlx-barcode[hidden]{display:none!important;}' +
-      '.hlx-barcode-bars svg{display:block;width:100%;max-width:300px;height:72px;margin:0 auto;}' +
+      '.hlx-barcode-bars svg{display:block;width:176px;max-width:100%;height:auto;aspect-ratio:1/1;margin:0 auto;}' +
       '.hlx-barcode-code{margin-top:6px;font-family:"IBM Plex Mono","Courier New",monospace;font-size:14px;font-weight:700;letter-spacing:.2em;color:#111;}' +
       '.hlx-barcode-hint{margin-top:4px;font-size:11px;line-height:1.4;color:#6b5a3c;}' +
       '.hlx-barcode-pdf{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 16px;border:1.5px solid #c9a872;border-radius:999px;background:transparent;color:#6b5a3c;font:600 13px/1 inherit;font-family:inherit;cursor:pointer;}' +
@@ -107,7 +87,7 @@
   }
 
   /**
-   * Fills (or hides) a container with the barcode, the code under it and a
+   * Fills (or hides) a container with the QR code, the code under it and a
    * short hint. Safe to call repeatedly, e.g. when fresher data arrives.
    */
   function render(container, code, details) {
@@ -142,7 +122,7 @@
   }
 
   /**
-   * True when this booking should carry a barcode: made by the customer
+   * True when this booking should carry a QR code: made by the customer
    * (not on the admin dashboard) and still usable at the salon.
    */
   function isEligibleBooking(booking) {
@@ -158,7 +138,7 @@
 
   // ── Booking confirmation PDF ─────────────────────────────────────
   // A one-page A4 PDF written by hand (built-in Helvetica fonts, vector
-  // barcode), so it needs no library and works offline.
+  // QR code), so it needs no PDF library and works offline.
 
   var DOWNLOAD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
 
@@ -256,27 +236,24 @@
     var status = pdfSafe(d.status || 'Confirmed');
     text(status.toUpperCase(), PAGE_W - M, PAGE_H - 82, 9, true, GOLD, 'right', 1.5);
 
-    // Reservation code + barcode card
-    var cardTop = PAGE_H - 150, cardH = 210;
+    // Reservation code + QR card
+    var cardTop = PAGE_H - 150, cardH = 285;
     strokeRect(M, cardTop - cardH, PAGE_W - 2 * M, cardH, GOLD, 1.5);
     text('RESERVATION CODE', PAGE_W / 2, cardTop - 30, 9, true, MUTED, 'center', 2);
     text(code, PAGE_W / 2, cardTop - 62, 28, true, INK, 'center', 4);
 
-    var widths = encode(code);
-    var modules = 0;
-    for (var i = 0; i < widths.length; i++) modules += Number(widths.charAt(i));
-    var moduleW = Math.min(2.4, 330 / modules);
-    var barH = 70;
-    var bx = (PAGE_W - modules * moduleW) / 2;
-    var by = cardTop - 160;
-    rect(bx - 10 * moduleW, by - 6, modules * moduleW + 20 * moduleW, barH + 12, '#FFFFFF');
-    var x = bx;
-    for (var j = 0; j < widths.length; j++) {
-      var w = Number(widths.charAt(j)) * moduleW;
-      if (j % 2 === 0) rect(x, by, w, barH, '#000000');
-      x += w;
+    var q = matrix(code);
+    var qrSize = 150;
+    var cell = qrSize / q.size;
+    var qx = (PAGE_W - qrSize) / 2;
+    var qyTop = cardTop - 96; // the page around it is white, which is the quiet zone
+    for (var r = 0; r < q.size; r++) {
+      for (var c = 0; c < q.size; c++) {
+        // PDF y grows upwards, so row 0 is drawn at the top.
+        if (q.dark(r, c)) rect(qx + c * cell, qyTop - (r + 1) * cell, cell + 0.02, cell + 0.02, '#000000');
+      }
     }
-    text('Scan at the front desk on arrival, or show the reservation code.', PAGE_W / 2, cardTop - cardH + 22, 10, false, MUTED, 'center');
+    text('Scan at the front desk on arrival, or show the reservation code.', PAGE_W / 2, cardTop - cardH + 18, 10, false, MUTED, 'center');
 
     // Details
     var rows = [];
@@ -358,7 +335,7 @@
   }
 
   global.HairluxBarcode = {
-    encode: encode,
+    matrix: matrix,
     svg: svg,
     render: render,
     renderForBooking: renderForBooking,

@@ -489,6 +489,8 @@
           API_CONFIG.ENDPOINTS.SERVICES + '/' + encodeURIComponent(svc.id) + '?' + query.toString()
         );
         const data = getApiData(res) || {};
+        // Found at this branch, so it is offered there.
+        svc.unavailableAtBranch = '';
         if (data && typeof data === 'object') {
           // Branch overrides walk-in price; effectivePrice is the resolved branch value.
           const walkPrice = data.effectivePrice != null ? data.effectivePrice : data.walkInPrice;
@@ -500,11 +502,63 @@
           svc.branchId = branchId || '';
         }
       } catch (e) {
-        // Keep decoded/stored pricing when service lookup fails.
+        // 404 for a branch lookup = this branch does not offer the service
+        // (the API would refuse the booking later with "not available at the
+        // selected branch"). Other failures (network) keep the stored pricing.
+        svc.unavailableAtBranch = (branchId && e && e.status === 404) ? branchId : '';
       }
     });
 
     await Promise.all(tasks);
+  }
+
+  /** Selected services the chosen branch does not offer (walk-in only; home service has no branch). */
+  function getServicesUnavailableAtBranch() {
+    const branchId = (visitBranchEl && visitBranchEl.value) || '';
+    if (!branchId || hasAnyMobileService()) return [];
+    return getSelectedServices().filter(function (svc) {
+      return svc && svc.unavailableAtBranch === branchId;
+    });
+  }
+
+  function branchUnavailableMessage(services) {
+    const names = services.map(function (svc) { return '"' + (svc.name || 'This service') + '"'; });
+    const list = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
+    const branchName = getSelectedBranchName() || 'this branch';
+    return list + (names.length > 1 ? ' are' : ' is') + ' not available at ' + branchName +
+      '. Please choose another branch, or go back and change your services.';
+  }
+
+  /** Shows (or clears) the "not offered at this branch" message under the branch picker. */
+  function updateBranchAvailabilityError() {
+    const missing = getServicesUnavailableAtBranch();
+    showFieldError(branchFieldError, missing.length ? branchUnavailableMessage(missing) : '');
+    return missing.length === 0;
+  }
+
+  /**
+   * The API refused the booking because the branch does not offer a service
+   * (e.g. the branch settings changed after the Schedule step): close the
+   * payment window, go back to Schedule and say so under the branch picker.
+   */
+  function isBranchUnavailableError(message) {
+    return /not available at the selected branch/i.test(String(message || ''));
+  }
+
+  function showBranchUnavailableFromApi(message) {
+    if (typeof closePayModal === 'function') closePayModal();
+    setStep(2);
+    const missing = getServicesUnavailableAtBranch();
+    const text = missing.length
+      ? branchUnavailableMessage(missing)
+      : String(message || '').replace(/selected branch/i, getSelectedBranchName() || 'the selected branch') +
+        '. Please choose another branch, or go back and change your services.';
+    showFieldError(branchFieldError, text);
+    showToast(text, 'error', 6000);
+    if (visitBranchEl) {
+      visitBranchEl.focus();
+      visitBranchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   // ── Step 1: Service display ───────────────────────────────────────
@@ -1175,6 +1229,9 @@
       nextStepBtn.style.pointerEvents = 'auto';
       nextStepBtn.style.opacity = '1';
     }
+
+    // Back on Schedule with a branch already picked: re-show any "not offered here" message.
+    if (step === 2) updateBranchAvailabilityError();
   }
 
   function validateStep(currentStep) {
@@ -1189,7 +1246,8 @@
       const dateTimeOk = Boolean(bookingDateEl.value && bookingTimeEl.value);
       const addrOk = !hasAnyMobileService() || Boolean(getSelectedAddress());
       const branchOk = hasAnyMobileService() || Boolean(visitBranchEl && visitBranchEl.value);
-      return dateTimeOk && addrOk && branchOk;
+      const servicesOfferedAtBranch = getServicesUnavailableAtBranch().length === 0;
+      return dateTimeOk && addrOk && branchOk && servicesOfferedAtBranch;
     }
     return true;
   }
@@ -1225,6 +1283,24 @@
     bookingPayModal.classList.remove('show');
     bookingPaidModal.classList.add('show');
   }
+
+  // The booking is already saved and the form state cleared, so closing the
+  // confirmation takes the customer back to the dashboard instead of the
+  // half-filled form (avoids an accidental duplicate booking).
+  function closePaidModal() {
+    bookingPaidModal.classList.remove('show');
+    document.body.style.overflow = '';
+    window.location.href = 'index.html';
+  }
+
+  var paidModalCloseBtn = document.getElementById('paidModalClose');
+  if (paidModalCloseBtn) paidModalCloseBtn.addEventListener('click', closePaidModal);
+  bookingPaidModal.addEventListener('click', function (e) {
+    if (e.target === bookingPaidModal) closePaidModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && bookingPaidModal.classList.contains('show')) closePaidModal();
+  });
 
   // ── Availability slots ────────────────────────────────────────────
   const timeHelperText = document.getElementById('timeHelperText');
@@ -1650,6 +1726,10 @@
     } catch (error) {
       const providerName = providerToUse === 'paystack' ? 'Paystack' : 'Monnify';
       const msg = (error && error.message) || `Could not start ${providerName} checkout. Please try again.`;
+      if (isBranchUnavailableError(msg)) {
+        showBranchUnavailableFromApi(msg);
+        return false;
+      }
       showToast(msg, 'error');
       updateConfirmModalUI();
       return false;
@@ -1777,6 +1857,10 @@
           // Keep previous balance when refresh fails.
         }
         await startGatewayCheckoutForBooking(total);
+        return;
+      }
+      if (isBranchUnavailableError(msg)) {
+        showBranchUnavailableFromApi(msg);
         return;
       }
       showToast(msg, 'error');
@@ -1950,13 +2034,18 @@
       hydrateSelectedServiceUI();
       refreshSummary();
       if (step === 3) buildReview();
-      showToast(
-        activeBranchId
-          ? 'Prices updated for the selected branch.'
-          : 'Showing standard prices.',
-        'info',
-        2200
-      );
+      // Tell the customer straight away if this branch does not offer a selected service.
+      if (!updateBranchAvailabilityError()) {
+        showToast(branchUnavailableMessage(getServicesUnavailableAtBranch()), 'error', 6000);
+      } else {
+        showToast(
+          activeBranchId
+            ? 'Prices updated for the selected branch.'
+            : 'Showing standard prices.',
+          'info',
+          2200
+        );
+      }
 
       if (bookingDateEl && bookingDateEl.value) {
         loadAvailableSlots(bookingDateEl.value);
@@ -2076,7 +2165,17 @@
       } else if (step === 2) {
         showFieldError(dateFieldError, bookingDateEl.value ? '' : 'Please choose a date.');
         showFieldError(timeFieldError, bookingTimeEl.value ? '' : 'Please choose a time.');
-        showFieldError(branchFieldError, (visitBranchEl && visitBranchEl.value) ? '' : 'Please choose a branch.');
+        if (visitBranchEl && visitBranchEl.value) {
+          const missing = getServicesUnavailableAtBranch();
+          if (missing.length) {
+            const msg = branchUnavailableMessage(missing);
+            showFieldError(branchFieldError, msg);
+            showToast(msg, 'error', 6000);
+            return;
+          }
+        } else {
+          showFieldError(branchFieldError, 'Please choose a branch.');
+        }
       }
       showToast('Please complete all required fields before continuing.', 'error');
       return;

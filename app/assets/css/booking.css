@@ -561,7 +561,35 @@
       border: 1px solid #e7ecdf;
       padding: 26px 22px 22px;
       animation: bookingModalIn 0.25s ease;
+      max-height: calc(100vh - 40px);
+      max-height: calc(100dvh - 40px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
+
+    /* Close (X) button that stays visible at the top while the card scrolls */
+    .modal-x-close {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      margin: -12px -8px -22px auto;
+      border: 1px solid #e7ecdf;
+      border-radius: 50%;
+      background: #fff;
+      color: #5b6450;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(20, 24, 16, 0.12);
+    }
+    .modal-x-close:hover { color: #dc3545; }
+    [data-theme="dark"] .modal-x-close { background: var(--card-bg); border-color: var(--border); color: var(--muted); }
 
     @keyframes bookingModalIn {
       from { opacity: 0; transform: translateY(-20px); }
