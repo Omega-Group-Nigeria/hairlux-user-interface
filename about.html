@@ -122,20 +122,35 @@
   </div>
 
   <style>
-    /* About banner: portrait photo (1024x1280) in a full-screen hero.
-       Framed on his face and the Omega sign; on wider screens the title
-       card moves to the left so it no longer covers his face. */
+    /* About banner: portrait photo (828x1035) on a dark green studio
+       backdrop. Phones and tablets: the photo fills the hero, framed on his
+       face. Desktop: the whole portrait stands on the right at full hero
+       height (no blurry upscaling, head clear of the navbar) on a matching
+       dark green, and the title card sits on the left. */
     .full-image-about {
       background-image: url("assets/img/jimoh-about.jpg");
       background-repeat: no-repeat;
       background-size: cover;
-      background-position: 50% 18%;
-      background-color: #2a1d12;
+      background-position: 50% 12%;
+      background-color: #04140b;
     }
 
     @media (min-width: 992px) {
       .full-image-about {
-        background-position: 50% 20%;
+        /* Photo is 0.8 as wide as tall. Two gradients the same size as
+           the photo feather its edges into the backdrop. */
+        --about-photo-h: calc(100vh - 96px);
+        --about-photo-w: calc((100vh - 96px) * 0.8);
+        background-image:
+          linear-gradient(90deg, #04140b 0%, rgba(4, 20, 11, 0) 22%, rgba(4, 20, 11, 0) 78%, #04140b 100%),
+          linear-gradient(180deg, #04140b 0%, rgba(4, 20, 11, 0) 14%),
+          url("assets/img/jimoh-about.jpg");
+        background-size:
+          var(--about-photo-w) var(--about-photo-h),
+          var(--about-photo-w) var(--about-photo-h),
+          var(--about-photo-w) var(--about-photo-h);
+        background-position: right 9% bottom, right 9% bottom, right 9% bottom;
+        background-color: #04140b;
       }
 
       .full-image-about .container-m {
@@ -825,7 +840,7 @@
 
           <div class="team-card" data-member="0">
             <div class="team-card-img-wrap">
-              <img src="assets/img/team/qudus.png" alt="Qudus Alao Jimoh" loading="lazy" />
+              <img src="assets/img/team/jimoh-team.jpg" alt="Qudus Alao Jimoh" loading="lazy" />
             </div>
             <div class="team-card-info">
               <div class="team-card-name">Qudus Alao Jimoh</div>
@@ -895,7 +910,7 @@
           {
             name: 'Qudus Alao Jimoh',
             title: 'Founder & CEO',
-            img: 'assets/img/team/qudus.png',
+            img: 'assets/img/team/jimoh-team.jpg',
             website: 'https://www.qudusjimoh.com/',
             linkedin: 'https://www.linkedin.com/in/qudus-jimoh',
             facebook: 'https://www.facebook.com/share/1HVfwyiguy/?mibextid=wwXIfr',
