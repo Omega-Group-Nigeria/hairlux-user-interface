@@ -3313,6 +3313,18 @@ body {
     background-color: #1c2027d6;
     border-color: #30353f;
   }
+  /* Links inside the open hamburger menu sit on the dark panel, so they
+     are white here (desktop keeps the dark text on its light nav bar). */
+  [data-theme="dark"] .nav-menu .nav-link,
+  [data-theme="dark"] .nav-menu .nav-link.w--current {
+    color: #fff;
+  }
+  /* Frosted glass: blur whatever sits behind the open menu, so page text
+     (e.g. the Contact page) never shows through the links. */
+  .nav-menu {
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
 }
 /* Main banner image (index.html hero) -- darken it in dark mode with a
    translucent black overlay layered under the existing photo, so the hero

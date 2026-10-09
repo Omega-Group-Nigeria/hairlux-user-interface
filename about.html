@@ -122,35 +122,21 @@
   </div>
 
   <style>
-    /* About banner: portrait photo (828x1035) on a dark green studio
-       backdrop. Phones and tablets: the photo fills the hero, framed on his
-       face. Desktop: the whole portrait stands on the right at full hero
-       height (no blurry upscaling, head clear of the navbar) on a matching
-       dark green, and the title card sits on the left. */
+    /* About banner: office photo (1024x1280, portrait), him at his desk.
+       Fills the full width of the banner on every screen. Phones and
+       tablets: framed on his face and hands. Desktop: framed on his face,
+       with the title card on the left over the chair, clear of him. */
     .full-image-about {
-      background-image: url("assets/img/jimoh-about.jpg");
+      background-image: url("assets/img/jimoh-about.jpg?v=20261009");
       background-repeat: no-repeat;
       background-size: cover;
-      background-position: 50% 12%;
-      background-color: #04140b;
+      background-position: 58% 30%;
+      background-color: #2a1d12;
     }
 
     @media (min-width: 992px) {
       .full-image-about {
-        /* Photo is 0.8 as wide as tall. Two gradients the same size as
-           the photo feather its edges into the backdrop. */
-        --about-photo-h: calc(100vh - 96px);
-        --about-photo-w: calc((100vh - 96px) * 0.8);
-        background-image:
-          linear-gradient(90deg, #04140b 0%, rgba(4, 20, 11, 0) 22%, rgba(4, 20, 11, 0) 78%, #04140b 100%),
-          linear-gradient(180deg, #04140b 0%, rgba(4, 20, 11, 0) 14%),
-          url("assets/img/jimoh-about.jpg");
-        background-size:
-          var(--about-photo-w) var(--about-photo-h),
-          var(--about-photo-w) var(--about-photo-h),
-          var(--about-photo-w) var(--about-photo-h);
-        background-position: right 9% bottom, right 9% bottom, right 9% bottom;
-        background-color: #04140b;
+        background-position: 50% 28%;
       }
 
       .full-image-about .container-m {
@@ -165,6 +151,22 @@
 
       .full-image-about .h-xl {
         font-size: 4em;
+      }
+    }
+
+    /* Shorter laptop screens (e.g. 1280x720): a smaller card sitting lower,
+       so it stays clear of his face. */
+    @media (min-width: 992px) and (max-height: 820px) {
+      .full-image-about {
+        padding-bottom: 28px;
+      }
+
+      .full-image-about .inner-heading {
+        max-width: 440px;
+      }
+
+      .full-image-about .h-xl {
+        font-size: 3em;
       }
     }
 
@@ -840,7 +842,7 @@
 
           <div class="team-card" data-member="0">
             <div class="team-card-img-wrap">
-              <img src="assets/img/team/jimoh-team.jpg" alt="Qudus Alao Jimoh" loading="lazy" />
+              <img src="assets/img/team/jimoh-team.jpg?v=20261009" alt="Qudus Alao Jimoh" loading="lazy" />
             </div>
             <div class="team-card-info">
               <div class="team-card-name">Qudus Alao Jimoh</div>
@@ -910,7 +912,7 @@
           {
             name: 'Qudus Alao Jimoh',
             title: 'Founder & CEO',
-            img: 'assets/img/team/jimoh-team.jpg',
+            img: 'assets/img/team/jimoh-team.jpg?v=20261009',
             website: 'https://www.qudusjimoh.com/',
             linkedin: 'https://www.linkedin.com/in/qudus-jimoh',
             facebook: 'https://www.facebook.com/share/1HVfwyiguy/?mibextid=wwXIfr',

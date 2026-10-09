@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Book Your Appointment | Hairlux Salon &amp; Spa</title>
+  <meta name="description"
+    content="Book your Hairlux appointment in a minute. Choose a service, a branch and a time, and secure your slot with a small deposit that comes off your bill." />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="Book Your Appointment | Hairlux Salon &amp; Spa" />
+  <meta property="og:description"
+    content="Choose a service, a branch and a time. Secure your slot with a small deposit that comes off your bill." />
+  <meta property="og:type" content="website" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link href="assets/img/logo.png" rel="shortcut icon" type="image/x-icon" />
+  <link href="assets/img/logo.png" rel="apple-touch-icon" />
+  <script src="assets/js/theme-toggle.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f7f4ee;
+      --surface: #ffffff;
+      --surface-2: #f3ede2;
+      --text: #161616;
+      --muted: #6b6459;
+      --line: #e6dfd2;
+      --gold: #c9a872;
+      --gold-strong: #a9894f;
+      --gold-soft: #f6eedd;
+      --dark: #161616;
+      --ok: #2f8f5b;
+      --err: #c0392b;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(22, 22, 22, .08);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #101215;
+      --surface: #181b20;
+      --surface-2: #20242b;
+      --text: #f4f1ea;
+      --muted: #a8a196;
+      --line: #2c3139;
+      --gold-soft: #2a2419;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input, select { font: inherit; color: inherit; }
+
+    .bn-header {
+      position: sticky; top: 0; z-index: 20;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .bn-header-inner {
+      max-width: 1120px; margin: 0 auto; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .bn-logo img { height: 34px; display: block; }
+    .bn-logo .logo-dark { display: none; }
+    :root[data-theme="dark"] .bn-logo .logo-light { display: none; }
+    :root[data-theme="dark"] .bn-logo .logo-dark { display: block; }
+    .bn-header-actions { display: flex; align-items: center; gap: 10px; }
+    .bn-link { font-size: 14px; color: var(--muted); text-decoration: none; }
+    .bn-link:hover { color: var(--text); }
+    .bn-icon-btn {
+      width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line);
+      background: var(--surface); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .bn-icon-btn svg { width: 18px; height: 18px; }
+
+    .bn-wrap { max-width: 1120px; margin: 0 auto; padding: 28px 16px 64px; }
+    .bn-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .bn-grid > *, .bn-card, .bn-step { min-width: 0; }
+    @media (min-width: 960px) {
+      .bn-grid { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+      .bn-aside { position: sticky; top: 84px; }
+    }
+
+    .bn-hero h1 {
+      font-family: Merriweather, Georgia, serif; font-weight: 700;
+      font-size: clamp(26px, 4.4vw, 40px); line-height: 1.18; margin: 0 0 10px;
+    }
+    .bn-hero p { margin: 0; color: var(--muted); font-size: 16px; max-width: 620px; }
+    .bn-perks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .bn-perk {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+      background: var(--gold-soft); color: var(--text); font-size: 13px; font-weight: 500;
+    }
+    .bn-perk svg { width: 14px; height: 14px; color: var(--gold-strong); }
+
+    .bn-card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 20px;
+    }
+    .bn-step { margin-top: 20px; }
+    .bn-step-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+    .bn-step-num {
+      flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--dark); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;
+    }
+    :root[data-theme="dark"] .bn-step-num { background: var(--gold); color: #161616; }
+    .bn-step-title { font-weight: 600; font-size: 17px; }
+    .bn-step-hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+
+    .bn-search {
+      width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line);
+      background: var(--surface-2); margin-bottom: 10px; outline: none;
+    }
+    .bn-options { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 640px) { .bn-options.two { grid-template-columns: 1fr 1fr; } }
+    .bn-services { max-height: 420px; overflow-y: auto; padding-right: 2px; }
+    .bn-option {
+      position: relative; display: flex; gap: 12px; align-items: flex-start; text-align: left; width: 100%;
+      padding: 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface);
+      cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .bn-option:hover { border-color: var(--gold); }
+    .bn-option[aria-checked="true"] { border-color: var(--gold-strong); background: var(--gold-soft); }
+    .bn-option-img {
+      flex: 0 0 56px; width: 56px; height: 56px; border-radius: 12px; object-fit: cover; background: var(--surface-2);
+    }
+    .bn-option-body { flex: 1; min-width: 0; }
+    .bn-option-name { display: block; font-weight: 600; }
+    .bn-option-meta { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .bn-option-price { font-weight: 600; white-space: nowrap; }
+    .bn-check {
+      flex: 0 0 20px; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line); margin-top: 2px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .bn-option[aria-checked="true"] .bn-check { background: var(--gold-strong); border-color: var(--gold-strong); }
+    .bn-option[aria-checked="true"] .bn-check::after {
+      content: ""; width: 8px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translateY(-1px);
+    }
+
+    .bn-days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; }
+    .bn-day {
+      flex: 0 0 auto; min-width: 66px; padding: 10px 8px; border-radius: 14px; border: 1.5px solid var(--line);
+      background: var(--surface); cursor: pointer; text-align: center; scroll-snap-align: start;
+    }
+    .bn-day small { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .bn-day strong { display: block; font-size: 18px; }
+    .bn-day[aria-checked="true"] { border-color: var(--gold-strong); background: var(--gold-soft); }
+    .bn-day:disabled { opacity: .45; cursor: not-allowed; }
+
+    .bn-times { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+    .bn-time {
+      padding: 10px 6px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+      cursor: pointer; font-weight: 500;
+    }
+    .bn-time[aria-checked="true"] { border-color: var(--gold-strong); background: var(--gold-soft); }
+    .bn-empty { color: var(--muted); font-size: 14px; padding: 12px; border: 1px dashed var(--line); border-radius: 12px; text-align: center; }
+
+    .bn-fields { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 640px) { .bn-fields { grid-template-columns: 1fr 1fr; } .bn-fields .full { grid-column: 1 / -1; } }
+    .bn-field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    .bn-field input {
+      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+      outline: none; transition: border-color .15s;
+    }
+    .bn-field input:focus { border-color: var(--gold); }
+    .bn-field .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .bn-field.invalid input { border-color: var(--err); }
+
+    .bn-pay-options { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 640px) { .bn-pay-options { grid-template-columns: 1fr 1fr; } }
+
+    .bn-summary h3 { font-family: Merriweather, Georgia, serif; font-size: 18px; margin: 0 0 14px; }
+    .bn-row { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 14px; }
+    .bn-row span:first-child { color: var(--muted); }
+    .bn-row span:last-child { text-align: right; font-weight: 500; }
+    .bn-row.total { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 12px; }
+    .bn-row.pay { font-size: 16px; }
+    .bn-row.pay span:last-child { font-weight: 700; color: var(--gold-strong); }
+    :root[data-theme="dark"] .bn-row.pay span:last-child { color: var(--gold); }
+    .bn-btn {
+      width: 100%; margin-top: 14px; padding: 15px 18px; border: 0; border-radius: 999px; cursor: pointer;
+      background: var(--dark); color: #fff; font-weight: 600; font-size: 16px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    :root[data-theme="dark"] .bn-btn { background: var(--gold); color: #161616; }
+    .bn-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .bn-btn.ghost { background: transparent; color: var(--text); border: 1.5px solid var(--line); }
+    .bn-note { font-size: 12px; color: var(--muted); margin-top: 10px; text-align: center; }
+    .bn-secure { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+    .bn-secure svg { width: 14px; height: 14px; }
+    .bn-error {
+      display: none; margin-top: 12px; padding: 12px 14px; border-radius: 12px;
+      background: rgba(192, 57, 43, .08); color: var(--err); font-size: 14px;
+    }
+    .bn-spinner {
+      width: 18px; height: 18px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent;
+      animation: bn-spin .8s linear infinite; display: inline-block;
+    }
+    @keyframes bn-spin { to { transform: rotate(360deg); } }
+
+    .bn-mobile-bar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      background: var(--surface); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, .06);
+    }
+    .bn-mobile-bar .amt { flex: 1; font-size: 13px; color: var(--muted); }
+    .bn-mobile-bar .amt strong { display: block; color: var(--text); font-size: 17px; }
+    .bn-mobile-bar .bn-btn { width: auto; margin: 0; padding: 12px 20px; font-size: 15px; }
+    @media (min-width: 960px) { .bn-mobile-bar { display: none; } }
+    @media (max-width: 959px) { body.has-bar { padding-bottom: 84px; } }
+
+    /* Confirmation */
+    .bn-done { max-width: 640px; margin: 0 auto; }
+    .bn-done-icon {
+      width: 64px; height: 64px; border-radius: 50%; background: rgba(47, 143, 91, .12); color: var(--ok);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+    }
+    .bn-done-icon svg { width: 32px; height: 32px; }
+    .bn-done h1 { font-family: Merriweather, Georgia, serif; text-align: center; font-size: clamp(24px, 4vw, 32px); margin: 0 0 8px; }
+    .bn-done .lead { text-align: center; color: var(--muted); margin: 0 0 20px; }
+    .bn-code-box { text-align: center; margin: 4px 0 16px; }
+    .bn-code-label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+    .bn-code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 30px; font-weight: 700; letter-spacing: .18em; }
+    #bnBarcode { max-width: 260px; margin: 0 auto; }
+    .bn-info {
+      margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--gold-soft); font-size: 14px;
+    }
+    .bn-info strong { display: block; margin-bottom: 2px; }
+    .bn-actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 16px; }
+    @media (min-width: 560px) { .bn-actions { grid-template-columns: 1fr 1fr; } }
+    .bn-actions .bn-btn { margin-top: 0; text-decoration: none; }
+    .bn-center { text-align: center; padding: 48px 16px; }
+    .bn-center .bn-spinner { width: 34px; height: 34px; border-width: 3px; color: var(--gold-strong); }
+    .bn-hidden { display: none !important; }
+    .bn-footer { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 16px 40px; }
+    .bn-footer a { color: var(--muted); }
+  </style>
+</head>
+
+<body>
+  <header class="bn-header">
+    <div class="bn-header-inner">
+      <a href="index.html" class="bn-logo" aria-label="Hairlux home">
+        <img class="logo-light" src="assets/img/logo-side-black.png" alt="Hairlux" />
+        <img class="logo-dark" src="assets/img/logo-side-white.webp" alt="Hairlux" />
+      </a>
+      <div class="bn-header-actions">
+        <a class="bn-link" href="log-in.html">Sign in</a>
+        <button type="button" class="bn-icon-btn" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="bn-wrap">
+    <!-- Loading -->
+    <section id="bnLoading" class="bn-center">
+      <span class="bn-spinner"></span>
+      <p id="bnLoadingText" style="color:var(--muted);margin-top:14px">Loading available services&hellip;</p>
+    </section>
+
+    <!-- Unavailable -->
+    <section id="bnUnavailable" class="bn-center bn-hidden">
+      <h1 style="font-family:Merriweather,Georgia,serif;margin:0 0 8px">Online booking is paused</h1>
+      <p id="bnUnavailableText" style="color:var(--muted);margin:0 auto 18px;max-width:460px">Please call or visit any Hairlux branch to book. We are sorry for the inconvenience.</p>
+      <a class="bn-btn" href="contact.html" style="max-width:260px;text-decoration:none">Contact us</a>
+    </section>
+
+    <!-- Booking form -->
+    <section id="bnForm" class="bn-hidden">
+      <div class="bn-grid">
+        <div>
+          <div class="bn-hero">
+            <h1>Book your Hairlux appointment</h1>
+            <p>Pick a service, a branch and a time. Secure your slot with a small deposit, and it comes off your final bill.</p>
+            <div class="bn-perks">
+              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg>Slot reserved for you</span>
+              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg><span id="bnPerkDeposit">Deposit comes off your bill</span></span>
+              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg>No sign-up needed</span>
+            </div>
+          </div>
+
+          <form id="bnBookingForm" class="bn-card" style="margin-top:22px" novalidate>
+            <div class="bn-step" style="margin-top:0">
+              <div class="bn-step-head"><span class="bn-step-num">1</span><span class="bn-step-title">Choose a service</span></div>
+              <input type="search" id="bnServiceSearch" class="bn-search bn-hidden" placeholder="Search services" aria-label="Search services" />
+              <div id="bnServices" class="bn-options two bn-services" role="radiogroup" aria-label="Service"></div>
+            </div>
+
+            <div class="bn-step">
+              <div class="bn-step-head"><span class="bn-step-num">2</span><span class="bn-step-title">Choose a branch</span></div>
+              <div id="bnBranches" class="bn-options two" role="radiogroup" aria-label="Branch">
+                <div class="bn-empty">Choose a service first.</div>
+              </div>
+            </div>
+
+            <div class="bn-step">
+              <div class="bn-step-head"><span class="bn-step-num">3</span><span class="bn-step-title">Pick a day and time</span><span class="bn-step-hint" id="bnHoursHint"></span></div>
+              <div id="bnDays" class="bn-days" role="radiogroup" aria-label="Day"></div>
+              <div id="bnTimes" class="bn-times" role="radiogroup" aria-label="Time" style="margin-top:12px">
+                <div class="bn-empty" style="grid-column:1/-1">Choose a branch to see available times.</div>
+              </div>
+            </div>
+
+            <div class="bn-step">
+              <div class="bn-step-head"><span class="bn-step-num">4</span><span class="bn-step-title">Your details</span></div>
+              <div class="bn-fields">
+                <div class="bn-field full">
+                  <label for="bnName">Full name</label>
+                  <input id="bnName" name="fullName" autocomplete="name" maxlength="120" required />
+                </div>
+                <div class="bn-field">
+                  <label for="bnPhone">Phone number</label>
+                  <input id="bnPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0803 123 4567" maxlength="20" required />
+                </div>
+                <div class="bn-field">
+                  <label for="bnEmail">Email</label>
+                  <input id="bnEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="160" required />
+                  <div class="hint">Your confirmation and receipt are sent here.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bn-step">
+              <div class="bn-step-head"><span class="bn-step-num">5</span><span class="bn-step-title">How much to pay now</span></div>
+              <div id="bnPayOptions" class="bn-pay-options" role="radiogroup" aria-label="Payment"></div>
+            </div>
+
+            <div id="bnFormError" class="bn-error" role="alert"></div>
+          </form>
+        </div>
+
+        <aside class="bn-aside">
+          <div class="bn-card bn-summary">
+            <h3>Your booking</h3>
+            <div class="bn-row"><span>Service</span><span id="sumService">Not chosen</span></div>
+            <div class="bn-row"><span>Branch</span><span id="sumBranch">Not chosen</span></div>
+            <div class="bn-row"><span>Date and time</span><span id="sumWhen">Not chosen</span></div>
+            <div class="bn-row total"><span>Service price</span><span id="sumTotal">&#8358;0</span></div>
+            <div class="bn-row"><span>Pay at the branch</span><span id="sumBalance">&#8358;0</span></div>
+            <div class="bn-row pay"><span>Pay now</span><span id="sumPayNow">&#8358;0</span></div>
+            <button type="submit" form="bnBookingForm" class="bn-btn" id="bnPayBtn" disabled>Choose a service</button>
+            <div class="bn-secure">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+              Secure payment by Paystack (card, transfer or USSD)
+            </div>
+            <p class="bn-note" id="bnPolicyNote">If you cannot make it, cancel from your account and your payment goes back to your Hairlux wallet for your next visit.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- After payment -->
+    <section id="bnResult" class="bn-hidden">
+      <div id="bnChecking" class="bn-center">
+        <span class="bn-spinner"></span>
+        <p style="color:var(--muted);margin-top:14px" id="bnCheckingText">Confirming your payment&hellip;</p>
+      </div>
+
+      <div id="bnDone" class="bn-done bn-hidden">
+        <div class="bn-card">
+          <div class="bn-done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
+          <h1 id="doneTitle">Your slot is booked</h1>
+          <p class="lead" id="doneLead">We have emailed your confirmation.</p>
+          <div class="bn-code-box">
+            <div class="bn-code-label">Reservation code</div>
+            <div class="bn-code" id="doneCode">-</div>
+          </div>
+          <div id="bnBarcode" hidden></div>
+          <div style="margin-top:18px">
+            <div class="bn-row"><span>Service</span><span id="doneService">-</span></div>
+            <div class="bn-row"><span>Branch</span><span id="doneBranch">-</span></div>
+            <div class="bn-row"><span>Address</span><span id="doneAddress">-</span></div>
+            <div class="bn-row"><span>Date and time</span><span id="doneWhen">-</span></div>
+            <div class="bn-row total"><span>Service price</span><span id="doneTotal">-</span></div>
+            <div class="bn-row"><span>Paid online</span><span id="donePaid">-</span></div>
+            <div class="bn-row pay"><span>To pay at the branch</span><span id="doneBalance">-</span></div>
+          </div>
+          <div class="bn-info">
+            <strong>At the branch</strong>
+            Show this QR code or tell the front desk your reservation code. They will see what you have paid and what is left.
+          </div>
+          <div class="bn-info bn-hidden" id="doneAccount">
+            <strong>We created your Hairlux account</strong>
+            <span id="doneAccountText">Check your email to set a password, then sign in any time to see your bookings and payments.</span>
+          </div>
+          <div class="bn-actions">
+            <a class="bn-btn ghost" id="doneCalendar" href="#" download="hairlux-booking.ics">Add to calendar</a>
+            <a class="bn-btn" href="index.html">Back to Hairlux</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="bnNotPaid" class="bn-done bn-hidden">
+        <div class="bn-card" style="text-align:center">
+          <h1 id="notPaidTitle">Payment not completed</h1>
+          <p class="lead" id="notPaidText">We have not received your payment yet, so your slot is not booked.</p>
+          <div class="bn-actions">
+            <a class="bn-btn" id="notPaidRetry" href="#">Complete payment</a>
+            <button type="button" class="bn-btn ghost" id="notPaidCheck" onclick="location.reload()">I have paid, check again</button>
+          </div>
+          <p class="bn-note"><a href="book-now.html">Start a new booking</a></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="bn-mobile-bar bn-hidden" id="bnMobileBar">
+    <div class="amt">Pay now<strong id="barPayNow">&#8358;0</strong></div>
+    <button type="submit" form="bnBookingForm" class="bn-btn" id="bnPayBtnMobile" disabled>Continue</button>
+  </div>
+
+  <footer class="bn-footer">
+    &copy; <span id="bnYear"></span> Hairlux Salon &amp; Spa &middot; <a href="privacy-policy.html">Privacy</a> &middot; <a href="refund-policy.html">Refund policy</a> &middot; <a href="terms-of-service.html">Terms</a>
+  </footer>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/vendor/qrcode-core.min.js"></script>
+  <script src="assets/js/booking-barcode.js"></script>
+  <script src="assets/js/book-now.js"></script>
+</body>
+
+</html>
