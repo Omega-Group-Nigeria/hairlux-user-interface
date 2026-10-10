@@ -113,8 +113,13 @@
       if (v) { fresh.clickId = v.slice(0, 255); fresh.clickIdType = k; return true; }
       return false;
     });
-    // A new ad click replaces the old attribution; a plain reload keeps it.
-    var isNewTouch = Object.keys(fresh).length > 0;
+    // The landing page (salon.html) passes the same tags on to this page: that
+    // is the same visit, so keep where it first landed. A different ad click
+    // replaces the old attribution; a plain reload keeps it.
+    var sameVisit = ['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm', 'clickId'].every(function (k) {
+      return (fresh[k] || '') === (saved[k] || '');
+    });
+    var isNewTouch = Object.keys(fresh).length > 0 && !sameVisit;
     var attr = isNewTouch ? fresh : saved;
     if (isNewTouch || !saved.landingUrl) {
       attr.landingUrl = location.href.split('#')[0].slice(0, 255);
