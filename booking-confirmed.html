@@ -3,14 +3,10 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Book Your Appointment | Hairlux Salon &amp; Spa</title>
-  <meta name="description"
-    content="Book your Hairlux appointment in a minute. Choose a service, a branch and a time, and secure your slot with a small deposit that comes off your bill." />
-  <meta name="robots" content="index, follow" />
-  <meta property="og:title" content="Book Your Appointment | Hairlux Salon &amp; Spa" />
-  <meta property="og:description"
-    content="Choose a service, a branch and a time. Secure your slot with a small deposit that comes off your bill." />
-  <meta property="og:type" content="website" />
+  <title>Booking Confirmation | Hairlux Salon &amp; Spa</title>
+  <meta name="description" content="Your Hairlux booking confirmation." />
+  <!-- Thank-you page after payment: never in search results. -->
+  <meta name="robots" content="noindex, nofollow" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
@@ -278,117 +274,68 @@
   </header>
 
   <main class="bn-wrap">
-    <!-- Loading -->
-    <section id="bnLoading" class="bn-center">
-      <span class="bn-spinner"></span>
-      <p id="bnLoadingText" style="color:var(--muted);margin-top:14px">Loading available services&hellip;</p>
-    </section>
+    <section id="bnResult">
+      <div id="bnChecking" class="bn-center">
+        <span class="bn-spinner"></span>
+        <p style="color:var(--muted);margin-top:14px" id="bnCheckingText">Confirming your payment&hellip;</p>
+      </div>
 
-    <!-- Unavailable -->
-    <section id="bnUnavailable" class="bn-center bn-hidden">
-      <h1 style="font-family:Merriweather,Georgia,serif;margin:0 0 8px">Online booking is paused</h1>
-      <p id="bnUnavailableText" style="color:var(--muted);margin:0 auto 18px;max-width:460px">Please call or visit any Hairlux branch to book. We are sorry for the inconvenience.</p>
-      <a class="bn-btn" href="contact.html" style="max-width:260px;text-decoration:none">Contact us</a>
-    </section>
-
-    <!-- Booking form -->
-    <section id="bnForm" class="bn-hidden">
-      <div class="bn-grid">
-        <div>
-          <div class="bn-hero">
-            <h1>Book your Hairlux appointment</h1>
-            <p>Pick a branch, your services and a time. Secure your slot with a small deposit, and it comes off your final bill.</p>
-            <div class="bn-perks">
-              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg>Slot reserved for you</span>
-              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg><span id="bnPerkDeposit">Deposit comes off your bill</span></span>
-              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg>No sign-up needed</span>
-            </div>
+      <div id="bnDone" class="bn-done bn-hidden">
+        <div class="bn-card">
+          <div class="bn-done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
+          <h1 id="doneTitle">Your slot is booked</h1>
+          <p class="lead" id="doneLead">We have emailed your confirmation.</p>
+          <div class="bn-code-box">
+            <div class="bn-code-label">Reservation code</div>
+            <div class="bn-code" id="doneCode">-</div>
           </div>
-
-          <form id="bnBookingForm" class="bn-card" style="margin-top:22px" novalidate>
-            <div class="bn-step" style="margin-top:0">
-              <div class="bn-step-head"><span class="bn-step-num">1</span><span class="bn-step-title">Choose a branch</span></div>
-              <div id="bnBranches" class="bn-options two" role="radiogroup" aria-label="Branch"></div>
-            </div>
-
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">2</span><span class="bn-step-title">Choose your services</span><span class="bn-step-hint" id="bnServicesHint">Choose one or more</span></div>
-              <div id="bnServicesNote" class="bn-note-inline bn-hidden" role="status"></div>
-              <input type="search" id="bnServiceSearch" class="bn-search bn-hidden" placeholder="Search services" aria-label="Search services" />
-              <div id="bnServices" class="bn-options two bn-services" role="group" aria-label="Services">
-                <div class="bn-empty" style="grid-column:1/-1">Choose a branch first to see its services and prices.</div>
-              </div>
-            </div>
-
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">3</span><span class="bn-step-title">Pick a day and time</span><span class="bn-step-hint" id="bnHoursHint"></span></div>
-              <div id="bnDays" class="bn-days" role="radiogroup" aria-label="Day"></div>
-              <div id="bnTimes" class="bn-times" role="radiogroup" aria-label="Time" style="margin-top:12px">
-                <div class="bn-empty" style="grid-column:1/-1">Choose a branch to see available times.</div>
-              </div>
-            </div>
-
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">4</span><span class="bn-step-title">Your details</span></div>
-              <div class="bn-fields">
-                <div class="bn-field full">
-                  <label for="bnName">Full name</label>
-                  <input id="bnName" name="fullName" autocomplete="name" maxlength="120" required />
-                </div>
-                <div class="bn-field">
-                  <label for="bnPhone">Phone number</label>
-                  <input id="bnPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0803 123 4567" maxlength="20" required />
-                </div>
-                <div class="bn-field">
-                  <label for="bnEmail">Email</label>
-                  <input id="bnEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="160" required />
-                  <div class="hint">Your confirmation and receipt are sent here.</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">5</span><span class="bn-step-title">How much to pay now</span></div>
-              <div id="bnPayOptions" class="bn-pay-options" role="radiogroup" aria-label="Payment"></div>
-            </div>
-
-            <div id="bnFormError" class="bn-error" role="alert"></div>
-          </form>
+          <div id="bnBarcode" hidden></div>
+          <div style="margin-top:18px">
+            <div class="bn-row"><span>Services</span><span id="doneService">-</span></div>
+            <div class="bn-row"><span>Branch</span><span id="doneBranch">-</span></div>
+            <div class="bn-row"><span>Address</span><span id="doneAddress">-</span></div>
+            <div class="bn-row"><span>Date and time</span><span id="doneWhen">-</span></div>
+            <div class="bn-row total"><span>Service price</span><span id="doneTotal">-</span></div>
+            <div class="bn-row"><span>Paid online</span><span id="donePaid">-</span></div>
+            <div class="bn-row pay"><span>To pay at the branch</span><span id="doneBalance">-</span></div>
+          </div>
+          <div class="bn-info">
+            <strong>At the branch</strong>
+            Show this QR code or tell the front desk your reservation code. They will see what you have paid and what is left.
+          </div>
+          <div class="bn-info bn-hidden" id="doneAccount">
+            <strong>We created your Hairlux account</strong>
+            <span id="doneAccountText">Check your email to set a password, then sign in any time to see your bookings and payments.</span>
+          </div>
+          <div class="bn-actions">
+            <a class="bn-btn ghost" id="doneCalendar" href="#" download="hairlux-booking.ics">Add to calendar</a>
+            <a class="bn-btn" href="index.html">Back to Hairlux</a>
+          </div>
         </div>
+      </div>
 
-        <aside class="bn-aside">
-          <div class="bn-card bn-summary">
-            <h3>Your booking</h3>
-            <div class="bn-row"><span>Branch</span><span id="sumBranch">Not chosen</span></div>
-            <div class="bn-row"><span>Services</span><span id="sumService">Not chosen</span></div>
-            <div class="bn-row"><span>Date and time</span><span id="sumWhen">Not chosen</span></div>
-            <div class="bn-row total"><span>Service price</span><span id="sumTotal">&#8358;0</span></div>
-            <div class="bn-row"><span>Pay at the branch</span><span id="sumBalance">&#8358;0</span></div>
-            <div class="bn-row pay"><span>Pay now</span><span id="sumPayNow">&#8358;0</span></div>
-            <button type="submit" form="bnBookingForm" class="bn-btn" id="bnPayBtn" disabled>Choose a service</button>
-            <div class="bn-secure">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-              Secure payment by Monnify (card, bank transfer or USSD)
-            </div>
-            <p class="bn-note" id="bnPolicyNote">If you cannot make it, cancel from your account and your payment goes back to your Hairlux wallet for your next visit.</p>
+      <div id="bnNotPaid" class="bn-done bn-hidden">
+        <div class="bn-card" style="text-align:center">
+          <h1 id="notPaidTitle">Payment not completed</h1>
+          <p class="lead" id="notPaidText">We have not received your payment yet, so your slot is not booked.</p>
+          <div class="bn-actions">
+            <a class="bn-btn" id="notPaidRetry" href="#">Complete payment</a>
+            <button type="button" class="bn-btn ghost" id="notPaidCheck" onclick="location.reload()">I have paid, check again</button>
           </div>
-        </aside>
+          <p class="bn-note"><a href="book-now.html">Start a new booking</a></p>
+        </div>
       </div>
     </section>
-
   </main>
-
-  <div class="bn-mobile-bar bn-hidden" id="bnMobileBar">
-    <div class="amt">Pay now<strong id="barPayNow">&#8358;0</strong></div>
-    <button type="submit" form="bnBookingForm" class="bn-btn" id="bnPayBtnMobile" disabled>Continue</button>
-  </div>
 
   <footer class="bn-footer">
     &copy; <span id="bnYear"></span> Hairlux Salon &amp; Spa &middot; <a href="privacy-policy.html">Privacy</a> &middot; <a href="refund-policy.html">Refund policy</a> &middot; <a href="terms-of-service.html">Terms</a>
   </footer>
 
   <script src="assets/js/config.js"></script>
-  <script src="assets/js/book-now.js"></script>
+  <script src="assets/js/vendor/qrcode-core.min.js"></script>
+  <script src="assets/js/booking-barcode.js"></script>
+  <script src="assets/js/booking-confirmed.js"></script>
 
   <!-- Meta Pixel Code -->
   <script>
@@ -404,7 +351,7 @@
     }(window, document, 'script',
       'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '1436897987978622');
-    // No PageView here: book-now.js sends only Purchase, once payment is confirmed.
+    // No PageView here: booking-confirmed.js sends only Purchase, once the booking is confirmed.
   </script>
   <!-- End Meta Pixel Code -->
 </body>
