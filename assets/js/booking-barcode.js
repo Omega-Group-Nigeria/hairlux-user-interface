@@ -7,7 +7,7 @@
  * staff portal. The QR holds only the reservation code.
  *
  * Only bookings the customer made themselves (website or app, booking.source
- * === 'CUSTOMER') get a QR code. Bookings created on the admin dashboard
+ * === 'CUSTOMER', or the ad landing page, 'AD') get a QR code. Bookings created on the admin dashboard
  * (source 'ADMIN') and salon / staff portal bookings never do.
  *
  * Needs assets/js/vendor/qrcode-core.min.js (window.HairluxQRCore) loaded
@@ -123,10 +123,12 @@
 
   /**
    * True when this booking should carry a QR code: made by the customer
-   * (not on the admin dashboard) and still usable at the salon.
+   * (website, app or the ad landing page, not on the admin dashboard) and
+   * still usable at the salon.
    */
   function isEligibleBooking(booking) {
-    if (!booking || String(booking.source || '').toUpperCase() !== 'CUSTOMER') return false;
+    var source = booking ? String(booking.source || '').toUpperCase() : '';
+    if (source !== 'CUSTOMER' && source !== 'AD') return false;
     if (booking.reservationUsed === true) return false;
     var status = String(booking.status || '').toUpperCase();
     return ['CANCELLED', 'COMPLETED', 'AWAITING_CUSTOMER_CONFIRM'].indexOf(status) === -1;
