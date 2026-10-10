@@ -4,7 +4,7 @@
  * A visitor from an ad picks a walk-in service, a branch and a slot, enters
  * name, phone and email, and pays a deposit (or the full price) through the
  * Monnify checkout (card, bank transfer or USSD). Monnify sends them back here
- * with ?ref=HLADB-... (plus its own paymentReference), and the page shows the
+ * with ?paymentReference=HLADB-... (older links used ?ref=), and the page shows the
  * reservation code and QR code once the booking is confirmed.
  *
  * Attribution: utm_* tags and the ad click id (fbclid / gclid / ttclid) are
@@ -778,11 +778,22 @@
 
   // ─── Start ──────────────────────────────────────────────────────────
 
+  /**
+   * The HLADB- reference Monnify sends the visitor back with. Read from
+   * paymentReference or ref, and tolerant of a malformed return link such as
+   * "?ref=HLADB-X?paymentReference=HLADB-X" (Monnify adds its own "?").
+   */
+  function returnReference() {
+    var q = new URLSearchParams(location.search);
+    var raw = [q.get('paymentReference'), q.get('ref'), location.search].join(' ');
+    var m = raw.match(/HLADB-[A-Z0-9]+-[A-Z0-9]+/i);
+    return m ? m[0].toUpperCase() : null;
+  }
+
   async function init() {
     $('bnYear').textContent = new Date().getFullYear();
     captureAttribution();
-    var q = new URLSearchParams(location.search);
-    var ref = q.get('ref') || q.get('paymentReference');
+    var ref = returnReference();
 
     try {
       state.config = await api('/public/ad-bookings/config');
