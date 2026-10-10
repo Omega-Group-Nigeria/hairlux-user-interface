@@ -31,7 +31,31 @@
     time: null,
     payOption: 'DEPOSIT',
     slotsReq: 0,
+    slots: [],
+    // Long lists start short; "Show more" opens them.
+    showAllBranches: false,
+    showAllDays: false,
+    showAllTimes: false,
   };
+
+  var FIRST_BRANCHES = 2;
+  var FIRST_DAYS = 7;
+  var FIRST_TIMES = 8;
+
+  /** The first `n` items, plus the selected one if it sits further down. */
+  function firstWithSelected(list, n, isSelectedItem) {
+    var shown = list.slice(0, n);
+    var picked = list.filter(isSelectedItem)[0];
+    if (picked && shown.indexOf(picked) === -1) shown.push(picked);
+    return shown;
+  }
+
+  function moreButton(kind, hidden, label, expanded) {
+    return '<button type="button" class="bn-more" data-more="' + kind + '" aria-expanded="' + expanded + '">' +
+      (expanded ? 'Show fewer' : label.replace('{n}', hidden)) +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="' + (expanded ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6') + '" /></svg>' +
+      '</button>';
+  }
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -240,8 +264,10 @@
   }
 
   function renderBranches() {
-    var list = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0; });
-    $('bnBranches').innerHTML = list.length ? list.map(function (b) {
+    var all = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0; });
+    var list = state.showAllBranches ? all : firstWithSelected(all, FIRST_BRANCHES, function (b) { return b.id === state.branchId; });
+    var hidden = all.length - list.length;
+    $('bnBranches').innerHTML = (all.length ? list.map(function (b) {
       var n = serviceCountAt(b.id);
       return '<button type="button" class="bn-option" role="radio" aria-checked="' + (state.branchId === b.id) + '" data-branch="' + esc(b.id) + '">' +
         '<span class="bn-check"></span>' +
@@ -249,7 +275,10 @@
         '<span class="bn-option-meta">' + esc(b.address) + '</span></span>' +
         '<span class="bn-option-meta" style="white-space:nowrap">' + n + (n === 1 ? ' service' : ' services') + '</span>' +
         '</button>';
-    }).join('') : '<div class="bn-empty" style="grid-column:1/-1">No branch is taking online bookings right now.</div>';
+    }).join('') : '<div class="bn-empty" style="grid-column:1/-1">No branch is taking online bookings right now.</div>') +
+      (hidden > 0 || (state.showAllBranches && all.length > FIRST_BRANCHES)
+        ? moreButton('branches', hidden, 'Show {n} more ' + (hidden === 1 ? 'branch' : 'branches'), state.showAllBranches)
+        : '');
   }
 
   function renderServices(filter) {
@@ -282,8 +311,11 @@
   function renderDays() {
     var c = state.config;
     var days = Math.min(c.maxDaysAhead, 30);
+    // Show the first week, or up to the chosen day if it is later.
+    var chosenIndex = state.date ? Math.round((dateObj(state.date) - dateObj(c.today)) / 86400000) : 0;
+    var last = state.showAllDays ? days : Math.min(days, Math.max(FIRST_DAYS - 1, chosenIndex));
     var html = '';
-    for (var i = 0; i <= days; i++) {
+    for (var i = 0; i <= last; i++) {
       var d = addDays(c.today, i);
       var o = dateObj(d);
       var checked = state.date === d;
@@ -292,7 +324,29 @@
         '<strong>' + o.getUTCDate() + '</strong>' +
         '<small>' + o.toLocaleDateString('en-NG', { month: 'short', timeZone: 'UTC' }) + '</small></button>';
     }
+    if (last < days) {
+      html += '<button type="button" class="bn-day bn-day-more" data-more="days" aria-expanded="false"><small>More</small><strong>+' + (days - last) + '</strong><small>dates</small></button>';
+    } else if (state.showAllDays && days >= FIRST_DAYS) {
+      html += '<button type="button" class="bn-day bn-day-more" data-more="days" aria-expanded="true"><small>Show</small><strong>&minus;</strong><small>fewer</small></button>';
+    }
     $('bnDays').innerHTML = html;
+  }
+
+  function renderTimes() {
+    var box = $('bnTimes');
+    var all = state.slots || [];
+    if (!all.length) {
+      box.innerHTML = '<div class="bn-empty" style="grid-column:1/-1">' + esc(state.slotsReason || 'No times left on this day.') + ' Please pick another day.</div>';
+      return;
+    }
+    var list = state.showAllTimes ? all : firstWithSelected(all, FIRST_TIMES, function (t) { return t === state.time; });
+    var hidden = all.length - list.length;
+    box.innerHTML = list.map(function (t) {
+      return '<button type="button" class="bn-time" role="radio" aria-checked="' + (state.time === t) + '" data-time="' + t + '">' + time12(t) + '</button>';
+    }).join('') +
+      (hidden > 0 || (state.showAllTimes && all.length > FIRST_TIMES)
+        ? moreButton('times', hidden, 'Show {n} more ' + (hidden === 1 ? 'time' : 'times'), state.showAllTimes)
+        : '');
   }
 
   async function loadSlots() {
@@ -311,9 +365,9 @@
       if (req !== state.slotsReq) return;
       if (data.openTime && data.closeTime) $('bnHoursHint').textContent = 'Open ' + time12(data.openTime) + ' to ' + time12(data.closeTime);
       if (state.time && data.slots.indexOf(state.time) === -1) state.time = null;
-      box.innerHTML = data.slots.length ? data.slots.map(function (t) {
-        return '<button type="button" class="bn-time" role="radio" aria-checked="' + (state.time === t) + '" data-time="' + t + '">' + time12(t) + '</button>';
-      }).join('') : '<div class="bn-empty" style="grid-column:1/-1">' + esc(data.reason || 'No times left on this day.') + ' Please pick another day.</div>';
+      state.slots = data.slots;
+      state.slotsReason = data.reason;
+      renderTimes();
     } catch (e) {
       if (req !== state.slotsReq) return;
       box.innerHTML = '<div class="bn-empty" style="grid-column:1/-1">' + esc(e.message) + '</div>';
@@ -525,9 +579,16 @@
       if (adding) track('ViewContent', { content_name: svc.name, content_ids: [svc.id], content_type: 'product', value: (servicePriceAt(svc, state.branchId) || {}).price || lowestPrice(svc), currency: 'NGN' });
     });
     $('bnBranches').addEventListener('click', function (e) {
+      if (e.target.closest('[data-more]')) {
+        state.showAllBranches = !state.showAllBranches;
+        renderBranches();
+        return;
+      }
       var btn = e.target.closest('[data-branch]');
       if (!btn) return;
       state.branchId = btn.getAttribute('data-branch');
+      state.showAllBranches = false;
+      state.showAllTimes = false;
       var removed = keepServicesAtBranch();
       showServicesNote(removed.length
         ? removed.join(', ') + (removed.length === 1 ? ' is' : ' are') + ' not offered at this branch, so ' + (removed.length === 1 ? 'it was' : 'they were') + ' removed.'
@@ -539,15 +600,26 @@
       updateSummary();
     });
     $('bnDays').addEventListener('click', function (e) {
+      if (e.target.closest('[data-more]')) {
+        state.showAllDays = !state.showAllDays;
+        renderDays();
+        return;
+      }
       var btn = e.target.closest('[data-date]');
       if (!btn) return;
       state.date = btn.getAttribute('data-date');
       state.time = null;
+      state.showAllTimes = false;
       renderDays();
       loadSlots();
       updateSummary();
     });
     $('bnTimes').addEventListener('click', function (e) {
+      if (e.target.closest('[data-more]')) {
+        state.showAllTimes = !state.showAllTimes;
+        renderTimes();
+        return;
+      }
       var btn = e.target.closest('[data-time]');
       if (!btn) return;
       state.time = btn.getAttribute('data-time');

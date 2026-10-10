@@ -147,6 +147,14 @@
       display: inline-flex; align-items: center; justify-content: center;
     }
     .bn-check-box { border-radius: 6px; }
+    .bn-more {
+      grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 4px; border: 0; background: none; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--gold-strong);
+    }
+    :root[data-theme="dark"] .bn-more { color: var(--gold); }
+    .bn-more svg { width: 16px; height: 16px; }
+    .bn-day-more { border-style: dashed; color: var(--gold-strong); }
+    :root[data-theme="dark"] .bn-day-more { color: var(--gold); }
     .bn-note-inline { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: var(--gold-soft); font-size: 13px; }
     .bn-option[aria-checked="true"] .bn-check { background: var(--gold-strong); border-color: var(--gold-strong); }
     .bn-option[aria-checked="true"] .bn-check::after {
