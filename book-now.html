@@ -985,65 +985,6 @@
       </div>
     </section>
 
-    <!-- After payment -->
-    <section id="bnResult" class="bn-hidden">
-      <div id="bnChecking" class="bn-center">
-        <span class="bn-spinner"></span>
-        <p style="color:var(--muted);margin-top:14px" id="bnCheckingText">Confirming your payment&hellip;</p>
-      </div>
-
-      <div id="bnDone" class="bn-done bn-hidden">
-        <div class="bn-card">
-          <div class="bn-done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 6 9 17l-5-5" />
-            </svg></div>
-          <h1 id="doneTitle">Your slot is booked</h1>
-          <p class="lead" id="doneLead">We have emailed your confirmation.</p>
-          <div class="bn-code-box">
-            <div class="bn-code-label">Reservation code</div>
-            <div class="bn-code" id="doneCode">-</div>
-          </div>
-          <div id="bnBarcode" hidden></div>
-          <div style="margin-top:18px">
-            <div class="bn-row"><span>Services</span><span id="doneService">-</span></div>
-            <div class="bn-row"><span>Branch</span><span id="doneBranch">-</span></div>
-            <div class="bn-row"><span>Address</span><span id="doneAddress">-</span></div>
-            <div class="bn-row"><span>Date and time</span><span id="doneWhen">-</span></div>
-            <div class="bn-row total"><span>Service price</span><span id="doneTotal">-</span></div>
-            <div class="bn-row"><span>Paid online</span><span id="donePaid">-</span></div>
-            <div class="bn-row pay"><span>To pay at the branch</span><span id="doneBalance">-</span></div>
-          </div>
-          <div class="bn-info">
-            <strong>At the branch</strong>
-            Show this QR code or tell the front desk your reservation code. They will see what you have paid and what is
-            left.
-          </div>
-          <div class="bn-info bn-hidden" id="doneAccount">
-            <strong>We created your Hairlux account</strong>
-            <span id="doneAccountText">Check your email to set a password, then sign in any time to see your bookings
-              and payments.</span>
-          </div>
-          <div class="bn-actions">
-            <a class="bn-btn ghost" id="doneCalendar" href="#" download="hairlux-booking.ics">Add to calendar</a>
-            <a class="bn-btn" href="index.html">Back to Hairlux</a>
-          </div>
-        </div>
-      </div>
-
-      <div id="bnNotPaid" class="bn-done bn-hidden">
-        <div class="bn-card" style="text-align:center">
-          <h1 id="notPaidTitle">Payment not completed</h1>
-          <p class="lead" id="notPaidText">We have not received your payment yet, so your slot is not booked.</p>
-          <div class="bn-actions">
-            <a class="bn-btn" id="notPaidRetry" href="#">Complete payment</a>
-            <button type="button" class="bn-btn ghost" id="notPaidCheck" onclick="location.reload()">I have paid, check
-              again</button>
-          </div>
-          <p class="bn-note"><a href="book-now.html">Start a new booking</a></p>
-        </div>
-      </div>
-    </section>
   </main>
 
   <div class="bn-mobile-bar bn-hidden" id="bnMobileBar">
@@ -1057,8 +998,6 @@
   </footer>
 
   <script src="assets/js/config.js"></script>
-  <script src="assets/js/vendor/qrcode-core.min.js"></script>
-  <script src="assets/js/booking-barcode.js"></script>
   <script src="assets/js/book-now.js"></script>
 
   <!-- Meta Pixel Code -->
@@ -1078,7 +1017,6 @@
     // No PageView here: book-now.js sends only Purchase, once payment is confirmed.
   </script>
   <!-- End Meta Pixel Code -->
-
 </body>
 
 </html>

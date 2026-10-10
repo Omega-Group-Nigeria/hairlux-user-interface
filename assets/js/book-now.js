@@ -3,18 +3,19 @@
  *
  * A visitor from an ad picks a walk-in service, a branch and a slot, enters
  * name, phone and email, and pays a deposit (or the full price) through the
- * Monnify checkout (card, bank transfer or USSD). Monnify sends them back here
- * with ?paymentReference=HLADB-... (older links used ?ref=), and the page shows the
- * reservation code and QR code once the booking is confirmed.
+ * Monnify checkout (card, bank transfer or USSD). Monnify then sends them to
+ * the thank-you page, booking-confirmed.html?ref=HLADB-..., which confirms the
+ * payment and shows the reservation code and QR code (booking-confirmed.js).
+ * A return link that still points here is forwarded there.
  *
  * Attribution: utm_* tags and the ad click id (fbclid / gclid / ttclid) are
  * kept in sessionStorage from the first page view and sent with the checkout,
  * so the booking is logged with its source (e.g. "Facebook Ad").
- * Meta Pixel: loaded quietly (no PageView) and only Purchase is sent, once
- * the payment is confirmed (eventID = the payment reference, so it is counted
- * once). See PIXEL_EVENTS to send other events again. The Facebook click id
- * is kept in the _fbc cookie on arrival, so the Purchase is still credited to
- * the ad after the trip out to Monnify and back.
+ * Meta Pixel: loaded quietly (no PageView). Purchase is sent from the
+ * thank-you page once the booking is confirmed; this page sends nothing
+ * unless events are added to PIXEL_EVENTS. The Facebook click id is kept in
+ * the _fbc cookie on arrival, so the Purchase is still credited to the ad
+ * after the trip out to Monnify and back.
  */
 (function () {
   'use strict';
@@ -166,9 +167,10 @@
 
   // ─── Meta Pixel ───────────────────────────────────────────────────────
 
-  // Only these events are sent. Add 'ViewContent' (service picked) or
-  // 'InitiateCheckout' (Pay tapped) here to send them again.
-  var PIXEL_EVENTS = ['Purchase'];
+  // Only these events are sent from this page (Purchase is sent from the
+  // thank-you page). Add 'ViewContent' (service picked) or 'InitiateCheckout'
+  // (Pay tapped) here to send them.
+  var PIXEL_EVENTS = [];
 
   /**
    * Keeps the Facebook click id (fbclid) as Meta's _fbc cookie from the
@@ -689,119 +691,12 @@
     if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   }
 
-  // ─── Return from Monnify ───────────────────────────────────────────────
-
-  function icsFile(r) {
-    var start = r.date.replace(/-/g, '') + 'T' + r.time.replace(':', '') + '00';
-    var mins = Number(r.durationMinutes) || 60;
-    var endDate = new Date(Date.UTC(+r.date.slice(0, 4), +r.date.slice(5, 7) - 1, +r.date.slice(8, 10), +r.time.slice(0, 2), +r.time.slice(3, 5) + mins));
-    var end = endDate.toISOString().slice(0, 16).replace(/[-:]/g, '') + '00';
-    var loc = r.branch ? (r.branch.name + ', ' + r.branch.address) : '';
-    var lines = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Hairlux//Booking//EN', 'BEGIN:VEVENT',
-      'UID:' + r.reference + '@hairlux.com.ng',
-      'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z',
-      'DTSTART;TZID=Africa/Lagos:' + start,
-      'DTEND;TZID=Africa/Lagos:' + end,
-      'SUMMARY:Hairlux: ' + r.serviceName,
-      'LOCATION:' + loc.replace(/,/g, '\\,'),
-      'DESCRIPTION:Reservation code ' + r.reservationCode + '. Balance to pay at the branch: ' + naira(r.balanceDue).replace('₦', 'NGN '),
-      'END:VEVENT', 'END:VCALENDAR',
-    ];
-    return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(lines.join('\r\n'));
-  }
-
-  function showDone(r) {
-    show('bnChecking', false);
-    show('bnNotPaid', false);
-    show('bnDone', true);
-    $('doneCode').textContent = r.reservationCode;
-    $('doneTitle').textContent = 'You are booked, ' + r.firstName + '!';
-    $('doneLead').textContent = 'We sent your confirmation to ' + r.email + '.';
-    $('doneService').textContent = r.serviceName;
-    $('doneBranch').textContent = r.branch ? r.branch.name : '-';
-    $('doneAddress').textContent = r.branch ? r.branch.address : '-';
-    $('doneWhen').textContent = longDate(r.date) + ', ' + time12(r.time);
-    $('doneTotal').textContent = naira(r.totalAmount);
-    $('donePaid').textContent = naira(r.amountPaid);
-    $('doneBalance').textContent = r.balanceDue > 0 ? naira(r.balanceDue) : 'Nothing, fully paid';
-    if (r.accountCreated) {
-      show('doneAccount', true);
-      $('doneAccountText').textContent = 'We emailed ' + r.email + ' a link to set your password. Sign in any time to see your bookings, payments and balance.';
-    }
-    $('doneCalendar').href = icsFile(r);
-    if (window.HairluxBarcode) {
-      HairluxBarcode.render($('bnBarcode'), r.reservationCode, {
-        services: r.serviceName,
-        dateTime: longDate(r.date) + ', ' + time12(r.time),
-        location: r.branch ? r.branch.name + ', ' + r.branch.address : '',
-        amount: naira(r.totalAmount) + ' (paid ' + naira(r.amountPaid) + ', balance ' + naira(r.balanceDue) + ')',
-        paymentMethod: r.paymentOption === 'FULL' ? 'Paid online in full' : 'Deposit paid online',
-        status: 'Confirmed',
-        customerName: r.firstName,
-      });
-    }
-    // Count the conversion once per payment, even if the page is reloaded.
-    var firedKey = 'hlx_ad_purchase_' + r.reference;
-    if (!load(localStorageSafe(), firedKey)) {
-      track('Purchase', { value: r.amountPaid, currency: 'NGN', content_name: r.serviceName, content_type: 'product' }, r.reference);
-      store(localStorageSafe(), firedKey, 1);
-    }
-    try { sessionStorage.removeItem(FORM_KEY); } catch (e) { /* ignore */ }
-  }
-
-  function localStorageSafe() {
-    try { return window.localStorage; } catch (e) { return window.sessionStorage; }
-  }
-
-  function showNotPaid(r) {
-    show('bnChecking', false);
-    show('bnNotPaid', true);
-    if (r && r.status === 'FAILED' && r.message) {
-      $('notPaidTitle').textContent = 'We are on it';
-      $('notPaidText').textContent = r.message;
-      show('notPaidRetry', false);
-      return;
-    }
-    if (r && r.status === 'EXPIRED') {
-      $('notPaidText').textContent = 'This booking request has expired. Please start again to choose a new time.';
-    }
-    if (r && r.checkoutUrl) $('notPaidRetry').href = r.checkoutUrl;
-    else show('notPaidRetry', false);
-  }
-
-  async function checkReturn(ref) {
-    show('bnLoading', false);
-    show('bnResult', true);
-    var tries = 0;
-    var last = null;
-    // Monnify may take a little while to confirm a bank transfer or USSD payment.
-    while (tries < 20) {
-      tries++;
-      try {
-        last = await api('/public/ad-bookings/status/' + encodeURIComponent(ref));
-        if (last.status === 'BOOKED' && last.reservationCode) { showDone(last); return; }
-        if (last.status === 'FAILED' || last.status === 'EXPIRED') { showNotPaid(last); return; }
-        if (!last.processing && tries >= 10) { showNotPaid(last); return; }
-      } catch (e) {
-        if (e.status === 404) { showNotPaid(null); $('notPaidText').textContent = 'We could not find this booking. Please start again.'; return; }
-      }
-      if (tries === 4) $('bnCheckingText').textContent = 'Still confirming with your bank. This can take a minute for transfers.';
-      await new Promise(function (r) { setTimeout(r, 3000); });
-    }
-    if (last && last.processing) {
-      $('bnCheckingText').textContent = 'Your payment is received and your booking is being finalised. You will get an email with your reservation code shortly.';
-      return;
-    }
-    showNotPaid(last);
-  }
-
   // ─── Start ──────────────────────────────────────────────────────────
 
   /**
-   * The HLADB- reference Monnify sends the visitor back with. Read from
-   * paymentReference or ref, and tolerant of a malformed return link such as
-   * "?ref=HLADB-X?paymentReference=HLADB-X" (Monnify adds its own "?").
+   * An HLADB- payment reference in the link: a return from Monnify (older
+   * checkouts were sent back here). Read from paymentReference or ref, and
+   * tolerant of "?ref=HLADB-X?paymentReference=HLADB-X".
    */
   function returnReference() {
     var q = new URLSearchParams(location.search);
@@ -811,9 +706,14 @@
   }
 
   async function init() {
+    // A payment return belongs on the thank-you page.
+    var ref = returnReference();
+    if (ref) {
+      location.replace('booking-confirmed.html?ref=' + encodeURIComponent(ref));
+      return;
+    }
     $('bnYear').textContent = new Date().getFullYear();
     keepFacebookClickId(captureAttribution());
-    var ref = returnReference();
 
     try {
       state.config = await api('/public/ad-bookings/config');
@@ -822,11 +722,6 @@
       return;
     }
     initPixel(state.config.metaPixelId);
-
-    if (ref && /^HLADB-/i.test(ref)) {
-      checkReturn(ref);
-      return;
-    }
     startForm();
   }
 
