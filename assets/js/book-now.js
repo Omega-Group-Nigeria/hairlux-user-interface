@@ -10,9 +10,11 @@
  * Attribution: utm_* tags and the ad click id (fbclid / gclid / ttclid) are
  * kept in sessionStorage from the first page view and sent with the checkout,
  * so the booking is logged with its source (e.g. "Facebook Ad").
- * Meta Pixel (when an ID is set in admin): PageView, ViewContent on service
- * choice, InitiateCheckout on pay, Purchase on confirmation (eventID = the
- * payment reference, so it is counted once).
+ * Meta Pixel: loaded quietly (no PageView) and only Purchase is sent, once
+ * the payment is confirmed (eventID = the payment reference, so it is counted
+ * once). See PIXEL_EVENTS to send other events again. The Facebook click id
+ * is kept in the _fbc cookie on arrival, so the Purchase is still credited to
+ * the ad after the trip out to Monnify and back.
  */
 (function () {
   'use strict';
@@ -164,6 +166,24 @@
 
   // ─── Meta Pixel ───────────────────────────────────────────────────────
 
+  // Only these events are sent. Add 'ViewContent' (service picked) or
+  // 'InitiateCheckout' (Pay tapped) here to send them again.
+  var PIXEL_EVENTS = ['Purchase'];
+
+  /**
+   * Keeps the Facebook click id (fbclid) as Meta's _fbc cookie from the
+   * first page of the visit. Monnify sends the visitor back without it in
+   * the link, and the pixel reads this cookie to credit the Purchase to the ad.
+   */
+  function keepFacebookClickId(attr) {
+    if (!attr || attr.clickIdType !== 'fbclid' || !attr.clickId) return;
+    try {
+      if (/(?:^|;\s*)_fbc=/.test(document.cookie)) return;
+      document.cookie = '_fbc=fb.1.' + Date.now() + '.' + encodeURIComponent(attr.clickId) +
+        '; path=/; max-age=7776000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+    } catch (e) { /* cookies blocked: attribution falls back to Meta's own matching */ }
+  }
+
   function initPixel(id) {
     if (!id || window.fbq) return;
     /* eslint-disable */
@@ -173,12 +193,12 @@
       t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s)
     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
     /* eslint-enable */
+    // No PageView: nothing is sent until the payment is confirmed.
     window.fbq('init', id);
-    window.fbq('track', 'PageView');
   }
 
   function track(event, params, eventId) {
-    if (!window.fbq) return;
+    if (!window.fbq || PIXEL_EVENTS.indexOf(event) === -1) return;
     try {
       if (eventId) window.fbq('track', event, params || {}, { eventID: eventId });
       else window.fbq('track', event, params || {});
@@ -792,7 +812,7 @@
 
   async function init() {
     $('bnYear').textContent = new Date().getFullYear();
-    captureAttribution();
+    keepFacebookClickId(captureAttribution());
     var ref = returnReference();
 
     try {
