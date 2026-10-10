@@ -25,7 +25,7 @@
 
   var state = {
     config: null,
-    service: null,
+    services: [],
     branchId: null,
     date: null,
     time: null,
@@ -176,41 +176,102 @@
     return null;
   }
 
-  function renderServices(filter) {
-    var f = String(filter || '').trim().toLowerCase();
-    var list = state.config.services.filter(function (s) {
-      return !f || s.name.toLowerCase().indexOf(f) !== -1 || String(s.category || '').toLowerCase().indexOf(f) !== -1;
+  function serviceById(id) {
+    return state.config.services.filter(function (s) { return s.id === id; })[0] || null;
+  }
+
+  function isSelected(id) {
+    return state.services.some(function (s) { return s.id === id; });
+  }
+
+  /** Services the branch offers, with that branch's price. */
+  function servicesAtBranch(branchId) {
+    if (!branchId) return [];
+    return state.config.services.map(function (s) {
+      var bp = servicePriceAt(s, branchId);
+      return bp ? { service: s, price: bp.price } : null;
+    }).filter(Boolean);
+  }
+
+  /** How many online-bookable services a branch has (branches with none are hidden). */
+  function serviceCountAt(branchId) {
+    return state.config.services.filter(function (s) { return !!servicePriceAt(s, branchId); }).length;
+  }
+
+  /** Same rule as the server: % of the combined price, at least the minimum, never more than the price. */
+  function depositFor(total) {
+    var c = state.config;
+    if (!(total > 0)) return 0;
+    var byPercent = Math.ceil(total * Math.max(0, c.depositPercent) / 100);
+    return Math.min(total, Math.max(byPercent, Math.max(0, Math.round(c.minDepositAmount))));
+  }
+
+  function totalDuration() {
+    return state.services.reduce(function (sum, s) { return sum + (Number(s.duration) || 0); }, 0);
+  }
+
+  function servicesLabel() {
+    return state.services.map(function (s) { return s.name; }).join(' + ');
+  }
+
+  /**
+   * After the branch changes: keep only the services that branch offers and
+   * say which were dropped. Returns the names removed.
+   */
+  function keepServicesAtBranch() {
+    var removed = [];
+    state.services = state.services.filter(function (s) {
+      var ok = !!servicePriceAt(s, state.branchId);
+      if (!ok) removed.push(s.name);
+      return ok;
     });
-    $('bnServices').innerHTML = list.length ? list.map(function (s) {
-      var prices = s.branches.map(function (b) { return b.price; });
-      var same = prices.every(function (p) { return p === prices[0]; });
-      var checked = state.service && state.service.id === s.id;
-      return '<button type="button" class="bn-option" role="radio" aria-checked="' + checked + '" data-service="' + esc(s.id) + '">' +
-        (s.imageUrl ? '<img class="bn-option-img" src="' + esc(s.imageUrl) + '" alt="" loading="lazy" />' : '') +
-        '<span class="bn-option-body"><span class="bn-option-name">' + esc(s.name) + '</span>' +
-        '<span class="bn-option-meta">' + (s.duration ? minutesLabel(s.duration) : '') + (s.category ? (s.duration ? ' · ' : '') + esc(s.category) : '') + '</span></span>' +
-        '<span class="bn-option-price">' + (same ? '' : 'from ') + naira(lowestPrice(s)) + '</span>' +
-        '</button>';
-    }).join('') : '<div class="bn-empty" style="grid-column:1/-1">No service matches your search.</div>';
+    return removed;
+  }
+
+  function showServicesNote(msg) {
+    var el = $('bnServicesNote');
+    el.textContent = msg || '';
+    el.classList.toggle('bn-hidden', !msg);
   }
 
   function renderBranches() {
-    var s = state.service;
-    if (!s) {
-      $('bnBranches').innerHTML = '<div class="bn-empty">Choose a service first.</div>';
-      return;
-    }
-    $('bnBranches').innerHTML = s.branches.map(function (bp) {
-      var b = branchById(bp.branchId);
-      if (!b) return '';
-      var checked = state.branchId === b.id;
-      return '<button type="button" class="bn-option" role="radio" aria-checked="' + checked + '" data-branch="' + esc(b.id) + '">' +
+    var list = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0; });
+    $('bnBranches').innerHTML = list.length ? list.map(function (b) {
+      var n = serviceCountAt(b.id);
+      return '<button type="button" class="bn-option" role="radio" aria-checked="' + (state.branchId === b.id) + '" data-branch="' + esc(b.id) + '">' +
         '<span class="bn-check"></span>' +
         '<span class="bn-option-body"><span class="bn-option-name">' + esc(b.name) + '</span>' +
         '<span class="bn-option-meta">' + esc(b.address) + '</span></span>' +
-        '<span class="bn-option-price">' + naira(bp.price) + '</span>' +
+        '<span class="bn-option-meta" style="white-space:nowrap">' + n + (n === 1 ? ' service' : ' services') + '</span>' +
         '</button>';
-    }).join('');
+    }).join('') : '<div class="bn-empty" style="grid-column:1/-1">No branch is taking online bookings right now.</div>';
+  }
+
+  function renderServices(filter) {
+    var n = state.services.length;
+    $('bnServicesHint').textContent = n ? n + ' selected' + (totalDuration() ? ' \u00B7 about ' + minutesLabel(totalDuration()) : '') : 'Choose one or more';
+    if (!state.branchId) {
+      $('bnServiceSearch').classList.add('bn-hidden');
+      $('bnServices').innerHTML = '<div class="bn-empty" style="grid-column:1/-1">Choose a branch first to see its services and prices.</div>';
+      return;
+    }
+    var available = servicesAtBranch(state.branchId);
+    $('bnServiceSearch').classList.toggle('bn-hidden', available.length <= 8);
+    var f = String(filter || '').trim().toLowerCase();
+    var list = available.filter(function (x) {
+      var s = x.service;
+      return !f || s.name.toLowerCase().indexOf(f) !== -1 || String(s.category || '').toLowerCase().indexOf(f) !== -1;
+    });
+    $('bnServices').innerHTML = list.length ? list.map(function (x) {
+      var s = x.service;
+      return '<button type="button" class="bn-option" role="checkbox" aria-checked="' + isSelected(s.id) + '" data-service="' + esc(s.id) + '">' +
+        '<span class="bn-check bn-check-box"></span>' +
+        (s.imageUrl ? '<img class="bn-option-img" src="' + esc(s.imageUrl) + '" alt="" loading="lazy" />' : '') +
+        '<span class="bn-option-body"><span class="bn-option-name">' + esc(s.name) + '</span>' +
+        '<span class="bn-option-meta">' + (s.duration ? minutesLabel(s.duration) : '') + (s.category ? (s.duration ? ' \u00B7 ' : '') + esc(s.category) : '') + '</span></span>' +
+        '<span class="bn-option-price">' + naira(x.price) + '</span>' +
+        '</button>';
+    }).join('') : '<div class="bn-empty" style="grid-column:1/-1">No service matches your search.</div>';
   }
 
   function renderDays() {
@@ -239,7 +300,8 @@
     var req = ++state.slotsReq;
     box.innerHTML = '<div class="bn-empty" style="grid-column:1/-1"><span class="bn-spinner"></span></div>';
     try {
-      var qs = '?branchId=' + encodeURIComponent(state.branchId) + '&date=' + state.date + (state.service ? '&serviceId=' + encodeURIComponent(state.service.id) : '');
+      var qs = '?branchId=' + encodeURIComponent(state.branchId) + '&date=' + state.date +
+        (state.services.length ? '&serviceIds=' + encodeURIComponent(state.services.map(function (s) { return s.id; }).join(',')) : '');
       var data = await api('/public/ad-bookings/slots' + qs);
       if (req !== state.slotsReq) return;
       if (data.openTime && data.closeTime) $('bnHoursHint').textContent = 'Open ' + time12(data.openTime) + ' to ' + time12(data.closeTime);
@@ -255,10 +317,16 @@
   }
 
   function amounts() {
-    var bp = servicePriceAt(state.service, state.branchId);
-    if (!bp) return null;
-    var payNow = state.payOption === 'FULL' ? bp.price : bp.deposit;
-    return { total: bp.price, deposit: bp.deposit, payNow: payNow, balance: Math.max(0, bp.price - payNow) };
+    if (!state.services.length || !state.branchId) return null;
+    var total = 0;
+    for (var i = 0; i < state.services.length; i++) {
+      var bp = servicePriceAt(state.services[i], state.branchId);
+      if (!bp) return null;
+      total += bp.price;
+    }
+    var deposit = depositFor(total);
+    var payNow = state.payOption === 'FULL' ? total : deposit;
+    return { total: total, deposit: deposit, payNow: payNow, balance: Math.max(0, total - payNow) };
   }
 
   function renderPayOptions() {
@@ -292,8 +360,8 @@
   }
 
   function missingStep() {
-    if (!state.service) return 'Choose a service';
     if (!state.branchId) return 'Choose a branch';
+    if (!state.services.length) return 'Choose a service';
     if (!state.date) return 'Pick a day';
     if (!state.time) return 'Pick a time';
     return null;
@@ -301,7 +369,7 @@
 
   function updateSummary() {
     var b = state.branchId ? branchById(state.branchId) : null;
-    $('sumService').textContent = state.service ? state.service.name : 'Not chosen';
+    $('sumService').textContent = state.services.length ? servicesLabel() : 'Not chosen';
     $('sumBranch').textContent = b ? b.name : 'Not chosen';
     $('sumWhen').textContent = state.date
       ? longDate(state.date) + (state.time ? ', ' + time12(state.time) : '')
@@ -324,7 +392,7 @@
 
   function saveForm() {
     store(sessionStorage, FORM_KEY, {
-      serviceId: state.service && state.service.id,
+      serviceIds: state.services.map(function (s) { return s.id; }),
       branchId: state.branchId,
       date: state.date,
       time: state.time,
@@ -338,13 +406,22 @@
   function restoreForm() {
     var f = load(sessionStorage, FORM_KEY);
     var q = new URLSearchParams(location.search);
-    var wantService = q.get('service') || (f && f.serviceId);
-    var wantBranch = q.get('branch') || (f && f.branchId);
-    if (wantService) {
-      state.service = state.config.services.filter(function (s) { return s.id === wantService; })[0] || null;
+    // Ad links can preselect: ?branch=<id>&service=<id> or ?service=<id>,<id>
+    var wantBranch = q.get('branch') || (f && f.branchId) || null;
+    state.branchId = wantBranch && branchById(wantBranch) && serviceCountAt(wantBranch) > 0 ? wantBranch : null;
+    var bookable = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0; });
+    if (!state.branchId && bookable.length === 1) state.branchId = bookable[0].id;
+    var wanted = q.get('service') ? q.get('service').split(',') : (f && f.serviceIds) || [];
+    state.services = wanted.map(serviceById).filter(Boolean);
+    // A service link without a branch: preselect the branch when only one offers them all.
+    if (!state.branchId && state.services.length) {
+      var fits = bookable.filter(function (b) {
+        return state.services.every(function (s) { return !!servicePriceAt(s, b.id); });
+      });
+      if (fits.length === 1) state.branchId = fits[0].id;
     }
-    if (state.service && wantBranch && servicePriceAt(state.service, wantBranch)) state.branchId = wantBranch;
-    if (state.service && state.service.branches.length === 1 && !state.branchId) state.branchId = state.service.branches[0].branchId;
+    // Services stay chosen until a branch is picked; then only that branch's ones are kept.
+    if (state.branchId) keepServicesAtBranch();
     if (f) {
       if (f.date && f.date >= state.config.today) state.date = f.date;
       if (f.time) state.time = f.time;
@@ -404,7 +481,7 @@
       fullName: $('bnName').value.trim(),
       email: $('bnEmail').value.trim(),
       phone: $('bnPhone').value.trim(),
-      serviceId: state.service.id,
+      serviceIds: state.services.map(function (s) { return s.id; }),
       branchId: state.branchId,
       date: state.date,
       time: state.time,
@@ -412,7 +489,7 @@
     }, attribution());
 
     try {
-      track('InitiateCheckout', { value: a.payNow, currency: 'NGN', content_name: state.service.name, content_ids: [state.service.id], content_type: 'product' });
+      track('InitiateCheckout', { value: a.payNow, currency: 'NGN', content_name: servicesLabel(), content_ids: state.services.map(function (s) { return s.id; }), content_type: 'product', num_items: state.services.length });
       var data = await api('/public/ad-bookings/checkout', { method: 'POST', body: JSON.stringify(payload) });
       store(sessionStorage, REF_KEY, data.reference);
       window.location.href = data.authorizationUrl;
@@ -429,20 +506,29 @@
       var btn = e.target.closest('[data-service]');
       if (!btn) return;
       var id = btn.getAttribute('data-service');
-      state.service = state.config.services.filter(function (s) { return s.id === id; })[0];
-      if (!servicePriceAt(state.service, state.branchId)) state.branchId = state.service.branches.length === 1 ? state.service.branches[0].branchId : null;
+      var svc = serviceById(id);
+      if (!svc) return;
+      var adding = !isSelected(id);
+      state.services = adding
+        ? state.services.concat([svc])
+        : state.services.filter(function (s) { return s.id !== id; });
+      showServicesNote('');
       renderServices($('bnServiceSearch').value);
-      renderBranches();
       renderPayOptions();
       loadSlots();
       updateSummary();
-      track('ViewContent', { content_name: state.service.name, content_ids: [state.service.id], content_type: 'product', value: lowestPrice(state.service), currency: 'NGN' });
+      if (adding) track('ViewContent', { content_name: svc.name, content_ids: [svc.id], content_type: 'product', value: (servicePriceAt(svc, state.branchId) || {}).price || lowestPrice(svc), currency: 'NGN' });
     });
     $('bnBranches').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-branch]');
       if (!btn) return;
       state.branchId = btn.getAttribute('data-branch');
+      var removed = keepServicesAtBranch();
+      showServicesNote(removed.length
+        ? removed.join(', ') + (removed.length === 1 ? ' is' : ' are') + ' not offered at this branch, so ' + (removed.length === 1 ? 'it was' : 'they were') + ' removed.'
+        : '');
       renderBranches();
+      renderServices($('bnServiceSearch').value);
       renderPayOptions();
       loadSlots();
       updateSummary();
@@ -490,10 +576,9 @@
     if (c.depositPercent > 0 || c.minDepositAmount > 0) {
       $('bnPerkDeposit').textContent = 'Small deposit, comes off your bill';
     }
-    $('bnServiceSearch').classList.toggle('bn-hidden', c.services.length <= 8);
     restoreForm();
-    renderServices('');
     renderBranches();
+    renderServices('');
     renderDays();
     renderPayOptions();
     bindForm();
@@ -511,8 +596,7 @@
 
   function icsFile(r) {
     var start = r.date.replace(/-/g, '') + 'T' + r.time.replace(':', '') + '00';
-    var dur = (state.config && state.config.services || []).filter(function (s) { return s.name === r.serviceName; })[0];
-    var mins = dur && dur.duration ? dur.duration : 60;
+    var mins = Number(r.durationMinutes) || 60;
     var endDate = new Date(Date.UTC(+r.date.slice(0, 4), +r.date.slice(5, 7) - 1, +r.date.slice(8, 10), +r.time.slice(0, 2), +r.time.slice(3, 5) + mins));
     var end = endDate.toISOString().slice(0, 16).replace(/[-:]/g, '') + '00';
     var loc = r.branch ? (r.branch.name + ', ' + r.branch.address) : '';

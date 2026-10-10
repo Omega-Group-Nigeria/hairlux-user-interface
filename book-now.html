@@ -146,6 +146,8 @@
       flex: 0 0 20px; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line); margin-top: 2px;
       display: inline-flex; align-items: center; justify-content: center;
     }
+    .bn-check-box { border-radius: 6px; }
+    .bn-note-inline { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: var(--gold-soft); font-size: 13px; }
     .bn-option[aria-checked="true"] .bn-check { background: var(--gold-strong); border-color: var(--gold-strong); }
     .bn-option[aria-checked="true"] .bn-check::after {
       content: ""; width: 8px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translateY(-1px);
@@ -287,7 +289,7 @@
         <div>
           <div class="bn-hero">
             <h1>Book your Hairlux appointment</h1>
-            <p>Pick a service, a branch and a time. Secure your slot with a small deposit, and it comes off your final bill.</p>
+            <p>Pick a branch, your services and a time. Secure your slot with a small deposit, and it comes off your final bill.</p>
             <div class="bn-perks">
               <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg>Slot reserved for you</span>
               <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg><span id="bnPerkDeposit">Deposit comes off your bill</span></span>
@@ -297,15 +299,16 @@
 
           <form id="bnBookingForm" class="bn-card" style="margin-top:22px" novalidate>
             <div class="bn-step" style="margin-top:0">
-              <div class="bn-step-head"><span class="bn-step-num">1</span><span class="bn-step-title">Choose a service</span></div>
-              <input type="search" id="bnServiceSearch" class="bn-search bn-hidden" placeholder="Search services" aria-label="Search services" />
-              <div id="bnServices" class="bn-options two bn-services" role="radiogroup" aria-label="Service"></div>
+              <div class="bn-step-head"><span class="bn-step-num">1</span><span class="bn-step-title">Choose a branch</span></div>
+              <div id="bnBranches" class="bn-options two" role="radiogroup" aria-label="Branch"></div>
             </div>
 
             <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">2</span><span class="bn-step-title">Choose a branch</span></div>
-              <div id="bnBranches" class="bn-options two" role="radiogroup" aria-label="Branch">
-                <div class="bn-empty">Choose a service first.</div>
+              <div class="bn-step-head"><span class="bn-step-num">2</span><span class="bn-step-title">Choose your services</span><span class="bn-step-hint" id="bnServicesHint">Choose one or more</span></div>
+              <div id="bnServicesNote" class="bn-note-inline bn-hidden" role="status"></div>
+              <input type="search" id="bnServiceSearch" class="bn-search bn-hidden" placeholder="Search services" aria-label="Search services" />
+              <div id="bnServices" class="bn-options two bn-services" role="group" aria-label="Services">
+                <div class="bn-empty" style="grid-column:1/-1">Choose a branch first to see its services and prices.</div>
               </div>
             </div>
 
@@ -348,8 +351,8 @@
         <aside class="bn-aside">
           <div class="bn-card bn-summary">
             <h3>Your booking</h3>
-            <div class="bn-row"><span>Service</span><span id="sumService">Not chosen</span></div>
             <div class="bn-row"><span>Branch</span><span id="sumBranch">Not chosen</span></div>
+            <div class="bn-row"><span>Services</span><span id="sumService">Not chosen</span></div>
             <div class="bn-row"><span>Date and time</span><span id="sumWhen">Not chosen</span></div>
             <div class="bn-row total"><span>Service price</span><span id="sumTotal">&#8358;0</span></div>
             <div class="bn-row"><span>Pay at the branch</span><span id="sumBalance">&#8358;0</span></div>
@@ -383,7 +386,7 @@
           </div>
           <div id="bnBarcode" hidden></div>
           <div style="margin-top:18px">
-            <div class="bn-row"><span>Service</span><span id="doneService">-</span></div>
+            <div class="bn-row"><span>Services</span><span id="doneService">-</span></div>
             <div class="bn-row"><span>Branch</span><span id="doneBranch">-</span></div>
             <div class="bn-row"><span>Address</span><span id="doneAddress">-</span></div>
             <div class="bn-row"><span>Date and time</span><span id="doneWhen">-</span></div>
