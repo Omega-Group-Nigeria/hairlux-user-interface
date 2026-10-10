@@ -2,8 +2,9 @@
  * Hairlux ad landing page (book-now.html).
  *
  * A visitor from an ad picks a walk-in service, a branch and a slot, enters
- * name, phone and email, and pays a deposit (or the full price) by Paystack.
- * Paystack sends them back here with ?ref=HLADB-..., and the page shows the
+ * name, phone and email, and pays a deposit (or the full price) through the
+ * Monnify checkout (card, bank transfer or USSD). Monnify sends them back here
+ * with ?ref=HLADB-... (plus its own paymentReference), and the page shows the
  * reservation code and QR code once the booking is confirmed.
  *
  * Attribution: utm_* tags and the ad click id (fbclid / gclid / ttclid) are
@@ -506,7 +507,7 @@
     if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   }
 
-  // ─── Return from Paystack ─────────────────────────────────────────────
+  // ─── Return from Monnify ───────────────────────────────────────────────
 
   function icsFile(r) {
     var start = r.date.replace(/-/g, '') + 'T' + r.time.replace(':', '') + '00';
@@ -593,14 +594,14 @@
     show('bnResult', true);
     var tries = 0;
     var last = null;
-    // Paystack may take a few seconds to confirm a transfer or USSD payment.
+    // Monnify may take a little while to confirm a bank transfer or USSD payment.
     while (tries < 20) {
       tries++;
       try {
         last = await api('/public/ad-bookings/status/' + encodeURIComponent(ref));
         if (last.status === 'BOOKED' && last.reservationCode) { showDone(last); return; }
         if (last.status === 'FAILED' || last.status === 'EXPIRED') { showNotPaid(last); return; }
-        if (!last.processing && tries >= 6) { showNotPaid(last); return; }
+        if (!last.processing && tries >= 10) { showNotPaid(last); return; }
       } catch (e) {
         if (e.status === 404) { showNotPaid(null); $('notPaidText').textContent = 'We could not find this booking. Please start again.'; return; }
       }
@@ -620,7 +621,7 @@
     $('bnYear').textContent = new Date().getFullYear();
     captureAttribution();
     var q = new URLSearchParams(location.search);
-    var ref = q.get('ref') || q.get('reference') || q.get('trxref');
+    var ref = q.get('ref') || q.get('paymentReference');
 
     try {
       state.config = await api('/public/ad-bookings/config');
