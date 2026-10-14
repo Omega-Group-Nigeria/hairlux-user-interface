@@ -11,9 +11,9 @@
  * Attribution: utm_* tags and the ad click id (fbclid / gclid / ttclid) are
  * kept in sessionStorage from the first page view and sent with the checkout,
  * so the booking is logged with its source (e.g. "Facebook Ad").
- * Meta Pixel: loaded quietly (no PageView). Purchase is sent from the
- * thank-you page once the booking is confirmed; this page sends nothing
- * unless events are added to PIXEL_EVENTS. The Facebook click id is kept in
+ * Meta Pixel: the page loads the salon pixel and sends PageView. Purchase is
+ * sent from the thank-you page once the booking is confirmed; no other event
+ * is sent unless added to PIXEL_EVENTS. The Facebook click id is kept in
  * the _fbc cookie on arrival, so the Purchase is still credited to the ad
  * after the trip out to Monnify and back.
  */
@@ -202,8 +202,9 @@
       t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s)
     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
     /* eslint-enable */
-    // No PageView: nothing is sent until the payment is confirmed.
+    // Fallback only: the page snippet normally loads the pixel first.
     window.fbq('init', id);
+    window.fbq('track', 'PageView');
   }
 
   function track(event, params, eventId) {

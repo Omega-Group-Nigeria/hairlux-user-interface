@@ -6,8 +6,9 @@
  * button goes to book-now.html. The ad tags (utm_*, fbclid / gclid / ttclid)
  * are saved in sessionStorage the same way book-now.js does, and passed on in
  * the booking links, so the booking is still logged with its source and with
- * this page as where the visitor first landed. Meta Pixel PageView fires here
- * when a Pixel ID is set in admin.
+ * this page as where the visitor first landed. Meta Pixel: the page loads the
+ * salon pixel and sends PageView. The Pixel ID in admin is only used if that
+ * is missing.
  */
 (function () {
   'use strict';
