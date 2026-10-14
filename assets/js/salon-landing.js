@@ -6,8 +6,9 @@
  * button goes to book-now.html. The ad tags (utm_*, fbclid / gclid / ttclid)
  * are saved in sessionStorage the same way book-now.js does, and passed on in
  * the booking links, so the booking is still logged with its source and with
- * this page as where the visitor first landed. Meta Pixel PageView fires here
- * when a Pixel ID is set in admin.
+ * this page as where the visitor first landed. Meta Pixel: the page loads the
+ * salon pixel and sends PageView. The Pixel ID in admin is only used if that
+ * is missing.
  */
 (function () {
   'use strict';
@@ -18,7 +19,9 @@
   var FIRST_SHOWN = 9;
   var TRACKED = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid'];
 
-  var state = { config: null, category: '', showAll: false };
+  // locked: the page was opened for one category (salon.html?spa or ?category=spa),
+  // so only that category's services and branches are shown.
+  var state = { config: null, category: '', showAll: false, locked: false };
   var $ = function (id) { return document.getElementById(id); };
 
   function esc(s) {
@@ -77,6 +80,8 @@
     var q = new URLSearchParams();
     TRACKED.forEach(function (k) { if (here.get(k)) q.set(k, here.get(k)); });
     ['branch', 'service'].forEach(function (k) { if (here.get(k)) q.set(k, here.get(k)); });
+    // A category link carries on to the booking page, which then lists that category first.
+    if (state.locked) q.set('category', state.category);
     Object.keys(extra || {}).forEach(function (k) {
       if (extra[k]) q.set(k, extra[k]); else q.delete(k);
     });
@@ -107,6 +112,75 @@
 
   // ─── Content ──────────────────────────────────────────────────────────
 
+  // ─── Category from the link ───────────────────────────────────────────
+
+  /** "Hair Styling & Braids" -> "hairstylingbraids", for matching link keys. */
+  function catKey(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+  /** The category asked for in the link: salon.html?category=spa, or just salon.html?spa
+   * (a bare word, next to any ad tags). Null when none is given. */
+  function requestedCategory() {
+    var q = new URLSearchParams(location.search);
+    if (q.get('category')) return q.get('category');
+    var known = TRACKED.concat(['branch', 'service', 'category']);
+    var hit = null;
+    q.forEach(function (value, key) {
+      if (!hit && !value && known.indexOf(key) === -1) hit = key;
+    });
+    return hit;
+  }
+
+  /** Match the link key to one of the service categories: exact first ("spa" = "Spa",
+   * "hair-styling" = "Hair Styling"), then a single category starting with it or
+   * containing it as a word ("nails" = "Nails & Lashes"). Null when nothing or several match. */
+  function matchCategory(wanted, categories) {
+    var key = catKey(wanted);
+    if (!key) return null;
+    var exact = categories.filter(function (c) { return catKey(c) === key; });
+    if (exact.length) return exact[0];
+    var loose = categories.filter(function (c) {
+      return catKey(c).indexOf(key) === 0 || String(c).toLowerCase().split(/[^a-z0-9]+/).indexOf(key) !== -1;
+    });
+    return loose.length === 1 ? loose[0] : null;
+  }
+
+  function categories() {
+    var cats = [];
+    state.config.services.forEach(function (s) {
+      if (s.category && cats.indexOf(s.category) === -1) cats.push(s.category);
+    });
+    return cats;
+  }
+
+  /** Services shown on the page: only the linked category when the page is locked to one. */
+  function pageServices() {
+    return state.locked
+      ? state.config.services.filter(function (s) { return s.category === state.category; })
+      : state.config.services;
+  }
+
+  /** A category link: heading, page title and a way back to every service. */
+  function applyCategoryLock() {
+    var wanted = requestedCategory();
+    if (!wanted) return;
+    var cat = matchCategory(wanted, categories());
+    if (!cat) return; // unknown category: show everything rather than an empty page
+    state.category = cat;
+    state.locked = true;
+    var head = document.querySelector('#services .section-head h2');
+    if (head) head.textContent = cat + ' services and prices';
+    document.title = cat + ' | Hairlux Salon & Spa | Book Your Appointment';
+    var here = new URLSearchParams(location.search);
+    var keep = new URLSearchParams();
+    TRACKED.forEach(function (k) { if (here.get(k)) keep.set(k, here.get(k)); });
+    var all = $('allServicesLink');
+    if (all) {
+      all.href = 'salon.html' + (keep.toString() ? '?' + keep.toString() : '') + '#services';
+      all.classList.remove('hidden');
+    }
+    wireBookLinks(); // "Book" buttons now carry the category
+  }
+
   function lowestPrice(s) {
     return s.branches.reduce(function (min, b) { return min === null || b.price < min ? b.price : min; }, null);
   }
@@ -126,10 +200,8 @@
   }
 
   function renderFilters() {
-    var cats = [];
-    state.config.services.forEach(function (s) {
-      if (s.category && cats.indexOf(s.category) === -1) cats.push(s.category);
-    });
+    if (state.locked) return; // one category only: no filter chips
+    var cats = categories();
     if (cats.length < 2) return;
     var el = $('filters');
     el.classList.remove('hidden');
@@ -150,7 +222,7 @@
   }
 
   function renderServices() {
-    var list = state.config.services.filter(function (s) { return !state.category || s.category === state.category; });
+    var list = pageServices().filter(function (s) { return !state.category || s.category === state.category; });
     var shown = state.showAll ? list : list.slice(0, FIRST_SHOWN);
     $('services-list').innerHTML = shown.length ? shown.map(function (s) {
       var prices = s.branches.map(function (b) { return b.price; });
@@ -174,7 +246,7 @@
   function renderBranches() {
     var c = state.config;
     var rows = c.branches.map(function (b) {
-      var n = c.services.filter(function (s) { return s.branches.some(function (x) { return x.branchId === b.id; }); }).length;
+      var n = pageServices().filter(function (s) { return s.branches.some(function (x) { return x.branchId === b.id; }); }).length;
       return { branch: b, count: n };
     }).filter(function (r) { return r.count > 0; });
     $('branches-list').innerHTML = rows.length ? rows.map(function (r) {
@@ -183,7 +255,7 @@
       return '<div class="branch">' +
         '<h3>' + esc(b.name) + '</h3>' +
         '<div class="addr">' + esc(b.address) + '</div>' +
-        '<div class="count">' + r.count + (r.count === 1 ? ' service' : ' services') + ' bookable online</div>' +
+        '<div class="count">' + r.count + (state.locked ? ' ' + esc(state.category.toLowerCase()) : '') + (r.count === 1 ? ' service' : ' services') + ' bookable online</div>' +
         '<div class="branch-actions">' +
         '<a class="btn btn-primary btn-small" href="' + esc(bookUrl({ branch: b.id })) + '">Book at this branch</a>' +
         '<a class="btn btn-ghost btn-small" href="' + maps + '" target="_blank" rel="noopener">Directions</a>' +
@@ -233,6 +305,7 @@
     initPixel(state.config.metaPixelId);
     if (!state.config.enabled || !state.config.services.length) { showUnavailable(); return; }
     renderDepositCopy();
+    applyCategoryLock();
     renderFilters();
     renderServices();
     renderBranches();

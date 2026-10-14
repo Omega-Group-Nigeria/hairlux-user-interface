@@ -11,9 +11,9 @@
  * Attribution: utm_* tags and the ad click id (fbclid / gclid / ttclid) are
  * kept in sessionStorage from the first page view and sent with the checkout,
  * so the booking is logged with its source (e.g. "Facebook Ad").
- * Meta Pixel: loaded quietly (no PageView). Purchase is sent from the
- * thank-you page once the booking is confirmed; this page sends nothing
- * unless events are added to PIXEL_EVENTS. The Facebook click id is kept in
+ * Meta Pixel: the page loads the salon pixel and sends PageView. Purchase is
+ * sent from the thank-you page once the booking is confirmed; no other event
+ * is sent unless added to PIXEL_EVENTS. The Facebook click id is kept in
  * the _fbc cookie on arrival, so the Purchase is still credited to the ad
  * after the trip out to Monnify and back.
  */
@@ -33,6 +33,13 @@
     date: null,
     time: null,
     payOption: 'DEPOSIT',
+    // Category from the ad link (?spa or ?category=spa): only its services are listed
+    // until "Show all services" is pressed.
+    category: null,
+    showAllCategories: false,
+    // Services dropped because the chosen branch does not offer them; put back
+    // automatically when the visitor moves to a branch that does.
+    parked: [],
     slotsReq: 0,
     slots: [],
     // Long lists start short; "Show more" opens them.
@@ -195,8 +202,9 @@
       t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s)
     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
     /* eslint-enable */
-    // No PageView: nothing is sent until the payment is confirmed.
+    // Fallback only: the page snippet normally loads the pixel first.
     window.fbq('init', id);
+    window.fbq('track', 'PageView');
   }
 
   function track(event, params, eventId) {
@@ -235,18 +243,64 @@
     return state.services.some(function (s) { return s.id === id; });
   }
 
-  /** Services the branch offers, with that branch's price. */
+  // ─── Category from the link ───────────────────────────────────────────
+
+  /** "Hair Styling & Braids" -> "hairstylingbraids", for matching link keys. */
+  function catKey(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+  /** ?category=spa, or a bare ?spa next to the ad tags. Same rule as salon.html. */
+  function requestedCategory() {
+    var q = new URLSearchParams(location.search);
+    if (q.get('category')) return q.get('category');
+    var known = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid', 'branch', 'service', 'category', 'ref', 'paymentReference'];
+    var hit = null;
+    q.forEach(function (value, key) {
+      if (!hit && !value && known.indexOf(key) === -1) hit = key;
+    });
+    return hit;
+  }
+
+  /** Exact match first ("spa" = "Spa"), then one category starting with it or containing it as a word. */
+  function matchCategory(wanted) {
+    var key = catKey(wanted);
+    if (!key) return null;
+    var cats = [];
+    state.config.services.forEach(function (s) { if (s.category && cats.indexOf(s.category) === -1) cats.push(s.category); });
+    var exact = cats.filter(function (c) { return catKey(c) === key; });
+    if (exact.length) return exact[0];
+    var loose = cats.filter(function (c) {
+      return catKey(c).indexOf(key) === 0 || String(c).toLowerCase().split(/[^a-z0-9]+/).indexOf(key) !== -1;
+    });
+    return loose.length === 1 ? loose[0] : null;
+  }
+
+  /** Services listed on the page: the link's category only, until "Show all services". */
+  function listedServices() {
+    if (!state.category || state.showAllCategories) return state.config.services;
+    return state.config.services.filter(function (s) { return s.category === state.category; });
+  }
+
+  /** Services the branch offers, with that branch's price. Chosen services are always
+   * listed (even from another category) so they can be seen and unticked. */
   function servicesAtBranch(branchId) {
     if (!branchId) return [];
-    return state.config.services.map(function (s) {
+    var listed = listedServices();
+    return state.config.services.filter(function (s) {
+      return listed.indexOf(s) !== -1 || isSelected(s.id);
+    }).map(function (s) {
       var bp = servicePriceAt(s, branchId);
       return bp ? { service: s, price: bp.price } : null;
     }).filter(Boolean);
   }
 
-  /** How many online-bookable services a branch has (branches with none are hidden). */
+  /** How many listed services a branch has (branches with none are hidden). */
   function serviceCountAt(branchId) {
-    return state.config.services.filter(function (s) { return !!servicePriceAt(s, branchId); }).length;
+    return listedServices().filter(function (s) { return !!servicePriceAt(s, branchId); }).length;
+  }
+
+  /** Names of chosen services the branch does not offer. */
+  function missingAt(branchId) {
+    return state.services.filter(function (s) { return !servicePriceAt(s, branchId); }).map(function (s) { return s.name; });
   }
 
   /** Same rule as the server: % of the combined price, at least the minimum, never more than the price. */
@@ -271,9 +325,15 @@
    */
   function keepServicesAtBranch() {
     var removed = [];
-    state.services = state.services.filter(function (s) {
+    // Services set aside at an earlier branch come back when this branch offers them.
+    var back = state.parked.filter(function (s) { return !!servicePriceAt(s, state.branchId) && !isSelected(s.id); });
+    state.parked = state.parked.filter(function (s) { return back.indexOf(s) === -1; });
+    state.services = state.services.concat(back).filter(function (s) {
       var ok = !!servicePriceAt(s, state.branchId);
-      if (!ok) removed.push(s.name);
+      if (!ok) {
+        removed.push(s.name);
+        if (!state.parked.some(function (p) { return p.id === s.id; })) state.parked.push(s);
+      }
       return ok;
     });
     return removed;
@@ -286,15 +346,23 @@
   }
 
   function renderBranches() {
-    var all = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0; });
+    var all = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0 || b.id === state.branchId; });
+    // With services already chosen (e.g. from a link), branches that offer all of them come first.
+    var wanted = state.services.concat(state.parked);
+    if (wanted.length) {
+      var fits = function (b) { return wanted.every(function (s) { return !!servicePriceAt(s, b.id); }) ? 0 : 1; };
+      all = all.slice().sort(function (a, b) { return fits(a) - fits(b); });
+    }
     var list = state.showAllBranches ? all : firstWithSelected(all, FIRST_BRANCHES, function (b) { return b.id === state.branchId; });
     var hidden = all.length - list.length;
     $('bnBranches').innerHTML = (all.length ? list.map(function (b) {
       var n = serviceCountAt(b.id);
+      var miss = wanted.filter(function (s) { return !servicePriceAt(s, b.id); }).map(function (s) { return s.name; });
       return '<button type="button" class="bn-option" role="radio" aria-checked="' + (state.branchId === b.id) + '" data-branch="' + esc(b.id) + '">' +
         '<span class="bn-check"></span>' +
         '<span class="bn-option-body"><span class="bn-option-name">' + esc(b.name) + '</span>' +
-        '<span class="bn-option-meta">' + esc(b.address) + '</span></span>' +
+        '<span class="bn-option-meta">' + esc(b.address) + '</span>' +
+        (miss.length ? '<span class="bn-option-meta bn-miss">No ' + esc(miss.join(', ')) + ' here</span>' : '') + '</span>' +
         '<span class="bn-option-meta" style="white-space:nowrap">' + n + (n === 1 ? ' service' : ' services') + '</span>' +
         '</button>';
     }).join('') : '<div class="bn-empty" style="grid-column:1/-1">No branch is taking online bookings right now.</div>') +
@@ -303,7 +371,18 @@
         : '');
   }
 
+  /** "Showing Spa services · Show all services" when the page came from a category link. */
+  function renderCategoryBar() {
+    var bar = $('bnCategoryBar');
+    if (!state.category) { bar.classList.add('bn-hidden'); return; }
+    bar.classList.remove('bn-hidden');
+    bar.innerHTML = state.showAllCategories
+      ? '<span>Showing all services.</span><button type="button" class="bn-link-btn" data-cat-toggle>Show only ' + esc(state.category) + '</button>'
+      : '<span>Showing <strong>' + esc(state.category) + '</strong> services.</span><button type="button" class="bn-link-btn" data-cat-toggle>Show all services</button>';
+  }
+
   function renderServices(filter) {
+    renderCategoryBar();
     var n = state.services.length;
     $('bnServicesHint').textContent = n ? n + ' selected' + (totalDuration() ? ' \u00B7 about ' + minutesLabel(totalDuration()) : '') : 'Choose one or more';
     if (!state.branchId) {
@@ -488,12 +567,19 @@
     var f = load(sessionStorage, FORM_KEY);
     var q = new URLSearchParams(location.search);
     // Ad links can preselect: ?branch=<id>&service=<id> or ?service=<id>,<id>
-    var wantBranch = q.get('branch') || (f && f.branchId) || null;
-    state.branchId = wantBranch && branchById(wantBranch) && serviceCountAt(wantBranch) > 0 ? wantBranch : null;
-    var bookable = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0; });
-    if (!state.branchId && bookable.length === 1) state.branchId = bookable[0].id;
     var wanted = q.get('service') ? q.get('service').split(',') : (f && f.serviceIds) || [];
     state.services = wanted.map(serviceById).filter(Boolean);
+    var offersAll = function (id) {
+      return state.services.every(function (s) { return !!servicePriceAt(s, id); });
+    };
+    // The branch in the link wins. A branch remembered from an earlier visit is only
+    // reused when it offers the services in the link, so a service chosen on
+    // salon.html is never dropped for a branch the visitor did not pick this time.
+    var remembered = f && f.branchId;
+    var wantBranch = q.get('branch') || (remembered && (!q.get('service') || offersAll(remembered)) ? remembered : null);
+    state.branchId = wantBranch && branchById(wantBranch) && (serviceCountAt(wantBranch) > 0 || offersAll(wantBranch)) ? wantBranch : null;
+    var bookable = state.config.branches.filter(function (b) { return serviceCountAt(b.id) > 0; });
+    if (!state.branchId && bookable.length === 1) state.branchId = bookable[0].id;
     // A service link without a branch: preselect the branch when only one offers them all.
     if (!state.branchId && state.services.length) {
       var fits = bookable.filter(function (b) {
@@ -611,10 +697,13 @@
       state.branchId = btn.getAttribute('data-branch');
       state.showAllBranches = false;
       state.showAllTimes = false;
+      var before = state.services.length;
       var removed = keepServicesAtBranch();
+      var restored = state.services.length - (before - removed.length);
       showServicesNote(removed.length
-        ? removed.join(', ') + (removed.length === 1 ? ' is' : ' are') + ' not offered at this branch, so ' + (removed.length === 1 ? 'it was' : 'they were') + ' removed.'
-        : '');
+        ? removed.join(', ') + (removed.length === 1 ? ' is' : ' are') + ' not offered at this branch, so ' + (removed.length === 1 ? 'it was' : 'they were') + ' set aside. ' +
+          (removed.length === 1 ? 'It comes' : 'They come') + ' back if you pick a branch that offers ' + (removed.length === 1 ? 'it' : 'them') + '.'
+        : restored > 0 ? 'Your earlier choice is back: this branch offers it.' : '');
       renderBranches();
       renderServices($('bnServiceSearch').value);
       renderPayOptions();
@@ -658,6 +747,12 @@
       updateSummary();
     });
     $('bnServiceSearch').addEventListener('input', function () { renderServices(this.value); });
+    $('bnCategoryBar').addEventListener('click', function (e) {
+      if (!e.target.closest('[data-cat-toggle]')) return;
+      state.showAllCategories = !state.showAllCategories;
+      renderBranches();
+      renderServices($('bnServiceSearch').value);
+    });
     ['bnName', 'bnPhone', 'bnEmail'].forEach(function (id) {
       $(id).addEventListener('input', function () { this.parentElement.classList.remove('invalid'); saveForm(); });
     });
@@ -675,6 +770,9 @@
     if (c.depositPercent > 0 || c.minDepositAmount > 0) {
       $('bnPerkDeposit').textContent = 'Small deposit, comes off your bill';
     }
+    state.category = matchCategory(requestedCategory());
+    // A category with no branch taking it online is ignored (everything is shown).
+    if (state.category && !state.config.branches.some(function (b) { return serviceCountAt(b.id) > 0; })) state.category = null;
     restoreForm();
     renderBranches();
     renderServices('');
