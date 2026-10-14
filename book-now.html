@@ -410,6 +410,34 @@
       font-size: 13px;
     }
 
+    /* Category from the ad link (book-now.html?spa): showing one category, with a way to see all. */
+    .bn-cat-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px 12px;
+    }
+
+    .bn-link-btn {
+      border: 0;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+      color: var(--gold-strong);
+      text-decoration: underline;
+    }
+
+    :root[data-theme="dark"] .bn-link-btn {
+      color: var(--gold);
+    }
+
+    .bn-option-meta.bn-miss {
+      color: var(--err, #c0392b);
+    }
+
     .bn-option[aria-checked="true"] .bn-check {
       background: var(--gold-strong);
       border-color: var(--gold-strong);
@@ -848,7 +876,7 @@
 <body>
   <header class="bn-header">
     <div class="bn-header-inner">
-      <a href="index.html" class="bn-logo" aria-label="Hairlux home">
+      <a href="index.salon" class="bn-logo" aria-label="Hairlux home">
         <img class="logo-light" src="assets/img/logo-side-black.png" alt="Hairlux" />
         <img class="logo-dark" src="assets/img/logo-side-white.webp" alt="Hairlux" />
       </a>
@@ -912,6 +940,7 @@
               <div class="bn-step-head"><span class="bn-step-num">2</span><span class="bn-step-title">Choose your
                   services</span><span class="bn-step-hint" id="bnServicesHint">Choose one or more</span></div>
               <div id="bnServicesNote" class="bn-note-inline bn-hidden" role="status"></div>
+              <div id="bnCategoryBar" class="bn-note-inline bn-cat-bar bn-hidden"></div>
               <input type="search" id="bnServiceSearch" class="bn-search bn-hidden" placeholder="Search services"
                 aria-label="Search services" />
               <div id="bnServices" class="bn-options two bn-services" role="group" aria-label="Services">
