@@ -85,6 +85,17 @@
     var key = 'hlx_ad_purchase_' + r.reference;
     if (!window.fbq || seen(key)) return;
     try {
+      // Nothing paid online: a booking (Schedule), not a Purchase, so ad
+      // reports and purchase optimisation only count real money.
+      if (r.paymentOption === 'PAY_AT_BRANCH') {
+        window.fbq('track', 'Schedule', {
+          value: r.totalAmount,
+          currency: 'NGN',
+          content_name: r.serviceName,
+        }, { eventID: r.reference });
+        remember(key);
+        return;
+      }
       window.fbq('track', 'Purchase', {
         value: r.amountPaid,
         currency: 'NGN',
@@ -143,7 +154,7 @@
         dateTime: longDate(r.date) + ', ' + time12(r.time),
         location: r.branch ? r.branch.name + ', ' + r.branch.address : '',
         amount: naira(r.totalAmount) + ' (paid ' + naira(r.amountPaid) + ', balance ' + naira(r.balanceDue) + ')',
-        paymentMethod: r.paymentOption === 'FULL' ? 'Paid online in full' : 'Deposit paid online',
+        paymentMethod: r.paymentOption === 'FULL' ? 'Paid online in full' : r.paymentOption === 'PAY_AT_BRANCH' ? 'Pay at the branch' : 'Deposit paid online',
         status: 'Confirmed',
         customerName: r.firstName,
       });
@@ -182,7 +193,11 @@
         if (last.status === 'FAILED' || last.status === 'EXPIRED') { showNotPaid(last); return; }
         if (!last.processing && tries >= 10) { showNotPaid(last); return; }
       } catch (e) {
-        if (e.status === 404) { showNotPaid(null, 'We could not find this booking. Please start again.'); return; }
+        if (e.status === 404) {
+          showNotPaid(null, 'We could not find this booking. Please start again.');
+          if (PAY_LATER) { $('notPaidTitle').textContent = 'Booking not found'; show('notPaidCheck', false); }
+          return;
+        }
       }
       if (tries === 4) $('bnCheckingText').textContent = 'Still confirming with your bank. This can take a minute for transfers.';
       await new Promise(function (r) { setTimeout(r, 3000); });
@@ -196,8 +211,12 @@
 
   // ─── Start ────────────────────────────────────────────────────────────
 
+  // Booked with "Pay at the branch": nothing was paid, so no payment wording.
+  var PAY_LATER = new URLSearchParams(location.search).get('booked') === '1';
+
   function init() {
     $('bnYear').textContent = new Date().getFullYear();
+    if (PAY_LATER) $('bnCheckingText').textContent = 'Loading your booking...';
     var ref = returnReference();
     if (!ref) {
       // Opened without a booking reference (bookmarked or typed): nothing to confirm.

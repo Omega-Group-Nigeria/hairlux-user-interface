@@ -485,7 +485,7 @@
       total += bp.price;
     }
     var deposit = depositFor(total);
-    var payNow = state.payOption === 'FULL' ? total : deposit;
+    var payNow = state.payOption === 'FULL' ? total : state.payOption === 'PAY_AT_BRANCH' ? 0 : deposit;
     return { total: total, deposit: deposit, payNow: payNow, balance: Math.max(0, total - payNow) };
   }
 
@@ -503,13 +503,20 @@
     }];
     if (c.allowFullPayment) {
       opts.push({ key: 'FULL', name: 'Pay in full', meta: 'Nothing to pay at the branch.', price: a ? naira(a.total) : '' });
-    } else {
-      state.payOption = 'DEPOSIT';
     }
     // A deposit that equals the price is just a full payment.
     if (a && a.deposit >= a.total && c.allowFullPayment) {
-      opts = [opts[1]];
-      state.payOption = 'FULL';
+      opts = opts.filter(function (o) { return o.key !== 'DEPOSIT'; });
+    }
+    // Pay at the branch is listed first.
+    if (c.allowPayAtBranch) {
+      opts.unshift({ key: 'PAY_AT_BRANCH', name: 'Pay at the branch', meta: 'Nothing to pay now. Pay the full price before or at your visit.', price: a ? naira(0) : '' });
+    }
+    // Keep the choice only while it is still on offer (settings can change between visits).
+    // A paid option stays the default; pay at the branch is chosen only when nothing else is offered.
+    if (!opts.some(function (o) { return o.key === state.payOption; })) {
+      var paid = opts.filter(function (o) { return o.key !== 'PAY_AT_BRANCH'; })[0];
+      state.payOption = (paid || opts[0]).key;
     }
     $('bnPayOptions').innerHTML = opts.map(function (o) {
       return '<button type="button" class="bn-option" role="radio" aria-checked="' + (state.payOption === o.key) + '" data-pay="' + o.key + '">' +
@@ -541,12 +548,18 @@
     $('barPayNow').textContent = naira(a ? a.payNow : 0);
 
     var missing = missingStep();
-    var label = missing || ('Pay ' + naira(a.payNow) + (state.payOption === 'FULL' ? '' : ' deposit'));
+    var payLater = state.payOption === 'PAY_AT_BRANCH';
+    var label = missing || (payLater ? 'Confirm booking' : 'Pay ' + naira(a.payNow) + (state.payOption === 'FULL' ? '' : ' deposit'));
     [$('bnPayBtn'), $('bnPayBtnMobile')].forEach(function (btn) {
       if (btn.dataset.busy === '1') return;
       btn.disabled = !!missing;
-      btn.textContent = btn.id === 'bnPayBtnMobile' ? (missing || 'Pay now') : label;
+      btn.textContent = btn.id === 'bnPayBtnMobile' ? (missing || (payLater ? 'Book now' : 'Pay now')) : label;
     });
+    // Nothing is paid online with "Pay at the branch": no card note, and a cancellation note that fits.
+    show('bnSecure', !payLater);
+    $('bnPolicyNote').textContent = payLater
+      ? 'Your slot is held for you. The full price is paid before or at your visit. If you cannot make it, cancel from your account so someone else can have the slot.'
+      : 'If you cannot make it, cancel from your account and your payment goes back to your Hairlux wallet for your next visit.';
     saveForm();
   }
 
@@ -641,7 +654,7 @@
     buttons.forEach(function (b) {
       b.dataset.busy = '1';
       b.disabled = true;
-      b.innerHTML = '<span class="bn-spinner"></span> Opening payment';
+      b.innerHTML = '<span class="bn-spinner"></span> ' + (state.payOption === 'PAY_AT_BRANCH' ? 'Saving your booking' : 'Opening payment');
     });
 
     var payload = Object.assign({
@@ -656,10 +669,14 @@
     }, attribution());
 
     try {
-      track('InitiateCheckout', { value: a.payNow, currency: 'NGN', content_name: servicesLabel(), content_ids: state.services.map(function (s) { return s.id; }), content_type: 'product', num_items: state.services.length });
+      if (state.payOption !== 'PAY_AT_BRANCH') track('InitiateCheckout', { value: a.payNow, currency: 'NGN', content_name: servicesLabel(), content_ids: state.services.map(function (s) { return s.id; }), content_type: 'product', num_items: state.services.length });
       var data = await api('/public/ad-bookings/checkout', { method: 'POST', body: JSON.stringify(payload) });
       store(sessionStorage, REF_KEY, data.reference);
-      window.location.href = data.authorizationUrl;
+      // Pay at the branch: nothing to pay, so go straight to this site's own
+      // confirmation page (never a payment check, never another site).
+      window.location.href = state.payOption === 'PAY_AT_BRANCH'
+        ? 'booking-confirmed.html?ref=' + encodeURIComponent(data.reference) + '&booked=1'
+        : data.authorizationUrl;
     } catch (err) {
       buttons.forEach(function (b) { b.dataset.busy = ''; });
       updateSummary();
