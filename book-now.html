@@ -578,11 +578,7 @@
       gap: 10px;
     }
 
-    @media (min-width: 640px) {
-      .bn-pay-options {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
+    /* One option per row: up to three options (deposit, in full, pay at the branch). */
 
     .bn-summary h3 {
       font-family: Merriweather, Georgia, serif;
@@ -1020,7 +1016,7 @@
             <div class="bn-row"><span>Pay at the branch</span><span id="sumBalance">&#8358;0</span></div>
             <div class="bn-row pay"><span>Pay now</span><span id="sumPayNow">&#8358;0</span></div>
             <button type="submit" form="bnBookingForm" class="bn-btn" id="bnPayBtn" disabled>Choose a service</button>
-            <div class="bn-secure">
+            <div class="bn-secure" id="bnSecure">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="4" y="11" width="16" height="10" rx="2" />
                 <path d="M8 11V7a4 4 0 0 1 8 0v4" />
