@@ -61,12 +61,31 @@
       }
     })();
 
+    // Web shop links (2026-10-18): added here once instead of in every
+    // page's menu. Placed after "Services"; skipped if a page already has them.
+    (function addShopLinks() {
+      var list = document.querySelector('.profile-list');
+      if (!list || list.querySelector('a[href="shop.html"]')) return;
+      var page = (window.location.pathname.split('/').pop() || '').toLowerCase();
+      var after = list.querySelector('a[href="services.html"]');
+      [['shop.html', 'Shop'], ['shop-orders.html', 'Shop Orders']].reverse().forEach(function (l) {
+        var a = document.createElement('a');
+        a.href = l[0];
+        a.className = 'dropdown-link w-dropdown-link' + (page === l[0] ? ' w--current' : '');
+        if (page === l[0]) a.setAttribute('aria-current', 'page');
+        a.textContent = l[1];
+        if (after && after.nextSibling) list.insertBefore(a, after.nextSibling);
+        else list.appendChild(a);
+      });
+    })();
+
     const logoutLinks = document.querySelectorAll('[data-logout="true"], a[href="../log-in.html"], a[href="log-in.html"]');
 
     logoutLinks.forEach((link) => {
       link.addEventListener('click', function (e) {
         e.preventDefault();
         AuthAPI.logout();
+        try { localStorage.removeItem('hairlux.shop.cart'); } catch (_) { /* storage blocked */ }
         sessionStorage.setItem('hairlux_auth_notice', 'logged-out');
         window.location.href = loginPage;
       });
