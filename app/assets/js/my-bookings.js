@@ -77,7 +77,8 @@
         const serviceObj = Array.isArray(tx.services) && tx.services.length
           ? tx.services[0]
           : (tx.service || null);
-        const serviceCount = Array.isArray(tx.services) ? tx.services.length : 1;
+        // Add-on lines (addOnOf) belong to their main service: not counted as separate services.
+        const serviceCount = Array.isArray(tx.services) ? tx.services.filter(s => !(s && s.addOnOf)).length || tx.services.length : 1;
         const serviceBaseName = (serviceObj && (serviceObj.name || serviceObj.title)) || tx.serviceName || tx.title || 'Service';
         const serviceName = serviceCount > 1 ? `${serviceCount} Services (${serviceBaseName}, …)` : serviceBaseName;
         const scheduleDate = tx.date || tx.bookingDate || (tx.schedule && tx.schedule.date) || '-';
@@ -277,7 +278,7 @@
             if (!d || !d.id || activeBookingId !== tx.id) return;
 
             const svcs = Array.isArray(d.services) ? d.services : (d.service ? [d.service] : []);
-            const freshNames     = svcs.map(s => s.name || s.title || 'Service').join(', ') || d.serviceName || d.title || tx.serviceName;
+            const freshNames     = svcs.map(s => (s.addOnOf ? '+ ' : '') + (s.name || s.title || 'Service') + (s.addOnOf ? ' (add-on)' : '')).join(', ') || d.serviceName || d.title || tx.serviceName;
             const freshStatus    = (d.status || tx.status).toLowerCase();
             const freshPayStatus = (d.paymentStatus || d.payment_state || tx.paymentStatus || '').toLowerCase();
             const freshDate      = d.bookingDate || d.date || (d.schedule && d.schedule.date) || tx.scheduleDate;

@@ -102,8 +102,112 @@
     const fallback = Number((service && (service.price || service.basePrice || service.amount)) || 0);
     return Number.isFinite(fallback) ? fallback : 0;
   }
-  function getTotalPrice() { return allSelectedServices.reduce((s, x) => s + getServicePriceForType(x), 0); }
-  function getTotalDuration() { return allSelectedServices.reduce((s, x) => s + x.duration, 0); }
+  // ── Service add-ons (2026-10-24) ──────────────────────────────────
+  // Optional add-ons under each selected service, at the add-on price for
+  // the chosen branch. Nothing is ticked by default; the API checks and
+  // prices them again when the booking is made.
+  const ADDONS_STORAGE_KEY = 'selectedAddOns';
+  let addOnOffers = {};   // main serviceId -> [{ id, name, price, standardPrice, duration }]
+  const addOnOpen = {};   // main serviceId -> list expanded
+  let selectedAddOns = (function () { // main serviceId -> [add-on serviceId]
+    try {
+      const stored = JSON.parse(sessionStorage.getItem(ADDONS_STORAGE_KEY) || 'null');
+      return stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
+    } catch (e) { return {}; }
+  })();
+  function saveSelectedAddOns() {
+    try { sessionStorage.setItem(ADDONS_STORAGE_KEY, JSON.stringify(selectedAddOns)); } catch (e) { }
+  }
+  function getPickedAddOns(mainId) {
+    const ids = selectedAddOns[mainId] || [];
+    return (addOnOffers[mainId] || []).filter(function (a) { return ids.indexOf(a.id) >= 0; });
+  }
+  function getAllPickedAddOns() {
+    const out = [];
+    allSelectedServices.forEach(function (svc) {
+      getPickedAddOns(svc.id).forEach(function (a) { out.push(Object.assign({ addOnOf: svc.id }, a)); });
+    });
+    return out;
+  }
+  /** Booking lines for the API: each main service, then its ticked add-ons. */
+  function getBookingServiceLines(mode) {
+    const lines = [];
+    allSelectedServices.forEach(function (s) {
+      const line = { serviceId: s.id };
+      if (mode) line.serviceMode = mode;
+      lines.push(line);
+      getPickedAddOns(s.id).forEach(function (a) {
+        const addOn = { serviceId: a.id, quantity: 1, addOnOf: s.id };
+        if (mode) addOn.serviceMode = mode;
+        lines.push(addOn);
+      });
+    });
+    return lines;
+  }
+  async function loadAddOnOffers(branchId) {
+    const ids = allSelectedServices.map(function (s) { return s.id; }).filter(Boolean);
+    if (!ids.length) return;
+    try {
+      const res = await APIHelper.request(API_CONFIG.ENDPOINTS.SERVICES + '/add-on-options', {
+        method: 'POST',
+        body: JSON.stringify({ serviceIds: ids, mode: 'WALK_IN', branchId: branchId || undefined })
+      });
+      const data = getApiData(res) || {};
+      const next = {};
+      (data.byService || []).forEach(function (g) { next[g.serviceId] = g.addOns || []; });
+      // Forget add-ons of services no longer selected.
+      Object.keys(selectedAddOns).forEach(function (mainId) {
+        if (ids.indexOf(mainId) < 0) delete selectedAddOns[mainId];
+      });
+      // Drop ticked add-ons this branch does not offer, and say so.
+      const dropped = [];
+      Object.keys(selectedAddOns).forEach(function (mainId) {
+        const offered = (next[mainId] || []).map(function (a) { return a.id; });
+        const before = selectedAddOns[mainId] || [];
+        const kept = before.filter(function (id) { return offered.indexOf(id) >= 0; });
+        if (kept.length < before.length) {
+          before.filter(function (id) { return kept.indexOf(id) < 0; }).forEach(function (id) {
+            const old = (addOnOffers[mainId] || []).find(function (a) { return a.id === id; });
+            dropped.push(old ? old.name : 'An add-on');
+          });
+        }
+        if (kept.length) selectedAddOns[mainId] = kept; else delete selectedAddOns[mainId];
+      });
+      addOnOffers = next;
+      saveSelectedAddOns();
+      if (dropped.length) showToast(dropped.join(', ') + (dropped.length > 1 ? ' are' : ' is') + ' not offered at this branch and was removed.', 'info', 5000);
+    } catch (e) {
+      // Add-ons are optional: without the list the booking still works.
+    }
+  }
+  function renderAddOnPicker(svc) {
+    const offers = addOnOffers[svc.id] || [];
+    if (!offers.length) return '';
+    const picked = getPickedAddOns(svc.id);
+    // Shown open by default so customers see the suggestions (nothing ticked).
+    const open = addOnOpen[svc.id] !== false;
+    const label = picked.length
+      ? 'Add-ons: ' + picked.map(function (a) { return escHtml(a.name); }).join(', ') + ' (+' + formatMoney(picked.reduce(function (s, a) { return s + Number(a.price || 0); }, 0)) + ')'
+      : 'Suggested add-ons (' + offers.length + ', optional)';
+    let html = '<div class="addon-picker">' +
+      '<button type="button" class="addon-toggle" data-addon-toggle="' + escAttr(svc.id) + '" aria-expanded="' + open + '">' +
+      (open ? '&#9662; ' : '&#9656; ') + label + '</button>';
+    if (open) {
+      html += '<div class="addon-list">' + offers.map(function (a) {
+        const checked = picked.some(function (p) { return p.id === a.id; }) ? ' checked' : '';
+        const was = Number(a.standardPrice) > Number(a.price) ? ' <s class="addon-was">' + formatMoney(a.standardPrice) + '</s>' : '';
+        return '<label class="addon-option"><input type="checkbox" data-addon-main="' + escAttr(svc.id) + '" value="' + escAttr(a.id) + '"' + checked + '>' +
+          '<span class="addon-name">' + escHtml(a.name) + '</span>' +
+          '<span class="addon-meta">' + formatMoney(a.price) + was + (a.duration ? ' &middot; ' + a.duration + ' mins' : '') + '</span></label>';
+      }).join('') + '<div class="addon-note">Optional. Added to this booking and paid together.</div></div>';
+    }
+    return html + '</div>';
+  }
+  function getAddOnsTotal() { return getAllPickedAddOns().reduce(function (s, a) { return s + Number(a.price || 0); }, 0); }
+  function getAddOnsDuration() { return getAllPickedAddOns().reduce(function (s, a) { return s + Number(a.duration || 0); }, 0); }
+
+  function getTotalPrice() { return allSelectedServices.reduce((s, x) => s + getServicePriceForType(x), 0) + getAddOnsTotal(); }
+  function getTotalDuration() { return allSelectedServices.reduce((s, x) => s + x.duration, 0) + getAddOnsDuration(); }
   function getServiceNames() { return allSelectedServices.map(s => s.name).join(', ') || '-'; }
   function getDiscountedTotal() {
     const base = getTotalPrice();
@@ -595,6 +699,7 @@
           <div class="service-list-main">
             <span class="service-list-name">${escHtml(svc.name)}</span>
             <span class="selected-service-chip service-list-mode">${modeLabel}</span>
+            ${renderAddOnPicker(svc)}
           </div>
           <div class="service-list-badges">
             <span class="selected-service-chip">${formatMoney(servicePrice)}</span>
@@ -603,16 +708,40 @@
         </div>`;
     });
 
-    if (count > 1) {
+    const addOnCount = getAllPickedAddOns().length;
+    if (count > 1 || addOnCount) {
       html += `
         <div class="services-total-row">
-          <span class="services-total-label">${count} services &middot; ${totalDuration} mins total</span>
+          <span class="services-total-label">${count} service${count > 1 ? 's' : ''}${addOnCount ? ' + ' + addOnCount + ' add-on' + (addOnCount > 1 ? 's' : '') : ''} &middot; ${totalDuration} mins total</span>
           <span class="services-total-amount">${formatMoney(totalPrice)}</span>
         </div>`;
     }
     html += '</div>';
 
     servicesListContainer.innerHTML = html;
+  }
+
+  // Add-on picker clicks (the list is re-rendered on every change).
+  if (servicesListContainer) {
+    servicesListContainer.addEventListener('click', function (e) {
+      const toggle = e.target.closest('[data-addon-toggle]');
+      if (!toggle) return;
+      const id = toggle.getAttribute('data-addon-toggle');
+      addOnOpen[id] = addOnOpen[id] === false;
+      hydrateSelectedServiceUI();
+    });
+    servicesListContainer.addEventListener('change', function (e) {
+      const cb = e.target.closest('input[data-addon-main]');
+      if (!cb) return;
+      const mainId = cb.getAttribute('data-addon-main');
+      const ids = (selectedAddOns[mainId] || []).filter(function (id) { return id !== cb.value; });
+      if (cb.checked) ids.push(cb.value);
+      if (ids.length) selectedAddOns[mainId] = ids; else delete selectedAddOns[mainId];
+      saveSelectedAddOns();
+      hydrateSelectedServiceUI();
+      refreshSummary();
+      if (step === 3) buildReview();
+    });
   }
 
   // ── Address helper ────────────────────────────────────────────────
@@ -1055,9 +1184,10 @@
   function refreshSummary() {
     const services = getSelectedServices();
     const address = getSelectedAddress();
-    const serviceLabel = services.length > 1
+    const addOnCount = getAllPickedAddOns().length;
+    const serviceLabel = (services.length > 1
       ? `${services.length} services`
-      : (services[0] ? services[0].name : '-');
+      : (services[0] ? services[0].name : '-')) + (addOnCount ? ` + ${addOnCount} add-on${addOnCount > 1 ? 's' : ''}` : '');
     const bookingPresentation = getBookingTypePresentation();
     const needsAddress = hasAnyMobileService();
     const branchName = getSelectedBranchName();
@@ -1122,11 +1252,21 @@
           <span class="review-svc-price">${formatMoney(getServicePriceForType(svc))}</span>
           <span class="review-svc-duration">${svc.duration} mins</span>
         </div>
-      </div>`).join('');
+      </div>` + getPickedAddOns(svc.id).map(a => `
+      <div class="review-svc-item review-svc-addon">
+        <div class="review-svc-left">
+          <span class="review-svc-name">+ ${escHtml(a.name)} <span class="addon-badge">add-on</span></span>
+        </div>
+        <div class="review-svc-right">
+          <span class="review-svc-price">${formatMoney(a.price)}</span>
+          <span class="review-svc-duration">${a.duration || 0} mins</span>
+        </div>
+      </div>`).join('')).join('');
 
-    const svcFooter = services.length > 1 ? `
+    const reviewAddOns = getAllPickedAddOns().length;
+    const svcFooter = services.length > 1 || reviewAddOns ? `
       <div class="review-svc-footer">
-        <span class="review-svc-footer-meta">${services.length} services &middot; ${totalDuration} mins total</span>
+        <span class="review-svc-footer-meta">${services.length} service${services.length > 1 ? 's' : ''}${reviewAddOns ? ' + ' + reviewAddOns + ' add-on' + (reviewAddOns > 1 ? 's' : '') : ''} &middot; ${totalDuration} mins total</span>
         <span class="review-svc-footer-total">${formatMoney(totalPrice)}</span>
       </div>` : '';
 
@@ -1533,6 +1673,7 @@
     openPaidModal();
 
     sessionStorage.removeItem('selectedServices');
+    sessionStorage.removeItem(ADDONS_STORAGE_KEY);
     clearGatewayPendingState();
     pendingBookingPayload = null;
     pendingBookingAmountDue = 0;
@@ -1650,7 +1791,7 @@
     }
 
     const payload = {
-      services: getSelectedServices().map(s => ({ serviceId: s.id, serviceMode: getSelectedModeFromService(s) || bType })),
+      services: getBookingServiceLines(bType),
       date: bookingDateEl.value,
       time: bookingTimeEl.value,
       bookingType: bType,
@@ -2029,6 +2170,8 @@
           // Keep current pricing if the branch-scoped lookup fails.
         }
       }
+      // Add-on prices and availability are per branch too.
+      await loadAddOnOffers(activeBranchId);
       if (token !== branchPricingToken) return;
 
       hydrateSelectedServiceUI();
@@ -2194,7 +2337,7 @@
           branchId: (visitBranchEl && visitBranchEl.value) || undefined,
           date: bookingDateEl.value,
           time: bookingTimeEl.value,
-          services: getSelectedServices().map(function (s) { return { serviceId: s.id }; })
+          services: getBookingServiceLines()
         });
       } finally {
         nextStepBtn.style.pointerEvents = '';
@@ -2351,6 +2494,7 @@
     if (shouldShowBookingTypeLoading) setBookingTypeLoadingState(true);
     try {
       await hydrateSelectedServicesPricing();
+      await loadAddOnOffers();
     } finally {
       if (shouldShowBookingTypeLoading) setBookingTypeLoadingState(false);
     }

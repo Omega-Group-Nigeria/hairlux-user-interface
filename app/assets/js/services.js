@@ -61,6 +61,8 @@
     // Website books walk-in only: mobile/home-service moved to the app.
     function isWalkInBookable(svc) {
       if (!svc || svc.isWalkInAvailable === false) return false;
+      // Add-on-only services are offered on the booking page, under a main service.
+      if (svc.isAddOn) return false;
       var walk = Number(svc.walkInPrice);
       if (svc.walkInPrice != null && !isNaN(walk) && walk >= 0) return true;
       var fallback = Number((svc && (svc.price != null ? svc.price : (svc.basePrice != null ? svc.basePrice : svc.amount))) || 0);
@@ -118,6 +120,96 @@
     var paginationWrap = document.getElementById('services-pagination');
     var branchSelect   = document.getElementById('service-branch-select');
 
+    // ── Suggested add-ons (2026-10-24) ─────────────────────────
+    // When a selected service offers add-ons at this branch, they are
+    // suggested above the selection bar (none ticked). Ticked ones are kept
+    // in sessionStorage 'selectedAddOns' ({ mainId: [addOnIds] }), which the
+    // booking page reads; the API checks and prices them again.
+    var ADDONS_KEY = 'selectedAddOns';
+    var addOnOffers = {};   // mainId -> [{ id, name, price, standardPrice, duration }]
+    var addOnReq = 0;
+    var addOnKey = '';
+    var pickedAddOns = (function () {
+      try {
+        var s = JSON.parse(sessionStorage.getItem(ADDONS_KEY) || 'null');
+        return s && typeof s === 'object' && !Array.isArray(s) ? s : {};
+      } catch (e) { return {}; }
+    })();
+
+    function savePickedAddOns() {
+      try { sessionStorage.setItem(ADDONS_KEY, JSON.stringify(pickedAddOns)); } catch (e) {}
+    }
+
+    function pickedAddOnList() {
+      var out = [];
+      selected.forEach(function (svc) {
+        var ids = pickedAddOns[svc.id] || [];
+        (addOnOffers[svc.id] || []).forEach(function (a) {
+          if (ids.indexOf(a.id) !== -1) out.push(a);
+        });
+      });
+      return out;
+    }
+
+    function loadAddOnSuggestions() {
+      var ids = Array.from(selected.keys());
+      Object.keys(pickedAddOns).forEach(function (mainId) {
+        if (ids.indexOf(mainId) === -1) delete pickedAddOns[mainId];
+      });
+      savePickedAddOns();
+      var key = ids.slice().sort().join(',') + '|' + activeBranchId;
+      if (key === addOnKey) return;
+      addOnKey = key;
+      var req = ++addOnReq;
+      if (!ids.length || typeof APIHelper === 'undefined') {
+        addOnOffers = {};
+        renderAddOnSuggestions();
+        return;
+      }
+      APIHelper.request(API_CONFIG.ENDPOINTS.SERVICES + '/add-on-options', {
+        method: 'POST',
+        body: JSON.stringify({ serviceIds: ids, mode: 'WALK_IN', branchId: activeBranchId || undefined })
+      }).then(function (res) {
+        if (req !== addOnReq) return;
+        var data = (res && res.data !== undefined) ? res.data : res;
+        var next = {};
+        ((data && data.byService) || []).forEach(function (g) { next[g.serviceId] = g.addOns || []; });
+        addOnOffers = next;
+        renderAddOnSuggestions();
+        renderBar();
+      }).catch(function () {
+        if (req !== addOnReq) return;
+        addOnOffers = {}; // optional: booking still works without suggestions
+        renderAddOnSuggestions();
+      });
+    }
+
+    function renderAddOnSuggestions() {
+      var box = document.getElementById('sel-addons');
+      if (!box) return;
+      var groups = [];
+      selected.forEach(function (svc) {
+        if ((addOnOffers[svc.id] || []).length) groups.push(svc);
+      });
+      if (!groups.length) {
+        box.hidden = true;
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML = '<div class="sel-addons-inner">' + groups.map(function (svc) {
+        var ids = pickedAddOns[svc.id] || [];
+        return '<div class="sel-addons-group"><span class="sel-addons-label">Add to ' + escapeHtml(svc.name) + ':</span>' +
+          addOnOffers[svc.id].map(function (a) {
+            var on = ids.indexOf(a.id) !== -1;
+            return '<button type="button" class="sel-addon' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-addon="' + escapeHtml(a.id) + '" data-main="' + escapeHtml(svc.id) + '">' +
+              (on ? '&#10003; ' : '+ ') + escapeHtml(a.name) + ' <strong>' + formatPrice(a.price) + '</strong>' +
+              (Number(a.standardPrice) > Number(a.price) ? ' <s>' + formatPrice(a.standardPrice) + '</s>' : '') +
+              '</button>';
+          }).join('') + '</div>';
+      }).join('') + '<div class="sel-addons-note">Optional add-ons, booked and paid with your service.</div></div>';
+      box.hidden = false;
+    }
+
     function restoreSelectedFromSession() {
       try {
         var raw = sessionStorage.getItem('selectedServices');
@@ -153,11 +245,17 @@
       if (count === 0) {
         bar.classList.remove('visible');
         document.body.style.paddingBottom = '';
+        loadAddOnSuggestions();
         return;
       }
 
       chipsScroll.innerHTML = '';
       var totalPrice = 0, totalDuration = 0;
+
+      pickedAddOnList().forEach(function (a) {
+        totalPrice    += Number(a.price) || 0;
+        totalDuration += Number(a.duration) || 0;
+      });
 
       selected.forEach(function (svc) {
         totalPrice    += Number(svc.price) || 0;
@@ -174,7 +272,10 @@
         chipsScroll.appendChild(chip);
       });
 
-      countEl.textContent = count + ' service' + (count !== 1 ? 's' : '') + ' \u00b7 ' + totalDuration + ' mins';
+      var addOnCount = pickedAddOnList().length;
+      countEl.textContent = count + ' service' + (count !== 1 ? 's' : '') +
+        (addOnCount ? ' + ' + addOnCount + ' add-on' + (addOnCount !== 1 ? 's' : '') : '') +
+        ' \u00b7 ' + totalDuration + ' mins';
       totalEl.textContent = formatPrice(totalPrice);
 
       var token = encodeBookingParams({
@@ -189,6 +290,7 @@
       } catch (e) {}
 
       bar.classList.add('visible');
+      loadAddOnSuggestions();
       requestAnimationFrame(function () {
         document.body.style.paddingBottom = bar.offsetHeight + 'px';
       });
@@ -266,6 +368,84 @@
 
       setCardSelectedState(cardEl, true, chosenMode);
       renderBar();
+      offerAddOnsPopup(id, meta.name);
+    }
+
+    // ── Add-on pop-up (2026-10-24) ──────────────────────────────
+    // Right after a service is selected, if it offers add-ons at this branch,
+    // a pop-up suggests them (nothing ticked). "Add selected" keeps the ticked
+    // ones; "No thanks" closes it. They stay editable in the bar's strip.
+    var popupReq = 0;
+    function offerAddOnsPopup(mainId, mainName) {
+      if (typeof APIHelper === 'undefined') return;
+      var req = ++popupReq;
+      APIHelper.request(API_CONFIG.ENDPOINTS.SERVICES + '/add-on-options', {
+        method: 'POST',
+        body: JSON.stringify({ serviceIds: [mainId], mode: 'WALK_IN', branchId: activeBranchId || undefined })
+      }).then(function (res) {
+        if (req !== popupReq || !selected.has(mainId)) return;
+        var data = (res && res.data !== undefined) ? res.data : res;
+        var group = ((data && data.byService) || []).filter(function (g) { return g.serviceId === mainId; })[0];
+        if (!group || !group.addOns || !group.addOns.length) return;
+        showAddOnsPopup(mainId, mainName, group.addOns);
+      }).catch(function () { /* optional: no pop-up */ });
+    }
+
+    function closeAddOnsPopup() {
+      var el = document.getElementById('addon-popup');
+      if (el) el.parentNode.removeChild(el);
+      document.removeEventListener('keydown', popupEscape);
+    }
+    function popupEscape(e) { if (e.key === 'Escape') closeAddOnsPopup(); }
+
+    function showAddOnsPopup(mainId, mainName, offers) {
+      closeAddOnsPopup();
+      var picked = pickedAddOns[mainId] || [];
+      var wrap = document.createElement('div');
+      wrap.id = 'addon-popup';
+      wrap.className = 'addon-popup';
+      wrap.setAttribute('role', 'dialog');
+      wrap.setAttribute('aria-modal', 'true');
+      wrap.setAttribute('aria-labelledby', 'addon-popup-title');
+      wrap.innerHTML =
+        '<div class="addon-popup-card">' +
+          '<h3 class="addon-popup-title" id="addon-popup-title">Add extras to ' + escapeHtml(mainName || 'your service') + '?</h3>' +
+          '<p class="addon-popup-sub">Optional. Booked and paid together with your service.</p>' +
+          '<div class="addon-popup-list">' + offers.map(function (a) {
+            var on = picked.indexOf(a.id) !== -1;
+            return '<label class="addon-popup-item"><input type="checkbox" value="' + escapeHtml(a.id) + '"' + (on ? ' checked' : '') + '>' +
+              '<span class="addon-popup-name">' + escapeHtml(a.name) +
+              (a.duration ? '<small>' + Number(a.duration) + ' mins</small>' : '') + '</span>' +
+              '<span class="addon-popup-price">' + formatPrice(a.price) +
+              (Number(a.standardPrice) > Number(a.price) ? '<s>' + formatPrice(a.standardPrice) + '</s>' : '') + '</span></label>';
+          }).join('') + '</div>' +
+          '<div class="addon-popup-actions">' +
+            '<button type="button" class="addon-popup-skip" data-popup="skip">No thanks</button>' +
+            '<button type="button" class="addon-popup-add" data-popup="add">Add selected</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(wrap);
+      // Keep the offers so the bar can price what is ticked here.
+      addOnOffers[mainId] = offers;
+      wrap.addEventListener('click', function (e) {
+        var action = e.target.closest('[data-popup]');
+        if (e.target === wrap || (action && action.getAttribute('data-popup') === 'skip')) {
+          closeAddOnsPopup();
+          return;
+        }
+        if (action && action.getAttribute('data-popup') === 'add') {
+          var ids = Array.prototype.map.call(wrap.querySelectorAll('input[type="checkbox"]:checked'), function (cb) { return cb.value; });
+          if (ids.length) pickedAddOns[mainId] = ids; else delete pickedAddOns[mainId];
+          savePickedAddOns();
+          closeAddOnsPopup();
+          renderAddOnSuggestions();
+          renderBar();
+          if (ids.length) showToast(ids.length + ' add-on' + (ids.length > 1 ? 's' : '') + ' added.', 'success', 2200);
+        }
+      });
+      document.addEventListener('keydown', popupEscape);
+      var first = wrap.querySelector('input');
+      if (first) first.focus();
     }
 
     // ── Build a service card element ──────────────────────────
@@ -297,6 +477,9 @@
       var walkPrice = getServicePriceForMode(svc, 'WALK_IN');
 
       var chooseHint = 'Tap below to select this walk-in service.';
+      // Service add-ons (2026-10-24): say when optional add-ons can be added at booking.
+      var addOnsAvailable = svc.addOnCount && Number(svc.addOnCount.branch) > 0;
+      if (addOnsAvailable) chooseHint += ' Optional add-ons available when you book.';
 
       var modeActionsHtml = '';
       if (canWalkIn) {
@@ -600,6 +783,22 @@
       showGridLoading();
       restoreSelectedFromSession();
       renderBar();
+
+      var addOnBox = document.getElementById('sel-addons');
+      if (addOnBox) {
+        addOnBox.addEventListener('click', function (e) {
+          var btn = e.target.closest('[data-addon]');
+          if (!btn) return;
+          var main = btn.getAttribute('data-main');
+          var id = btn.getAttribute('data-addon');
+          var ids = (pickedAddOns[main] || []).filter(function (x) { return x !== id; });
+          if (btn.getAttribute('aria-pressed') !== 'true') ids.push(id);
+          if (ids.length) pickedAddOns[main] = ids; else delete pickedAddOns[main];
+          savePickedAddOns();
+          renderAddOnSuggestions();
+          renderBar();
+        });
+      }
 
       if (branchSelect) {
         branchSelect.addEventListener('change', function () {

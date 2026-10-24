@@ -369,6 +369,40 @@
       border-radius: 6px;
     }
 
+    /* Optional add-ons under the chosen services (2026-10-24) */
+    .bn-addons {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1.5px dashed var(--line);
+      border-radius: 14px;
+    }
+
+    .bn-addons-title {
+      font-weight: 600;
+      margin: 0 0 8px;
+    }
+
+    .bn-addons-title small {
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .bn-addons .bn-options {
+      margin-bottom: 10px;
+    }
+
+    .bn-addons .bn-option {
+      padding: 10px 12px;
+    }
+
+    .bn-addon-was {
+      display: block;
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
     .bn-more {
       grid-column: 1 / -1;
       justify-self: start;
@@ -963,6 +997,8 @@
                 <div class="bn-empty" style="grid-column:1/-1">Choose a branch first to see its services and prices.
                 </div>
               </div>
+              <!-- Optional add-ons for the chosen services (2026-10-24) -->
+              <div id="bnAddOns" class="bn-addons bn-hidden" role="group" aria-label="Optional add-ons"></div>
             </div>
 
             <div class="bn-step">
