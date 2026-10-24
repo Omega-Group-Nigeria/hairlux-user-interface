@@ -187,7 +187,12 @@ var ClosingTimeGuard = window.ClosingTimeGuard || (function () {
                 branchId: input.branchId || undefined,
                 date: input.date,
                 time: String(input.time).slice(0, 5),
-                services: services.map(function (s) { return { serviceId: s.serviceId, quantity: s.quantity || 1 }; }),
+                // addOnOf (service add-ons, 2026-10-24): add-ons lengthen the estimate.
+                services: services.map(function (s) {
+                    var line = { serviceId: s.serviceId, quantity: s.quantity || 1 };
+                    if (s.addOnOf) line.addOnOf = s.addOnOf;
+                    return line;
+                }),
             });
         } catch (err) {
             console.warn('[ClosingTimeGuard] check unavailable, not blocking the booking:', err && err.message);

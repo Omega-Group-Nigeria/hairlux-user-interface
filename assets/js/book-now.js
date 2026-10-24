@@ -42,6 +42,10 @@
     parked: [],
     slotsReq: 0,
     slots: [],
+    // Optional add-ons (2026-10-24): offers per chosen service at this branch, and the ticked ones.
+    addOnOffers: {},
+    addOnsPicked: {},
+    addOnsReq: 0,
     // Long lists start short; "Show more" opens them.
     showAllBranches: false,
     showAllDays: false,
@@ -312,11 +316,76 @@
   }
 
   function totalDuration() {
-    return state.services.reduce(function (sum, s) { return sum + (Number(s.duration) || 0); }, 0);
+    return state.services.reduce(function (sum, s) { return sum + (Number(s.duration) || 0); }, 0) +
+      pickedAddOns().reduce(function (sum, a) { return sum + (Number(a.duration) || 0); }, 0);
   }
 
   function servicesLabel() {
-    return state.services.map(function (s) { return s.name; }).join(' + ');
+    return state.services.map(function (s) { return s.name; }).concat(pickedAddOns().map(function (a) { return a.name; })).join(' + ');
+  }
+
+  // ─── Optional add-ons (2026-10-24) ──────────────────────────────────
+  /** Ticked add-ons still offered for the chosen services: [{ id, name, price, duration, addOnOf }]. */
+  function pickedAddOns() {
+    var out = [];
+    state.services.forEach(function (s) {
+      var ids = state.addOnsPicked[s.id] || [];
+      (state.addOnOffers[s.id] || []).forEach(function (a) {
+        if (ids.indexOf(a.id) !== -1) out.push({ id: a.id, name: a.name, price: a.price, duration: a.duration, addOnOf: s.id });
+      });
+    });
+    return out;
+  }
+
+  /** Loads the add-ons the chosen services offer at this branch, then redraws them. */
+  async function loadAddOns() {
+    var req = ++state.addOnsReq;
+    if (!state.branchId || !state.services.length) {
+      state.addOnOffers = {};
+      renderAddOns();
+      return;
+    }
+    try {
+      var data = await api('/services/add-on-options', {
+        method: 'POST',
+        body: JSON.stringify({ serviceIds: state.services.map(function (s) { return s.id; }), mode: 'WALK_IN', branchId: state.branchId }),
+      });
+      if (req !== state.addOnsReq) return;
+      var offers = {};
+      (data.byService || []).forEach(function (g) { offers[g.serviceId] = g.addOns || []; });
+      state.addOnOffers = offers;
+    } catch (e) {
+      if (req !== state.addOnsReq) return;
+      state.addOnOffers = {}; // optional: the booking still works without them
+    }
+    renderAddOns();
+    renderPayOptions();
+    updateSummary();
+    loadSlots();
+  }
+
+  function renderAddOns() {
+    var box = $('bnAddOns');
+    var groups = state.services.filter(function (s) { return (state.addOnOffers[s.id] || []).length; });
+    if (!groups.length) {
+      box.innerHTML = '';
+      show('bnAddOns', false);
+      return;
+    }
+    box.innerHTML = groups.map(function (s) {
+      var picked = state.addOnsPicked[s.id] || [];
+      return '<p class="bn-addons-title">Add to ' + esc(s.name) + ' <small>(optional)</small></p>' +
+        '<div class="bn-options two">' + state.addOnOffers[s.id].map(function (a) {
+          var on = picked.indexOf(a.id) !== -1;
+          return '<button type="button" class="bn-option" role="checkbox" aria-checked="' + on + '" data-addon="' + esc(a.id) + '" data-main="' + esc(s.id) + '">' +
+            '<span class="bn-check bn-check-box"></span>' +
+            '<span class="bn-option-body"><span class="bn-option-name">' + esc(a.name) + '</span>' +
+            '<span class="bn-option-meta">' + (a.duration ? minutesLabel(a.duration) : '') + '</span></span>' +
+            '<span class="bn-option-price">' + naira(a.price) + (a.standardPrice > a.price ? '<span class="bn-addon-was">' + naira(a.standardPrice) + '</span>' : '') + '</span>' +
+            '</button>';
+        }).join('') + '</div>';
+    }).join('');
+    show('bnAddOns', true);
   }
 
   /**
@@ -461,7 +530,7 @@
     box.innerHTML = '<div class="bn-empty" style="grid-column:1/-1"><span class="bn-spinner"></span></div>';
     try {
       var qs = '?branchId=' + encodeURIComponent(state.branchId) + '&date=' + state.date +
-        (state.services.length ? '&serviceIds=' + encodeURIComponent(state.services.map(function (s) { return s.id; }).join(',')) : '');
+        (state.services.length ? '&serviceIds=' + encodeURIComponent(state.services.map(function (s) { return s.id; }).concat(pickedAddOns().map(function (a) { return a.id; })).join(',')) : '');
       var data = await api('/public/ad-bookings/slots' + qs);
       if (req !== state.slotsReq) return;
       if (data.openTime && data.closeTime) $('bnHoursHint').textContent = 'Open ' + time12(data.openTime) + ' to ' + time12(data.closeTime);
@@ -484,6 +553,7 @@
       if (!bp) return null;
       total += bp.price;
     }
+    pickedAddOns().forEach(function (a) { total += Number(a.price) || 0; });
     var deposit = depositFor(total);
     var payNow = state.payOption === 'FULL' ? total : state.payOption === 'PAY_AT_BRANCH' ? 0 : deposit;
     return { total: total, deposit: deposit, payNow: payNow, balance: Math.max(0, total - payNow) };
@@ -566,6 +636,7 @@
   function saveForm() {
     store(sessionStorage, FORM_KEY, {
       serviceIds: state.services.map(function (s) { return s.id; }),
+      addOnsPicked: state.addOnsPicked,
       branchId: state.branchId,
       date: state.date,
       time: state.time,
@@ -603,6 +674,7 @@
     // Services stay chosen until a branch is picked; then only that branch's ones are kept.
     if (state.branchId) keepServicesAtBranch();
     if (f) {
+      if (f.addOnsPicked && typeof f.addOnsPicked === 'object') state.addOnsPicked = f.addOnsPicked;
       if (f.date && f.date >= state.config.today) state.date = f.date;
       if (f.time) state.time = f.time;
       if (f.payOption) state.payOption = f.payOption;
@@ -662,6 +734,7 @@
       email: $('bnEmail').value.trim(),
       phone: $('bnPhone').value.trim(),
       serviceIds: state.services.map(function (s) { return s.id; }),
+      addOns: pickedAddOns().map(function (a) { return { serviceId: a.id, addOnOf: a.addOnOf }; }),
       branchId: state.branchId,
       date: state.date,
       time: state.time,
@@ -701,6 +774,7 @@
       renderPayOptions();
       loadSlots();
       updateSummary();
+      loadAddOns();
       if (adding) track('ViewContent', { content_name: svc.name, content_ids: [svc.id], content_type: 'product', value: (servicePriceAt(svc, state.branchId) || {}).price || lowestPrice(svc), currency: 'NGN' });
     });
     $('bnBranches').addEventListener('click', function (e) {
@@ -722,6 +796,21 @@
           (removed.length === 1 ? 'It comes' : 'They come') + ' back if you pick a branch that offers ' + (removed.length === 1 ? 'it' : 'them') + '.'
         : restored > 0 ? 'Your earlier choice is back: this branch offers it.' : '');
       renderBranches();
+      renderServices($('bnServiceSearch').value);
+      renderPayOptions();
+      loadSlots();
+      updateSummary();
+      loadAddOns();
+    });
+    $('bnAddOns').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-addon]');
+      if (!btn) return;
+      var main = btn.getAttribute('data-main');
+      var id = btn.getAttribute('data-addon');
+      var ids = (state.addOnsPicked[main] || []).filter(function (x) { return x !== id; });
+      if (btn.getAttribute('aria-checked') !== 'true') ids.push(id);
+      if (ids.length) state.addOnsPicked[main] = ids; else delete state.addOnsPicked[main];
+      renderAddOns();
       renderServices($('bnServiceSearch').value);
       renderPayOptions();
       loadSlots();
@@ -802,6 +891,7 @@
     show('bnMobileBar', true);
     document.body.classList.add('has-bar');
     if (state.branchId) loadSlots();
+    loadAddOns();
     var sel = document.querySelector('.bn-day[aria-checked="true"]');
     if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   }
