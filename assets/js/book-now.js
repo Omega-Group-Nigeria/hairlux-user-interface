@@ -42,13 +42,19 @@
     parked: [],
     slotsReq: 0,
     slots: [],
+    // Optional add-ons (2026-10-24): offers per chosen service at this branch, and the ticked ones.
+    addOnOffers: {},
+    addOnsPicked: {},
+    addOnsReq: 0,
     // Long lists start short; "Show more" opens them.
     showAllBranches: false,
     showAllDays: false,
     showAllTimes: false,
+    // Guided steps (2026-10-28): 1 branch, 2 services, 3 day and time, 4 details and payment.
+    step: 1,
   };
 
-  var FIRST_BRANCHES = 2;
+  var FIRST_BRANCHES = 3;
   var FIRST_DAYS = 7;
   var FIRST_TIMES = 8;
 
@@ -312,11 +318,76 @@
   }
 
   function totalDuration() {
-    return state.services.reduce(function (sum, s) { return sum + (Number(s.duration) || 0); }, 0);
+    return state.services.reduce(function (sum, s) { return sum + (Number(s.duration) || 0); }, 0) +
+      pickedAddOns().reduce(function (sum, a) { return sum + (Number(a.duration) || 0); }, 0);
   }
 
   function servicesLabel() {
-    return state.services.map(function (s) { return s.name; }).join(' + ');
+    return state.services.map(function (s) { return s.name; }).concat(pickedAddOns().map(function (a) { return a.name; })).join(' + ');
+  }
+
+  // ─── Optional add-ons (2026-10-24) ──────────────────────────────────
+  /** Ticked add-ons still offered for the chosen services: [{ id, name, price, duration, addOnOf }]. */
+  function pickedAddOns() {
+    var out = [];
+    state.services.forEach(function (s) {
+      var ids = state.addOnsPicked[s.id] || [];
+      (state.addOnOffers[s.id] || []).forEach(function (a) {
+        if (ids.indexOf(a.id) !== -1) out.push({ id: a.id, name: a.name, price: a.price, duration: a.duration, addOnOf: s.id });
+      });
+    });
+    return out;
+  }
+
+  /** Loads the add-ons the chosen services offer at this branch, then redraws them. */
+  async function loadAddOns() {
+    var req = ++state.addOnsReq;
+    if (!state.branchId || !state.services.length) {
+      state.addOnOffers = {};
+      renderAddOns();
+      return;
+    }
+    try {
+      var data = await api('/services/add-on-options', {
+        method: 'POST',
+        body: JSON.stringify({ serviceIds: state.services.map(function (s) { return s.id; }), mode: 'WALK_IN', branchId: state.branchId }),
+      });
+      if (req !== state.addOnsReq) return;
+      var offers = {};
+      (data.byService || []).forEach(function (g) { offers[g.serviceId] = g.addOns || []; });
+      state.addOnOffers = offers;
+    } catch (e) {
+      if (req !== state.addOnsReq) return;
+      state.addOnOffers = {}; // optional: the booking still works without them
+    }
+    renderAddOns();
+    renderPayOptions();
+    updateSummary();
+    loadSlots();
+  }
+
+  function renderAddOns() {
+    var box = $('bnAddOns');
+    var groups = state.services.filter(function (s) { return (state.addOnOffers[s.id] || []).length; });
+    if (!groups.length) {
+      box.innerHTML = '';
+      show('bnAddOns', false);
+      return;
+    }
+    box.innerHTML = groups.map(function (s) {
+      var picked = state.addOnsPicked[s.id] || [];
+      return '<p class="bn-addons-title">Add to ' + esc(s.name) + ' <small>(optional)</small></p>' +
+        '<div class="bn-options two">' + state.addOnOffers[s.id].map(function (a) {
+          var on = picked.indexOf(a.id) !== -1;
+          return '<button type="button" class="bn-option" role="checkbox" aria-checked="' + on + '" data-addon="' + esc(a.id) + '" data-main="' + esc(s.id) + '">' +
+            '<span class="bn-check bn-check-box"></span>' +
+            '<span class="bn-option-body"><span class="bn-option-name">' + esc(a.name) + '</span>' +
+            '<span class="bn-option-meta">' + (a.duration ? minutesLabel(a.duration) : '') + '</span></span>' +
+            '<span class="bn-option-price">' + naira(a.price) + (a.standardPrice > a.price ? '<span class="bn-addon-was">' + naira(a.standardPrice) + '</span>' : '') + '</span>' +
+            '</button>';
+        }).join('') + '</div>';
+    }).join('');
+    show('bnAddOns', true);
   }
 
   /**
@@ -461,7 +532,7 @@
     box.innerHTML = '<div class="bn-empty" style="grid-column:1/-1"><span class="bn-spinner"></span></div>';
     try {
       var qs = '?branchId=' + encodeURIComponent(state.branchId) + '&date=' + state.date +
-        (state.services.length ? '&serviceIds=' + encodeURIComponent(state.services.map(function (s) { return s.id; }).join(',')) : '');
+        (state.services.length ? '&serviceIds=' + encodeURIComponent(state.services.map(function (s) { return s.id; }).concat(pickedAddOns().map(function (a) { return a.id; })).join(',')) : '');
       var data = await api('/public/ad-bookings/slots' + qs);
       if (req !== state.slotsReq) return;
       if (data.openTime && data.closeTime) $('bnHoursHint').textContent = 'Open ' + time12(data.openTime) + ' to ' + time12(data.closeTime);
@@ -484,6 +555,7 @@
       if (!bp) return null;
       total += bp.price;
     }
+    pickedAddOns().forEach(function (a) { total += Number(a.price) || 0; });
     var deposit = depositFor(total);
     var payNow = state.payOption === 'FULL' ? total : state.payOption === 'PAY_AT_BRANCH' ? 0 : deposit;
     return { total: total, deposit: deposit, payNow: payNow, balance: Math.max(0, total - payNow) };
@@ -508,10 +580,8 @@
     if (a && a.deposit >= a.total && c.allowFullPayment) {
       opts = opts.filter(function (o) { return o.key !== 'DEPOSIT'; });
     }
-    // Pay at the branch is listed first.
-    if (c.allowPayAtBranch) {
-      opts.unshift({ key: 'PAY_AT_BRANCH', name: 'Pay at the branch', meta: 'Nothing to pay now. Pay the full price before or at your visit.', price: a ? naira(0) : '' });
-    }
+    // Pay at the branch is not offered on this page (2026-10-28): the ad booking is secured
+    // online with a deposit (part payment) or paid in full. The admin setting is ignored here.
     // Keep the choice only while it is still on offer (settings can change between visits).
     // A paid option stays the default; pay at the branch is chosen only when nothing else is offered.
     if (!opts.some(function (o) { return o.key === state.payOption; })) {
@@ -526,12 +596,86 @@
     }).join('');
   }
 
+  // ─── Guided steps (2026-10-28) ────────────────────────────────────
+  // One step is open at a time. A finished step folds into a summary line with "Change".
+  // Picking a branch or a time moves on by itself; services need "Continue" (several can be chosen).
+
+  var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>';
+
+  function stepDone(k) {
+    if (k === 1) return !!state.branchId;
+    if (k === 2) return state.services.length > 0;
+    if (k === 3) return !!(state.date && state.time);
+    return false;
+  }
+
+  /** The first step still to do (4 when branch, services and time are all set). */
+  function firstOpenStep() {
+    for (var k = 1; k <= 3; k++) if (!stepDone(k)) return k;
+    return 4;
+  }
+
+  function stepSummary(k) {
+    var a = amounts();
+    if (k === 1) { var b = branchById(state.branchId); return b ? b.name : ''; }
+    if (k === 2) return state.services.length ? servicesLabel() + (a ? ' \u00B7 ' + naira(a.total) : '') : '';
+    if (k === 3) return state.date && state.time ? longDate(state.date) + ', ' + time12(state.time) : '';
+    return '';
+  }
+
+  function renderSteps() {
+    var reach = firstOpenStep();
+    if (state.step > reach) state.step = reach;
+    Array.prototype.forEach.call(document.querySelectorAll('.bn-step[data-step]'), function (el) {
+      var k = Number(el.getAttribute('data-step'));
+      var done = stepDone(k);
+      el.classList.toggle('is-open', k === state.step);
+      el.classList.toggle('is-done', done);
+      el.classList.toggle('is-locked', k > reach);
+      el.querySelector('.bn-step-num').innerHTML = done && k !== state.step ? CHECK_SVG : String(k);
+      var sum = $('bnSum' + k);
+      if (sum) sum.textContent = done ? stepSummary(k) : '';
+    });
+    Array.prototype.forEach.call($('bnProgress').querySelectorAll('[data-p]'), function (li) {
+      var k = Number(li.getAttribute('data-p'));
+      li.classList.toggle('now', k === state.step);
+      li.classList.toggle('done', k < state.step || (k !== state.step && stepDone(k)));
+    });
+    var next = $('bnNext2');
+    next.disabled = !state.services.length;
+    next.textContent = state.services.length
+      ? 'Continue with ' + state.services.length + (state.services.length === 1 ? ' service' : ' services')
+      : 'Choose a service';
+    document.body.classList.toggle('bn-at-pay', state.step === 4);
+  }
+
+  /** Open step k (never past the first unfinished one) and bring it into view. */
+  function goStep(k, scroll) {
+    state.step = Math.max(1, Math.min(k, firstOpenStep()));
+    updateSummary();
+    if (scroll === false) return;
+    var el = document.querySelector('.bn-step[data-step="' + state.step + '"]');
+    if (el) {
+      var top = el.getBoundingClientRect().top + window.scrollY - 80;
+      if (Math.abs(window.scrollY - top) > 40) window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+  }
+
+  /** After a choice: open the next unfinished step, after a short pause so the tick is seen. */
+  function advanceSoon() {
+    setTimeout(function () { goStep(firstOpenStep()); }, 260);
+  }
+
   function missingStep() {
     if (!state.branchId) return 'Choose a branch';
     if (!state.services.length) return 'Choose a service';
     if (!state.date) return 'Pick a day';
     if (!state.time) return 'Pick a time';
     return null;
+  }
+
+  function missingStepFor(k) {
+    return k === 1 ? 'Choose a branch' : k === 2 ? 'Choose a service' : !state.date ? 'Pick a day' : 'Pick a time';
   }
 
   function updateSummary() {
@@ -547,13 +691,20 @@
     $('sumPayNow').textContent = naira(a ? a.payNow : 0);
     $('barPayNow').textContent = naira(a ? a.payNow : 0);
 
+    renderSteps();
+    var atPay = state.step === 4;
+    $('barLabel').textContent = atPay ? 'Pay now' : 'Total';
+    $('barPayNow').textContent = naira(a ? (atPay ? a.payNow : a.total) : 0);
     var missing = missingStep();
     var payLater = state.payOption === 'PAY_AT_BRANCH';
-    var label = missing || (payLater ? 'Confirm booking' : 'Pay ' + naira(a.payNow) + (state.payOption === 'FULL' ? '' : ' deposit'));
+    // Before the last step the buttons move the visitor on ("Continue"); on it they pay.
+    var stepMissing = !atPay && !stepDone(state.step) ? missingStepFor(state.step) : null;
+    var label = !atPay ? (stepMissing || 'Continue')
+      : missing || (payLater ? 'Confirm booking' : 'Pay ' + naira(a.payNow) + (state.payOption === 'FULL' ? '' : ' deposit'));
     [$('bnPayBtn'), $('bnPayBtnMobile')].forEach(function (btn) {
       if (btn.dataset.busy === '1') return;
-      btn.disabled = !!missing;
-      btn.textContent = btn.id === 'bnPayBtnMobile' ? (missing || (payLater ? 'Book now' : 'Pay now')) : label;
+      btn.disabled = atPay ? !!missing : !!stepMissing;
+      btn.textContent = btn.id === 'bnPayBtnMobile' && atPay ? (missing || (payLater ? 'Book now' : 'Pay ' + naira(a.payNow))) : label;
     });
     // Nothing is paid online with "Pay at the branch": no card note, and a cancellation note that fits.
     show('bnSecure', !payLater);
@@ -566,6 +717,7 @@
   function saveForm() {
     store(sessionStorage, FORM_KEY, {
       serviceIds: state.services.map(function (s) { return s.id; }),
+      addOnsPicked: state.addOnsPicked,
       branchId: state.branchId,
       date: state.date,
       time: state.time,
@@ -603,6 +755,7 @@
     // Services stay chosen until a branch is picked; then only that branch's ones are kept.
     if (state.branchId) keepServicesAtBranch();
     if (f) {
+      if (f.addOnsPicked && typeof f.addOnsPicked === 'object') state.addOnsPicked = f.addOnsPicked;
       if (f.date && f.date >= state.config.today) state.date = f.date;
       if (f.time) state.time = f.time;
       if (f.payOption) state.payOption = f.payOption;
@@ -645,6 +798,12 @@
   async function submit(e) {
     e.preventDefault();
     showError('');
+    // Before the last step, the main button just moves on.
+    if (state.step < 4) {
+      if (stepDone(state.step)) goStep(firstOpenStep());
+      else showError(missingStepFor(state.step) + '.');
+      return;
+    }
     var missing = missingStep();
     if (missing) { showError(missing + '.'); return; }
     if (!validDetails()) return;
@@ -662,6 +821,7 @@
       email: $('bnEmail').value.trim(),
       phone: $('bnPhone').value.trim(),
       serviceIds: state.services.map(function (s) { return s.id; }),
+      addOns: pickedAddOns().map(function (a) { return { serviceId: a.id, addOnOf: a.addOnOf }; }),
       branchId: state.branchId,
       date: state.date,
       time: state.time,
@@ -701,6 +861,7 @@
       renderPayOptions();
       loadSlots();
       updateSummary();
+      loadAddOns();
       if (adding) track('ViewContent', { content_name: svc.name, content_ids: [svc.id], content_type: 'product', value: (servicePriceAt(svc, state.branchId) || {}).price || lowestPrice(svc), currency: 'NGN' });
     });
     $('bnBranches').addEventListener('click', function (e) {
@@ -722,6 +883,23 @@
           (removed.length === 1 ? 'It comes' : 'They come') + ' back if you pick a branch that offers ' + (removed.length === 1 ? 'it' : 'them') + '.'
         : restored > 0 ? 'Your earlier choice is back: this branch offers it.' : '');
       renderBranches();
+      renderServices($('bnServiceSearch').value);
+      renderPayOptions();
+      loadSlots();
+      updateSummary();
+      loadAddOns();
+      // Services set aside need a look, so stay; otherwise move on.
+      if (!removed.length) advanceSoon();
+    });
+    $('bnAddOns').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-addon]');
+      if (!btn) return;
+      var main = btn.getAttribute('data-main');
+      var id = btn.getAttribute('data-addon');
+      var ids = (state.addOnsPicked[main] || []).filter(function (x) { return x !== id; });
+      if (btn.getAttribute('aria-checked') !== 'true') ids.push(id);
+      if (ids.length) state.addOnsPicked[main] = ids; else delete state.addOnsPicked[main];
+      renderAddOns();
       renderServices($('bnServiceSearch').value);
       renderPayOptions();
       loadSlots();
@@ -755,6 +933,16 @@
         b.setAttribute('aria-checked', String(b.getAttribute('data-time') === state.time));
       });
       updateSummary();
+      advanceSoon();
+    });
+    // Step heads ("Change") and the services "Continue" button.
+    $('bnBookingForm').addEventListener('click', function (e) {
+      var next = e.target.closest('[data-next]');
+      if (next) { goStep(firstOpenStep()); return; }
+      var head = e.target.closest('[data-goto]');
+      if (!head) return;
+      var k = Number(head.getAttribute('data-goto'));
+      if (k !== state.step && k <= firstOpenStep()) goStep(k);
     });
     $('bnPayOptions').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-pay]');
@@ -796,12 +984,14 @@
     renderDays();
     renderPayOptions();
     bindForm();
+    state.step = firstOpenStep();
     updateSummary();
     show('bnLoading', false);
     show('bnForm', true);
     show('bnMobileBar', true);
     document.body.classList.add('has-bar');
     if (state.branchId) loadSlots();
+    loadAddOns();
     var sel = document.querySelector('.bn-day[aria-checked="true"]');
     if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   }

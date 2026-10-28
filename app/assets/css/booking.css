@@ -1298,3 +1298,65 @@
       letter-spacing: 0.04em;
       white-space: nowrap;
     }
+
+    /* Service add-ons (2026-10-24): optional add-ons under a selected service */
+    .addon-picker { margin-top: 2px; }
+    .addon-toggle {
+      background: none;
+      border: 0;
+      padding: 2px 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: #9a6a1c;
+      cursor: pointer;
+      text-align: left;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .addon-list {
+      margin-top: 6px;
+      padding: 8px 10px;
+      border: 1px solid #ecdcc0;
+      border-radius: 10px;
+      background: #fffaf2;
+    }
+    .addon-list label.addon-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 5px 0;
+      font-size: 12.5px;
+      font-weight: 400;
+      line-height: 1.35;
+      text-transform: none;
+      letter-spacing: normal;
+      cursor: pointer;
+    }
+    .addon-list label.addon-option input[type="checkbox"] {
+      display: inline-block;
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #b07d2b;
+    }
+    .addon-name { flex: 1; min-width: 0; color: #2d3622; font-weight: 500; }
+    .addon-meta { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+    .addon-was { opacity: .7; margin-left: 2px; }
+    .addon-note { margin-top: 4px; font-size: 11px; color: var(--muted); }
+    .addon-badge {
+      display: inline-block;
+      margin-left: 4px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #f5ead8;
+      color: #7a5018;
+      font-size: 10px;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+    .review-svc-addon .review-svc-name { font-weight: 500; padding-left: 14px; }
+    [data-theme="dark"] .addon-list { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .12); }
+    [data-theme="dark"] .addon-name { color: inherit; }
+    [data-theme="dark"] .addon-toggle { color: #e0b46a; }

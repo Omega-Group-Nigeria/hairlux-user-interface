@@ -13,10 +13,15 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link href="assets/img/logo.png" rel="shortcut icon" type="image/x-icon" />
   <link href="assets/img/logo.png" rel="apple-touch-icon" />
-  <script src="assets/js/theme-toggle.js"></script>
+  <!-- Speed (2026-10-27): theme set inline before first paint; the toggle script loads deferred. -->
+  <script>(function(){var t;try{t=localStorage.getItem('hairlux-theme')}catch(e){}document.documentElement.setAttribute('data-theme',t==='dark'||t==='light'?t:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))})();</script>
+  <script src="assets/js/theme-toggle.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- Speed (2026-10-27): fonts load without blocking the first paint; text shows at once in a system font. -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" /></noscript>
   <style>
     :root {
       --bg: #f7f4ee;
@@ -261,8 +266,8 @@
   <header class="bn-header">
     <div class="bn-header-inner">
       <a href="index.html" class="bn-logo" aria-label="Hairlux home">
-        <img class="logo-light" src="assets/img/logo-side-black.png" alt="Hairlux" />
-        <img class="logo-dark" src="assets/img/logo-side-white.webp" alt="Hairlux" />
+        <img class="logo-light" src="assets/img/lp/logo-side-black-80.webp" alt="Hairlux" width="107" height="34" decoding="async" />
+        <img class="logo-dark" src="assets/img/lp/logo-side-white-80.webp" alt="Hairlux" width="107" height="34" loading="lazy" decoding="async" />
       </a>
       <div class="bn-header-actions">
         <a class="bn-link" href="log-in.html">Sign in</a>
@@ -283,32 +288,10 @@
       <div id="bnDone" class="bn-done bn-hidden">
         <div class="bn-card">
           <div class="bn-done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
-          <h1 id="doneTitle">Your slot is booked</h1>
-          <p class="lead" id="doneLead">We have emailed your confirmation.</p>
-          <div class="bn-code-box">
-            <div class="bn-code-label">Reservation code</div>
-            <div class="bn-code" id="doneCode">-</div>
-          </div>
-          <div id="bnBarcode" hidden></div>
-          <div style="margin-top:18px">
-            <div class="bn-row"><span>Services</span><span id="doneService">-</span></div>
-            <div class="bn-row"><span>Branch</span><span id="doneBranch">-</span></div>
-            <div class="bn-row"><span>Address</span><span id="doneAddress">-</span></div>
-            <div class="bn-row"><span>Date and time</span><span id="doneWhen">-</span></div>
-            <div class="bn-row total"><span>Service price</span><span id="doneTotal">-</span></div>
-            <div class="bn-row"><span>Paid online</span><span id="donePaid">-</span></div>
-            <div class="bn-row pay"><span>To pay at the branch</span><span id="doneBalance">-</span></div>
-          </div>
-          <div class="bn-info">
-            <strong>At the branch</strong>
-            Show this QR code or tell the front desk your reservation code. They will see what you have paid and what is left.
-          </div>
-          <div class="bn-info bn-hidden" id="doneAccount">
-            <strong>We created your Hairlux account</strong>
-            <span id="doneAccountText">Check your email to set a password, then sign in any time to see your bookings and payments.</span>
-          </div>
-          <div class="bn-actions">
-            <a class="bn-btn ghost" id="doneCalendar" href="#" download="hairlux-booking.ics">Add to calendar</a>
+          <!-- Simple confirmation (2026-10-28): the full details, code and QR code are in the email. -->
+          <h1 id="doneTitle">Your Booking is Confirmed</h1>
+          <p class="lead" id="doneLead">More details in your email.</p>
+          <div class="bn-actions" style="grid-template-columns:1fr">
             <a class="bn-btn" href="index.html">Back to Hairlux</a>
           </div>
         </div>

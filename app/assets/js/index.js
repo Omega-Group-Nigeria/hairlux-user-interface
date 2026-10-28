@@ -324,6 +324,7 @@ async function handleBookingPaymentCallbackOnDashboard() {
   }
 
   sessionStorage.removeItem('selectedServices');
+  sessionStorage.removeItem('selectedAddOns');
   clearPendingBookingPayment();
   openBookingPaymentSuccessModal(summarizeBookingPaymentResult(verifiedResult, pendingState));
 
@@ -397,6 +398,8 @@ async function loadDashboardServices() {
     // Website is walk-in only: show services bookable at a branch.
     list = list.filter(function (s) {
       if (!s || s.isWalkInAvailable === false) return false;
+      // Add-on-only services are suggested under a main service when booking.
+      if (s.isAddOn) return false;
       var walk = Number(s.walkInPrice);
       if (s.walkInPrice != null && Number.isFinite(walk) && walk >= 0) return true;
       var fallback = Number((s && (s.price != null ? s.price : (s.basePrice != null ? s.basePrice : s.amount))) || 0);
