@@ -578,10 +578,8 @@
     if (a && a.deposit >= a.total && c.allowFullPayment) {
       opts = opts.filter(function (o) { return o.key !== 'DEPOSIT'; });
     }
-    // Pay at the branch is listed first.
-    if (c.allowPayAtBranch) {
-      opts.unshift({ key: 'PAY_AT_BRANCH', name: 'Pay at the branch', meta: 'Nothing to pay now. Pay the full price before or at your visit.', price: a ? naira(0) : '' });
-    }
+    // Pay at the branch is not offered on this page (2026-10-28): the ad booking is secured
+    // online with a deposit (part payment) or paid in full. The admin setting is ignored here.
     // Keep the choice only while it is still on offer (settings can change between visits).
     // A paid option stays the default; pay at the branch is chosen only when nothing else is offered.
     if (!opts.some(function (o) { return o.key === state.payOption; })) {
