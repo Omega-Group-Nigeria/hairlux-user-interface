@@ -50,9 +50,11 @@
     showAllBranches: false,
     showAllDays: false,
     showAllTimes: false,
+    // Guided steps (2026-10-28): 1 branch, 2 services, 3 day and time, 4 details and payment.
+    step: 1,
   };
 
-  var FIRST_BRANCHES = 2;
+  var FIRST_BRANCHES = 3;
   var FIRST_DAYS = 7;
   var FIRST_TIMES = 8;
 
@@ -594,12 +596,86 @@
     }).join('');
   }
 
+  // ─── Guided steps (2026-10-28) ────────────────────────────────────
+  // One step is open at a time. A finished step folds into a summary line with "Change".
+  // Picking a branch or a time moves on by itself; services need "Continue" (several can be chosen).
+
+  var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>';
+
+  function stepDone(k) {
+    if (k === 1) return !!state.branchId;
+    if (k === 2) return state.services.length > 0;
+    if (k === 3) return !!(state.date && state.time);
+    return false;
+  }
+
+  /** The first step still to do (4 when branch, services and time are all set). */
+  function firstOpenStep() {
+    for (var k = 1; k <= 3; k++) if (!stepDone(k)) return k;
+    return 4;
+  }
+
+  function stepSummary(k) {
+    var a = amounts();
+    if (k === 1) { var b = branchById(state.branchId); return b ? b.name : ''; }
+    if (k === 2) return state.services.length ? servicesLabel() + (a ? ' \u00B7 ' + naira(a.total) : '') : '';
+    if (k === 3) return state.date && state.time ? longDate(state.date) + ', ' + time12(state.time) : '';
+    return '';
+  }
+
+  function renderSteps() {
+    var reach = firstOpenStep();
+    if (state.step > reach) state.step = reach;
+    Array.prototype.forEach.call(document.querySelectorAll('.bn-step[data-step]'), function (el) {
+      var k = Number(el.getAttribute('data-step'));
+      var done = stepDone(k);
+      el.classList.toggle('is-open', k === state.step);
+      el.classList.toggle('is-done', done);
+      el.classList.toggle('is-locked', k > reach);
+      el.querySelector('.bn-step-num').innerHTML = done && k !== state.step ? CHECK_SVG : String(k);
+      var sum = $('bnSum' + k);
+      if (sum) sum.textContent = done ? stepSummary(k) : '';
+    });
+    Array.prototype.forEach.call($('bnProgress').querySelectorAll('[data-p]'), function (li) {
+      var k = Number(li.getAttribute('data-p'));
+      li.classList.toggle('now', k === state.step);
+      li.classList.toggle('done', k < state.step || (k !== state.step && stepDone(k)));
+    });
+    var next = $('bnNext2');
+    next.disabled = !state.services.length;
+    next.textContent = state.services.length
+      ? 'Continue with ' + state.services.length + (state.services.length === 1 ? ' service' : ' services')
+      : 'Choose a service';
+    document.body.classList.toggle('bn-at-pay', state.step === 4);
+  }
+
+  /** Open step k (never past the first unfinished one) and bring it into view. */
+  function goStep(k, scroll) {
+    state.step = Math.max(1, Math.min(k, firstOpenStep()));
+    updateSummary();
+    if (scroll === false) return;
+    var el = document.querySelector('.bn-step[data-step="' + state.step + '"]');
+    if (el) {
+      var top = el.getBoundingClientRect().top + window.scrollY - 80;
+      if (Math.abs(window.scrollY - top) > 40) window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+  }
+
+  /** After a choice: open the next unfinished step, after a short pause so the tick is seen. */
+  function advanceSoon() {
+    setTimeout(function () { goStep(firstOpenStep()); }, 260);
+  }
+
   function missingStep() {
     if (!state.branchId) return 'Choose a branch';
     if (!state.services.length) return 'Choose a service';
     if (!state.date) return 'Pick a day';
     if (!state.time) return 'Pick a time';
     return null;
+  }
+
+  function missingStepFor(k) {
+    return k === 1 ? 'Choose a branch' : k === 2 ? 'Choose a service' : !state.date ? 'Pick a day' : 'Pick a time';
   }
 
   function updateSummary() {
@@ -615,13 +691,20 @@
     $('sumPayNow').textContent = naira(a ? a.payNow : 0);
     $('barPayNow').textContent = naira(a ? a.payNow : 0);
 
+    renderSteps();
+    var atPay = state.step === 4;
+    $('barLabel').textContent = atPay ? 'Pay now' : 'Total';
+    $('barPayNow').textContent = naira(a ? (atPay ? a.payNow : a.total) : 0);
     var missing = missingStep();
     var payLater = state.payOption === 'PAY_AT_BRANCH';
-    var label = missing || (payLater ? 'Confirm booking' : 'Pay ' + naira(a.payNow) + (state.payOption === 'FULL' ? '' : ' deposit'));
+    // Before the last step the buttons move the visitor on ("Continue"); on it they pay.
+    var stepMissing = !atPay && !stepDone(state.step) ? missingStepFor(state.step) : null;
+    var label = !atPay ? (stepMissing || 'Continue')
+      : missing || (payLater ? 'Confirm booking' : 'Pay ' + naira(a.payNow) + (state.payOption === 'FULL' ? '' : ' deposit'));
     [$('bnPayBtn'), $('bnPayBtnMobile')].forEach(function (btn) {
       if (btn.dataset.busy === '1') return;
-      btn.disabled = !!missing;
-      btn.textContent = btn.id === 'bnPayBtnMobile' ? (missing || (payLater ? 'Book now' : 'Pay now')) : label;
+      btn.disabled = atPay ? !!missing : !!stepMissing;
+      btn.textContent = btn.id === 'bnPayBtnMobile' && atPay ? (missing || (payLater ? 'Book now' : 'Pay ' + naira(a.payNow))) : label;
     });
     // Nothing is paid online with "Pay at the branch": no card note, and a cancellation note that fits.
     show('bnSecure', !payLater);
@@ -715,6 +798,12 @@
   async function submit(e) {
     e.preventDefault();
     showError('');
+    // Before the last step, the main button just moves on.
+    if (state.step < 4) {
+      if (stepDone(state.step)) goStep(firstOpenStep());
+      else showError(missingStepFor(state.step) + '.');
+      return;
+    }
     var missing = missingStep();
     if (missing) { showError(missing + '.'); return; }
     if (!validDetails()) return;
@@ -799,6 +888,8 @@
       loadSlots();
       updateSummary();
       loadAddOns();
+      // Services set aside need a look, so stay; otherwise move on.
+      if (!removed.length) advanceSoon();
     });
     $('bnAddOns').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-addon]');
@@ -842,6 +933,16 @@
         b.setAttribute('aria-checked', String(b.getAttribute('data-time') === state.time));
       });
       updateSummary();
+      advanceSoon();
+    });
+    // Step heads ("Change") and the services "Continue" button.
+    $('bnBookingForm').addEventListener('click', function (e) {
+      var next = e.target.closest('[data-next]');
+      if (next) { goStep(firstOpenStep()); return; }
+      var head = e.target.closest('[data-goto]');
+      if (!head) return;
+      var k = Number(head.getAttribute('data-goto'));
+      if (k !== state.step && k <= firstOpenStep()) goStep(k);
     });
     $('bnPayOptions').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-pay]');
@@ -883,6 +984,7 @@
     renderDays();
     renderPayOptions();
     bindForm();
+    state.step = firstOpenStep();
     updateSummary();
     show('bnLoading', false);
     show('bnForm', true);

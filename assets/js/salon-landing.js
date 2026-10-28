@@ -16,7 +16,8 @@
   // config.js declares API_CONFIG with const, so it is not on window.
   var API = (typeof API_CONFIG !== 'undefined' && API_CONFIG.BASE_URL) || '';
   var ATTR_KEY = 'hlx_ad_attribution';
-  var FIRST_SHOWN = 9;
+  var FIRST_SHOWN = 8;
+  var SPARKLE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg>';
   var TRACKED = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid'];
 
   // locked: the page was opened for one category (salon.html?spa or ?category=spa),
@@ -218,26 +219,29 @@
         x.setAttribute('aria-pressed', String(x === b));
       });
       renderServices();
+      var top = $('services-list').getBoundingClientRect().top;
+      if (top < 0) $('filters').scrollIntoView({ block: 'start' });
     });
   }
 
   function renderServices() {
     var list = pageServices().filter(function (s) { return !state.category || s.category === state.category; });
     var shown = state.showAll ? list : list.slice(0, FIRST_SHOWN);
+    // One row per service (2026-10-28): picture, name, price and time, and a clear Book button.
     $('services-list').innerHTML = shown.length ? shown.map(function (s) {
       var prices = s.branches.map(function (b) { return b.price; });
       var same = prices.every(function (p) { return p === prices[0]; });
       return '<a class="svc" href="' + esc(bookUrl({ service: s.id })) + '">' +
-        (s.imageUrl ? '<img class="svc-img" src="' + esc(s.imageUrl) + '" alt="" loading="lazy" />' : '') +
-        '<div class="svc-body">' +
-        (s.category ? '<div class="svc-cat">' + esc(s.category) + '</div>' : '') +
-        '<div class="svc-name">' + esc(s.name) + '</div>' +
-        (s.description ? '<div class="svc-desc">' + esc(s.description) + '</div>' : '') +
-        '<div class="svc-foot"><span class="svc-price">' + (same ? '' : '<small>from </small>') + naira(lowestPrice(s)) +
-        (s.duration ? ' <small>· ' + minutesLabel(s.duration) + '</small>' : '') + '</span>' +
-        '<span class="svc-cta">Book →</span></div>' +
-        '</div></a>';
-    }).join('') : '<div class="empty" style="grid-column:1/-1">No services in this category right now.</div>';
+        (s.imageUrl ? '<img class="svc-img" src="' + esc(s.imageUrl) + '" alt="" loading="lazy" />' : '<span class="svc-img svc-img-blank" aria-hidden="true">' + SPARKLE_ICON + '</span>') +
+        '<span class="svc-body">' +
+        '<span class="svc-name">' + esc(s.name) + '</span>' +
+        (s.description ? '<span class="svc-desc">' + esc(s.description) + '</span>' : '') +
+        '<span class="svc-meta">' + (same ? '' : 'from ') + '<strong>' + naira(lowestPrice(s)) + '</strong>' +
+        (s.duration ? ' &middot; ' + minutesLabel(s.duration) : '') + '</span>' +
+        '</span>' +
+        '<span class="svc-go">Book</span>' +
+        '</a>';
+    }).join('') : '<div class="empty">No services in this category right now.</div>';
     var more = list.length > shown.length;
     $('moreWrap').classList.toggle('hidden', !more);
     if (more) $('moreBtn').textContent = 'Show all ' + list.length + ' services';
@@ -255,7 +259,6 @@
       return '<div class="branch">' +
         '<h3>' + esc(b.name) + '</h3>' +
         '<div class="addr">' + esc(b.address) + '</div>' +
-        '<div class="count">' + r.count + (state.locked ? ' ' + esc(state.category.toLowerCase()) : '') + (r.count === 1 ? ' service' : ' services') + ' bookable online</div>' +
         '<div class="branch-actions">' +
         '<a class="btn btn-primary btn-small" href="' + esc(bookUrl({ branch: b.id })) + '">Book at this branch</a>' +
         '<a class="btn btn-ghost btn-small" href="' + maps + '" target="_blank" rel="noopener">Directions</a>' +
@@ -274,14 +277,30 @@
 
   // ─── Start ────────────────────────────────────────────────────────────
 
+  /** The phone booking bar shows as soon as the hero buttons scroll out of view. */
   function stickyCta() {
     var bar = $('mobileCta');
-    var hero = document.querySelector('.hero');
-    var onScroll = function () {
-      bar.classList.toggle('show', window.scrollY > (hero ? hero.offsetHeight * 0.6 : 300));
-    };
+    var ctas = $('heroCtas');
+    if (ctas && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        bar.classList.toggle('show', !entries[0].isIntersecting && entries[0].boundingClientRect.top < 0);
+      }).observe(ctas);
+      return;
+    }
+    var onScroll = function () { bar.classList.toggle('show', window.scrollY > 400); };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
+  }
+
+  /** Hero line with the branch count, and "from" price in the phone booking bar. */
+  function renderHeroFacts() {
+    var c = state.config;
+    var n = c.branches.filter(function (b) {
+      return pageServices().some(function (s) { return s.branches.some(function (x) { return x.branchId === b.id; }); });
+    }).length;
+    if (n > 1) $('heroEyebrow').textContent = 'Hairlux Salon & Spa \u00B7 ' + n + ' branches';
+    var low = pageServices().reduce(function (min, s) { var p = lowestPrice(s); return min === null || (p !== null && p < min) ? p : min; }, null);
+    if (low) $('mcSub').textContent = (state.locked ? state.category + ' from ' : 'Services from ') + naira(low);
   }
 
   async function init() {
@@ -309,6 +328,7 @@
     renderFilters();
     renderServices();
     renderBranches();
+    renderHeroFacts();
   }
 
   init();

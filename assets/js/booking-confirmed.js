@@ -132,33 +132,9 @@
     show('bnChecking', false);
     show('bnNotPaid', false);
     show('bnDone', true);
-    document.title = 'You are booked | Hairlux';
-    $('doneCode').textContent = r.reservationCode;
-    $('doneTitle').textContent = 'You are booked, ' + r.firstName + '!';
-    $('doneLead').textContent = 'We sent your confirmation to ' + r.email + '.';
-    $('doneService').textContent = r.serviceName;
-    $('doneBranch').textContent = r.branch ? r.branch.name : '-';
-    $('doneAddress').textContent = r.branch ? r.branch.address : '-';
-    $('doneWhen').textContent = longDate(r.date) + ', ' + time12(r.time);
-    $('doneTotal').textContent = naira(r.totalAmount);
-    $('donePaid').textContent = naira(r.amountPaid);
-    $('doneBalance').textContent = r.balanceDue > 0 ? naira(r.balanceDue) : 'Nothing, fully paid';
-    if (r.accountCreated) {
-      show('doneAccount', true);
-      $('doneAccountText').textContent = 'We emailed ' + r.email + ' a link to set your password. Sign in any time to see your bookings, payments and balance.';
-    }
-    $('doneCalendar').href = icsFile(r);
-    if (window.HairluxBarcode) {
-      HairluxBarcode.render($('bnBarcode'), r.reservationCode, {
-        services: r.serviceName,
-        dateTime: longDate(r.date) + ', ' + time12(r.time),
-        location: r.branch ? r.branch.name + ', ' + r.branch.address : '',
-        amount: naira(r.totalAmount) + ' (paid ' + naira(r.amountPaid) + ', balance ' + naira(r.balanceDue) + ')',
-        paymentMethod: r.paymentOption === 'FULL' ? 'Paid online in full' : r.paymentOption === 'PAY_AT_BRANCH' ? 'Pay at the branch' : 'Deposit paid online',
-        status: 'Confirmed',
-        customerName: r.firstName,
-      });
-    }
+    document.title = 'Booking confirmed | Hairlux';
+    // Simple confirmation (2026-10-28): the page only says the booking is confirmed.
+    // The reservation code, QR code and booking details are in the confirmation email.
     trackPurchase(r);
     // The booking is made: the half-filled form on book-now is no longer needed.
     try { sessionStorage.removeItem(FORM_KEY); } catch (e) { /* ignore */ }
