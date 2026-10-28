@@ -903,6 +903,45 @@
     .bn-footer a {
       color: var(--muted);
     }
+    /* Guided booking (2026-10-28) */
+    .bn-hero h1 { margin-bottom: 0; }
+    .bn-perks { margin-top: 12px; }
+    .bn-progress { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 20px 0 14px; padding: 0; }
+    .bn-progress li { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .bn-progress li span { display: block; height: 5px; border-radius: 99px; background: var(--line); margin-bottom: 6px; transition: background .2s; }
+    .bn-progress li.done span, .bn-progress li.now span { background: var(--gold-strong); }
+    .bn-progress li.now { color: var(--text); }
+    .bn-wizard { padding: 4px 20px; }
+    .bn-wizard .bn-step { margin: 0; padding: 16px 0; border-top: 1px solid var(--line); }
+    .bn-wizard .bn-step:first-child { border-top: 0; }
+    .bn-wizard .bn-step-head { align-items: center; margin-bottom: 0; }
+    .bn-wizard .bn-step.is-open .bn-step-head { margin-bottom: 14px; }
+    .bn-step-text { flex: 1; min-width: 0; }
+    .bn-step-text .bn-step-title { display: block; }
+    .bn-step-sum { display: none; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bn-step.is-done:not(.is-open) .bn-step-sum { display: block; }
+    .bn-change { display: none; border: 0; background: none; padding: 6px 2px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--gold-strong); }
+    :root[data-theme="dark"] .bn-change { color: var(--gold); }
+    .bn-step.is-done:not(.is-open) .bn-change { display: inline-block; }
+    .bn-step.is-done:not(.is-open) .bn-step-head { cursor: pointer; }
+    .bn-step:not(.is-open) .bn-step-hint { display: none; }
+    .bn-step:not(.is-open) > :not(.bn-step-head) { display: none !important; }
+    .bn-step.is-locked .bn-step-head { opacity: .45; }
+    .bn-step.is-done:not(.is-open) .bn-step-num { background: var(--ok); color: #fff; }
+    .bn-step-num svg { width: 14px; height: 14px; }
+    .bn-next { margin-top: 16px; }
+    .bn-sub-title { font-weight: 600; margin: 20px 0 10px; }
+    .bn-wizard .bn-services { max-height: none; overflow: visible; }
+    @media (max-width: 959px) {
+      body:not(.bn-at-pay) .bn-aside { display: none; }
+      .bn-wrap { padding-top: 18px; }
+      .bn-hero h1 { font-size: 26px; }
+      .bn-perks { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -16px; padding-right: 16px; }
+      .bn-perks::-webkit-scrollbar { display: none; }
+      .bn-perk { flex: 0 0 auto; }
+      .bn-wizard { padding: 2px 16px; }
+      .bn-wizard .bn-step-hint { display: none; }
+    }
   </style>
   <!-- Meta Pixel Code -->
   <script>
@@ -938,7 +977,7 @@
 <body>
   <header class="bn-header">
     <div class="bn-header-inner">
-      <a href="index.salon" class="bn-logo" aria-label="Hairlux home">
+      <a href="salon.html" class="bn-logo" aria-label="Hairlux home">
         <img class="logo-light" src="assets/img/lp/logo-side-black-80.webp" alt="Hairlux" width="107" height="34" decoding="async" />
         <img class="logo-dark" src="assets/img/lp/logo-side-white-80.webp" alt="Hairlux" width="107" height="34" loading="lazy" decoding="async" />
       </a>
@@ -975,32 +1014,38 @@
       <div class="bn-grid">
         <div>
           <div class="bn-hero">
-            <h1>Book your Hairlux appointment</h1>
-            <p>Pick a branch, your services and a time. Secure your slot with a small deposit, and it comes off your
-              final bill.</p>
+            <h1>Book your appointment</h1>
             <div class="bn-perks">
-              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>Slot reserved for you</span>
-              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg><span id="bnPerkDeposit">Deposit comes off your bill</span></span>
-              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>No sign-up needed</span>
+              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg>Slot held for you</span>
+              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg><span id="bnPerkDeposit">Deposit comes off your bill</span></span>
+              <span class="bn-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" /></svg>No sign-up needed</span>
             </div>
           </div>
 
-          <form id="bnBookingForm" class="bn-card" style="margin-top:22px" novalidate>
-            <div class="bn-step" style="margin-top:0">
-              <div class="bn-step-head"><span class="bn-step-num">1</span><span class="bn-step-title">Choose a
-                  branch</span></div>
+          <!-- Guided booking (2026-10-28): one step open at a time, finished steps fold into a summary line. -->
+          <ol class="bn-progress" id="bnProgress" aria-label="Booking progress">
+            <li data-p="1"><span></span>Branch</li>
+            <li data-p="2"><span></span>Services</li>
+            <li data-p="3"><span></span>Time</li>
+            <li data-p="4"><span></span>Details</li>
+          </ol>
+
+          <form id="bnBookingForm" class="bn-card bn-wizard" novalidate>
+            <div class="bn-step" data-step="1">
+              <div class="bn-step-head" data-goto="1">
+                <span class="bn-step-num">1</span>
+                <span class="bn-step-text"><span class="bn-step-title">Choose a branch</span><span class="bn-step-sum" id="bnSum1"></span></span>
+                <button type="button" class="bn-change" data-goto="1">Change</button>
+              </div>
               <div id="bnBranches" class="bn-options two" role="radiogroup" aria-label="Branch"></div>
             </div>
 
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">2</span><span class="bn-step-title">Choose your
-                  services</span><span class="bn-step-hint" id="bnServicesHint">Choose one or more</span></div>
+            <div class="bn-step" data-step="2">
+              <div class="bn-step-head" data-goto="2">
+                <span class="bn-step-num">2</span>
+                <span class="bn-step-text"><span class="bn-step-title">Choose your services</span><span class="bn-step-sum" id="bnSum2"></span></span>
+                <span class="bn-step-hint" id="bnServicesHint">Choose one or more</span><button type="button" class="bn-change" data-goto="2">Change</button>
+              </div>
               <div id="bnServicesNote" class="bn-note-inline bn-hidden" role="status"></div>
               <div id="bnCategoryBar" class="bn-note-inline bn-cat-bar bn-hidden"></div>
               <input type="search" id="bnServiceSearch" class="bn-search bn-hidden" placeholder="Search services"
@@ -1011,20 +1056,27 @@
               </div>
               <!-- Optional add-ons for the chosen services (2026-10-24) -->
               <div id="bnAddOns" class="bn-addons bn-hidden" role="group" aria-label="Optional add-ons"></div>
+              <button type="button" class="bn-btn bn-next" id="bnNext2" data-next="2" disabled>Choose a service</button>
             </div>
 
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">3</span><span class="bn-step-title">Pick a day and
-                  time</span><span class="bn-step-hint" id="bnHoursHint"></span></div>
+            <div class="bn-step" data-step="3">
+              <div class="bn-step-head" data-goto="3">
+                <span class="bn-step-num">3</span>
+                <span class="bn-step-text"><span class="bn-step-title">Pick a day and time</span><span class="bn-step-sum" id="bnSum3"></span></span>
+                <span class="bn-step-hint" id="bnHoursHint"></span><button type="button" class="bn-change" data-goto="3">Change</button>
+              </div>
               <div id="bnDays" class="bn-days" role="radiogroup" aria-label="Day"></div>
               <div id="bnTimes" class="bn-times" role="radiogroup" aria-label="Time" style="margin-top:12px">
                 <div class="bn-empty" style="grid-column:1/-1">Choose a branch to see available times.</div>
               </div>
             </div>
 
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">4</span><span class="bn-step-title">Your
-                  details</span></div>
+            <div class="bn-step" data-step="4">
+              <div class="bn-step-head" data-goto="4">
+                <span class="bn-step-num">4</span>
+                <span class="bn-step-text"><span class="bn-step-title">Your details and payment</span><span class="bn-step-sum" id="bnSum4"></span></span>
+                <button type="button" class="bn-change" data-goto="4">Change</button>
+              </div>
               <div class="bn-fields">
                 <div class="bn-field full">
                   <label for="bnName">Full name</label>
@@ -1039,14 +1091,10 @@
                   <label for="bnEmail">Email</label>
                   <input id="bnEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com"
                     maxlength="160" required />
-                  <div class="hint">Your confirmation and receipt are sent here.</div>
+                  <div class="hint">Your confirmation and reservation code are sent here.</div>
                 </div>
               </div>
-            </div>
-
-            <div class="bn-step">
-              <div class="bn-step-head"><span class="bn-step-num">5</span><span class="bn-step-title">How much to pay
-                  now</span></div>
+              <p class="bn-sub-title">How much to pay now</p>
               <div id="bnPayOptions" class="bn-pay-options" role="radiogroup" aria-label="Payment"></div>
             </div>
 
@@ -1081,7 +1129,7 @@
   </main>
 
   <div class="bn-mobile-bar bn-hidden" id="bnMobileBar">
-    <div class="amt">Pay now<strong id="barPayNow">&#8358;0</strong></div>
+    <div class="amt"><span id="barLabel">Total</span><strong id="barPayNow">&#8358;0</strong></div>
     <button type="submit" form="bnBookingForm" class="bn-btn" id="bnPayBtnMobile" disabled>Continue</button>
   </div>
 
