@@ -106,6 +106,24 @@
     } catch (e) { /* never block the confirmation */ }
   }
 
+  // ─── TikTok Pixel ─────────────────────────────────────────────────────
+
+  /** Same rules as Meta: CompletePayment when money was paid online, Schedule for pay at branch. */
+  function trackTikTok(r) {
+    var key = 'hlx_tt_purchase_' + r.reference;
+    if (!window.ttq || seen(key)) return;
+    try {
+      var payAtBranch = r.paymentOption === 'PAY_AT_BRANCH';
+      window.ttq.track(payAtBranch ? 'Schedule' : 'CompletePayment', {
+        value: payAtBranch ? r.totalAmount : r.amountPaid,
+        currency: 'NGN',
+        content_name: r.serviceName,
+        content_type: 'product',
+      }, { event_id: r.reference });
+      remember(key);
+    } catch (e) { /* never block the confirmation */ }
+  }
+
   // ─── Result ───────────────────────────────────────────────────────────
 
   function icsFile(r) {
@@ -136,6 +154,7 @@
     // Simple confirmation (2026-10-28): the page only says the booking is confirmed.
     // The reservation code, QR code and booking details are in the confirmation email.
     trackPurchase(r);
+    trackTikTok(r);
     // The booking is made: the half-filled form on book-now is no longer needed.
     try { sessionStorage.removeItem(FORM_KEY); } catch (e) { /* ignore */ }
   }
