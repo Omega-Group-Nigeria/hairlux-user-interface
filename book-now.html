@@ -609,6 +609,23 @@
       border-color: var(--err);
     }
 
+    .bn-optin {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .bn-optin input {
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      flex: none;
+      accent-color: var(--gold);
+    }
+
     .bn-pay-options {
       display: grid;
       grid-template-columns: 1fr;
@@ -1093,6 +1110,10 @@
                     maxlength="160" required />
                   <div class="hint">Your confirmation and reservation code are sent here.</div>
                 </div>
+                <label class="bn-field full bn-optin">
+                  <input id="bnSmsOptIn" name="smsOptIn" type="checkbox" />
+                  <span>Text me Hairlux offers and reminders. You can stop them any time.</span>
+                </label>
               </div>
               <p class="bn-sub-title">How much to pay now</p>
               <div id="bnPayOptions" class="bn-pay-options" role="radiogroup" aria-label="Payment"></div>
