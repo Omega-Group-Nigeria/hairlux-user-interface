@@ -725,6 +725,7 @@
       fullName: $('bnName').value,
       phone: $('bnPhone').value,
       email: $('bnEmail').value,
+      smsOptIn: $('bnSmsOptIn').checked,
     });
   }
 
@@ -762,6 +763,7 @@
       $('bnName').value = f.fullName || '';
       $('bnPhone').value = f.phone || '';
       $('bnEmail').value = f.email || '';
+      $('bnSmsOptIn').checked = f.smsOptIn === true;
     }
     if (!state.date) state.date = state.config.today;
   }
@@ -826,6 +828,7 @@
       date: state.date,
       time: state.time,
       paymentOption: state.payOption,
+      smsOptIn: $('bnSmsOptIn').checked,
     }, attribution());
 
     try {
@@ -961,6 +964,7 @@
     ['bnName', 'bnPhone', 'bnEmail'].forEach(function (id) {
       $(id).addEventListener('input', function () { this.parentElement.classList.remove('invalid'); saveForm(); });
     });
+    $('bnSmsOptIn').addEventListener('change', saveForm);
     $('bnBookingForm').addEventListener('submit', submit);
   }
 

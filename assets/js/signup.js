@@ -212,6 +212,8 @@
         const registrationData = { email, password, firstName, lastName };
         if (phone) registrationData.phone = phone;
         if (referralCode) registrationData.referralCode = referralCode;
+        const smsOptIn = document.getElementById('signup-smsOptIn');
+        if (smsOptIn && smsOptIn.checked) registrationData.smsOptIn = true;
 
         const response = await AuthAPI.register(registrationData);
 
