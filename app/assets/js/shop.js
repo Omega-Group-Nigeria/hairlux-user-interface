@@ -1,7 +1,12 @@
 /**
- * Hairlux web shop: product list, product details and cart (shop.html).
+ * Hairlux web shop: product list, product details and cart.
  * Lists the web catalogue (channel=web): Hairlux stock plus approved
  * marketplace products, all sold by Hairlux.
+ *
+ * Runs on the public /shop.html (anyone can browse, search and open a
+ * product; adding to the cart asks guests to sign in and brings them back
+ * to the product) and on app/shop.html inside the customer dashboard.
+ * Links: shop.html?product=<id> opens a product, ?q=<text> searches.
  */
 (function () {
   'use strict';
@@ -9,6 +14,16 @@
   var $ = function (id) { return document.getElementById(id); };
   var state = { cat: '', q: '', sort: '', page: 1, items: [], meta: null };
   var timer = null;
+  // Page is app/shop.html (dashboard) or /shop.html (public site root).
+  var IN_APP = /\/app\//.test(location.pathname);
+  var ROOT = IN_APP ? '../' : '';
+  var APP = IN_APP ? '' : 'app/';
+  function signedIn() { return typeof APIHelper !== 'undefined' && APIHelper.isAuthenticated(); }
+  /** Sign-in and sign-up links that return to this product on the public shop. */
+  function authLinks(productId) {
+    var back = encodeURIComponent('shop.html' + (productId ? '?product=' + encodeURIComponent(productId) : ''));
+    return { login: ROOT + 'log-in.html?returnTo=' + back, signup: ROOT + 'sign-up.html?returnTo=' + back };
+  }
 
   function sorted(list) {
     var l = list.slice();
@@ -67,9 +82,22 @@
     document.body.style.overflow = '';
   }
 
-  function openProduct(id) {
+  /** Opens a product from the list, or fetches it (shared links). */
+  async function openProduct(id) {
     var p = state.items.find(function (x) { return x.id === id; });
-    if (!p) return;
+    if (!p) {
+      try {
+        p = await K.api('/shop/products/' + encodeURIComponent(id) + '?channel=web');
+      } catch (e) {
+        K.toast('That product is no longer available.', 'error');
+        return;
+      }
+      if (!p || !p.id) return;
+    }
+    showProduct(p);
+  }
+
+  function showProduct(p) {
     var imgs = (p.images || []).map(function (i) { return i.url; }).filter(Boolean);
     if (!imgs.length && p.imageUrl) imgs = [p.imageUrl];
     var f = flag(p);
@@ -82,8 +110,12 @@
       (p.description ? '<div class="desc">' + esc(p.description) + '</div>' : '') +
       (f ? '<div class="note warn"><strong>' + esc(f) + '</strong>' + (p.inStock ? 'We cannot deliver this item yet. Please check back soon.' : 'This item will be back soon.') + '</div>' :
         (p.payOnDeliveryAllowed === false ? '<div class="small muted" style="margin-bottom:12px">Pay with your wallet. Pay on Delivery is not available for this item.</div>' : '') +
-        '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="qty"><button type="button" id="q-minus" aria-label="Less">&minus;</button><span id="q-val">1</span><button type="button" id="q-plus" aria-label="More">+</button></div>' +
-        '<button class="btn-shop" id="add" type="button">Add to cart</button></div>' +
+        (signedIn()
+          ? '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="qty"><button type="button" id="q-minus" aria-label="Less">&minus;</button><span id="q-val">1</span><button type="button" id="q-plus" aria-label="More">+</button></div>' +
+            '<button class="btn-shop" id="add" type="button">Add to cart</button></div>'
+          : '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><a class="btn-shop" href="' + esc(authLinks(p.id).login) + '">Sign in to buy</a>' +
+            '<a class="btn-shop ghost" href="' + esc(authLinks(p.id).signup) + '">Create an account</a></div>' +
+            '<div class="small muted" style="margin-top:8px">Sign in to add items to your cart and order. You will come straight back to this product.</div>') +
         (p.stock <= 5 ? '<div class="small muted" style="margin-top:8px">Only ' + p.stock + ' left</div>' : '')) +
       '</div></div>';
     openOverlay();
@@ -123,7 +155,12 @@
 
   // ------------------------------------------------------------- events
   document.addEventListener('DOMContentLoaded', function () {
-    if (typeof APIHelper === 'undefined' || !APIHelper.isAuthenticated()) return;
+    if (typeof APIHelper === 'undefined') return;
+    var params = new URLSearchParams(location.search);
+    // Guests can browse; the cart and orders need an account.
+    document.querySelectorAll('[data-signed-in]').forEach(function (el) { el.hidden = !signedIn(); });
+    document.querySelectorAll('[data-guest]').forEach(function (el) { el.hidden = signedIn(); });
+    if ($('go-checkout')) $('go-checkout').setAttribute('href', APP + 'checkout.html');
     // Lift the cart and product layers out of the page wrapper so they sit above the site navbar.
     ['overlay', 'pmodal', 'drawer', 'cart-fab'].forEach(function (id) { document.body.appendChild($(id)); });
     $('grid').addEventListener('click', function (e) {
@@ -147,7 +184,10 @@
       if (state.items.length) $('grid').innerHTML = '<div class="pgrid">' + sorted(state.items).map(card).join('') + '</div>';
     });
     $('more').addEventListener('click', function () { state.page++; load(true); });
-    $('cart-fab').addEventListener('click', function () { renderCart(); openOverlay(); $('drawer').classList.add('open'); });
+    $('cart-fab').addEventListener('click', function () {
+      if (!signedIn()) { location.href = authLinks().login; return; }
+      renderCart(); openOverlay(); $('drawer').classList.add('open');
+    });
     $('overlay').addEventListener('click', closeAll);
     document.addEventListener('click', function (e) { if (e.target.closest('[data-close]')) closeAll(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
@@ -161,7 +201,10 @@
     });
     document.addEventListener('shop:cart', renderCart);
     renderCart();
+    if (!signedIn()) $('cart-fab').hidden = true;
+    if (params.get('q')) { state.q = params.get('q').trim(); $('q').value = state.q; }
     loadCategories();
     load();
+    if (params.get('product')) openProduct(params.get('product'));
   });
 })();
