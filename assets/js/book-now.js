@@ -16,6 +16,12 @@
  * is sent unless added to PIXEL_EVENTS. The Facebook click id is kept in
  * the _fbc cookie on arrival, so the Purchase is still credited to the ad
  * after the trip out to Monnify and back.
+ * TikTok Pixel (2026-11-06): the page snippet loads it and sends the page
+ * view; this file sends ViewContent (service picked) and InitiateCheckout
+ * (Pay tapped, once the booking reference is known). The booking reference
+ * is the event id, as on the API's TikTok Events API copies, so TikTok
+ * counts each event once. CompletePayment / Schedule are sent from the
+ * thank-you page. TikTok's _ttp cookie goes with the checkout for the API.
  */
 (function () {
   'use strict';
@@ -219,6 +225,39 @@
       if (eventId) window.fbq('track', event, params || {}, { eventID: eventId });
       else window.fbq('track', event, params || {});
     } catch (e) { /* never block the booking */ }
+  }
+
+  // ─── TikTok Pixel ─────────────────────────────────────────────────────
+
+  function tiktokTrack(event, params, eventId) {
+    if (!window.ttq) return;
+    try {
+      if (eventId) window.ttq.track(event, params || {}, { event_id: eventId });
+      else window.ttq.track(event, params || {});
+    } catch (e) { /* never block the booking */ }
+  }
+
+  /** Lets TikTok match the visitor to the ad (the pixel hashes these itself). */
+  function tiktokIdentify(email, phone) {
+    if (!window.ttq || !window.ttq.identify) return;
+    try {
+      var digits = String(phone || '').replace(/[^\d]/g, '');
+      var e164 = digits.indexOf('234') === 0 ? '+' + digits : digits.charAt(0) === '0' ? '+234' + digits.slice(1) : '';
+      window.ttq.identify({ email: String(email || '').trim().toLowerCase(), phone_number: e164 });
+    } catch (e) { /* never block the booking */ }
+  }
+
+  /** TikTok's own visitor cookie, sent with the checkout for the server-side events. */
+  function tiktokCookie() {
+    var m = /(?:^|;\s*)_ttp=([^;]+)/.exec(document.cookie || '');
+    return m ? decodeURIComponent(m[1]).slice(0, 255) : undefined;
+  }
+
+  function tiktokContents() {
+    return state.services.map(function (s) {
+      var p = servicePriceAt(s, state.branchId);
+      return { content_id: s.id, content_name: s.name, content_type: 'product', price: (p && p.price) || lowestPrice(s), quantity: 1 };
+    });
   }
 
   // ─── Form ─────────────────────────────────────────────────────────────
@@ -829,12 +868,19 @@
       time: state.time,
       paymentOption: state.payOption,
       smsOptIn: $('bnSmsOptIn').checked,
+      ttp: tiktokCookie(),
     }, attribution());
 
     try {
       if (state.payOption !== 'PAY_AT_BRANCH') track('InitiateCheckout', { value: a.payNow, currency: 'NGN', content_name: servicesLabel(), content_ids: state.services.map(function (s) { return s.id; }), content_type: 'product', num_items: state.services.length });
+      tiktokIdentify(payload.email, payload.phone);
       var data = await api('/public/ad-bookings/checkout', { method: 'POST', body: JSON.stringify(payload) });
       store(sessionStorage, REF_KEY, data.reference);
+      // Same event id as the API's server-side InitiateCheckout. Pay at the
+      // branch has no checkout: the thank-you page sends Schedule.
+      if (state.payOption !== 'PAY_AT_BRANCH') {
+        tiktokTrack('InitiateCheckout', { value: a.payNow, currency: 'NGN', content_type: 'product', contents: tiktokContents() }, data.reference + '-checkout');
+      }
       // Pay at the branch: nothing to pay, so go straight to this site's own
       // confirmation page (never a payment check, never another site).
       window.location.href = state.payOption === 'PAY_AT_BRANCH'
@@ -865,6 +911,10 @@
       loadSlots();
       updateSummary();
       loadAddOns();
+      if (adding) {
+        var picked = servicePriceAt(svc, state.branchId);
+        tiktokTrack('ViewContent', { content_id: svc.id, content_name: svc.name, content_type: 'product', value: (picked && picked.price) || lowestPrice(svc), currency: 'NGN' });
+      }
       if (adding) track('ViewContent', { content_name: svc.name, content_ids: [svc.id], content_type: 'product', value: (servicePriceAt(svc, state.branchId) || {}).price || lowestPrice(svc), currency: 'NGN' });
     });
     $('bnBranches').addEventListener('click', function (e) {
