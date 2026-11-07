@@ -1969,20 +1969,48 @@
       }
 
       /* ── Fetch ── */
+      /*
+       * Branch dropdown (2026-11-07): a job posted for particular branches
+       * offers only those (job.openBranches from the API); a job posted for
+       * no branch in particular offers every branch. The API checks it too.
+       */
+      var allBranchList = null;   // every branch, once loaded
+      var applyJobBranches = [];  // the open job's branches; empty = all
+
+      function escOpt(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function renderBranchOptions() {
+        var select = document.getElementById('exp-branch');
+        if (!select) return;
+        var limited = applyJobBranches.length > 0;
+        var list = limited ? applyJobBranches : allBranchList;
+        if (!list) return; // still loading: the loader renders when it finishes
+        select.innerHTML = '<option value="" selected disabled>Select a branch…</option>' +
+          list.map(function (b) {
+            return '<option value="' + escOpt(b.id) + '">' + escOpt(b.name) + '</option>';
+          }).join('') +
+          (limited && list.length === 1 ? '' : '<option value="">' + (limited ? 'Any of these branches' : 'No Preference') + '</option>');
+        if (limited && list.length === 1) select.value = list[0].id;
+      }
+
+      /** Called when the application form opens for a job. */
+      window.setApplyBranches = function (job) {
+        applyJobBranches = (job && Array.isArray(job.openBranches)) ? job.openBranches : [];
+        renderBranchOptions();
+      };
+
       function loadBranchOptions() {
         var select = document.getElementById('exp-branch');
         if (!select) return;
         fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BRANCHES)
           .then(function (res) { return res.json(); })
           .then(function (json) {
-            var branches = (json && json.data) || [];
-            console.log('Loaded branches:', branches);
-            var options = '<option value="" selected disabled>Select a branch…</option>' +
-              branches.map(function (b) {
-                return '<option value="' + b.id + '">' + b.name + '</option>';
-              }).join('') +
-              '<option value="">No Preference</option>';
-            select.innerHTML = options;
+            allBranchList = (json && json.data) || [];
+            renderBranchOptions();
           })
           .catch(function () {
             // Leave the loading placeholder in place rather than silently
@@ -2067,6 +2095,8 @@
           : 'Application Form';
 
         resetApplyWizard();
+        // Only the branches this job was posted for (all branches if none).
+        if (window.setApplyBranches) window.setApplyBranches(currentJob);
         var overlay = document.getElementById('applyModal');
         overlay.classList.add('open');
         document.body.style.overflow = 'hidden';
