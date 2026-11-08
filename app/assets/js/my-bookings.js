@@ -104,17 +104,70 @@
         };
       }
 
+      // ── Salon visits (walk-ins staff recorded under the customer's phone) ──
+      const SALON_STATUS = { SCHEDULED: 'confirmed', IN_PROGRESS: 'in_progress', COMPLETED: 'completed', CANCELLED: 'cancelled', NO_SHOW: 'no_show', REVERSED: 'reversed' };
+
+      function normalizeSalonVisit(v) {
+        const status = SALON_STATUS[v.status] || String(v.status || 'confirmed').toLowerCase();
+        const lines = Array.isArray(v.services) ? v.services : [];
+        const main = lines.filter(s => !s.addOn);
+        const first = (main[0] || lines[0] || {}).name || 'Salon visit';
+        const serviceName = main.length > 1 ? `${main.length} Services (${first}, …)` : first;
+        const fullNames = lines.map(s => (s.addOn ? '+ ' : '') + s.name + (s.addOn ? ' (add-on)' : '') + (s.quantity > 1 ? ` x${s.quantity}` : ''))
+          .concat((v.products || []).map(p => `${p.name}${p.quantity > 1 ? ` x${p.quantity}` : ''} (product)`))
+          .join(', ');
+        return {
+          id:              `salon-${v.id}`,
+          reservationCode: v.reservationCode || v.reference || '',
+          createdAt:       v.createdAt,
+          serviceName, status,
+          paymentStatus:   status === 'completed' ? 'paid' : (status === 'confirmed' || status === 'in_progress') ? 'pending' : 'unpaid',
+          scheduleDate:    v.bookingDate || '-',
+          scheduleTime:    v.bookingTime || '-',
+          address:         v.branch ? v.branch.name : '-',
+          amount:          Number(v.totalAmount || 0),
+          notes:           '',
+          paymentMethod:   v.paymentMethod ? String(v.paymentMethod).replace(/_/g, ' ') : '-',
+          bookingType:     'WALK_IN',
+          salon:           true,
+          fullNames,
+          branch:          v.branch || null,
+          reference:       v.reference || '',
+          _raw:            v
+        };
+      }
+
+      function showSalonNote(info) {
+        const el = document.getElementById('salonVisitsNote');
+        if (!el || !info || info.linked || info.phoneVerified) return;
+        el.innerHTML = 'Had an appointment at one of our salons? <a href="profile.html">Verify your phone number</a> to see those visits here too.';
+        el.hidden = false;
+      }
+
+      async function loadSalonVisits() {
+        try {
+          const response = await APIHelper.request(API_CONFIG.ENDPOINTS.SALON_VISITS || '/salon-bookings/mine', { method: 'GET' });
+          const data = response && response.data ? response.data : response;
+          showSalonNote(data);
+          return Array.isArray(data && data.visits) ? data.visits.map(normalizeSalonVisit) : [];
+        } catch (_) {
+          return []; // salon visits are extra: never block the page over them
+        }
+      }
+
       // ── API load ──────────────────────────────────────────────────
       async function loadTransactions() {
         try {
           if (typeof APIHelper === 'undefined' || typeof API_CONFIG === 'undefined') throw new Error('Booking helper not loaded.');
+          const salonPromise = loadSalonVisits();
           const response = await APIHelper.request(`${API_CONFIG.ENDPOINTS.BOOKINGS}/user`, { method: 'GET' });
           const data = response && response.data ? response.data : response;
           const rows = Array.isArray(data.bookings) ? data.bookings
             : Array.isArray(data.items)   ? data.items
             : Array.isArray(data.results) ? data.results
             : Array.isArray(data)         ? data : [];
-          state.all = rows.map(normalizeTx).sort((a, b) =>
+          const salon = await salonPromise;
+          state.all = rows.map(normalizeTx).concat(salon).sort((a, b) =>
             new Date(b.createdAt || b.bookingDate || 0) - new Date(a.createdAt || a.bookingDate || 0)
           );
         } catch (error) {
@@ -132,7 +185,7 @@
         state.filtered = state.all.filter(tx => {
           const matchPayment = state.payment === 'all' || tx.paymentStatus === state.payment;
           const matchStatus  = state.status  === 'all' || tx.status === state.status;
-          const hay = `${tx.serviceName} ${tx.id} ${tx.address} ${formatDate(tx.createdAt)}`.toLowerCase();
+          const hay = `${tx.serviceName} ${tx.fullNames || ''} ${tx.id} ${tx.reservationCode} ${tx.address} ${formatDate(tx.createdAt)}`.toLowerCase();
           return matchPayment && matchStatus && (!q || hay.includes(q));
         });
         const tp = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
@@ -146,8 +199,8 @@
         txTableBody.innerHTML = pageRows.map(tx => {
           const dateDisplay = formatScheduleDate(tx.scheduleDate);
           const timeDisplay = formatScheduleTime(tx.scheduleTime);
-          const bookingTypeLabel = formatBookingType(tx.bookingType);
-          const locationLabel = formatBookingLocation(tx.bookingType, tx.address);
+          const bookingTypeLabel = tx.salon ? 'Salon visit' : formatBookingType(tx.bookingType);
+          const locationLabel = tx.salon ? tx.address : formatBookingLocation(tx.bookingType, tx.address);
           const resCode     = tx.reservationCode ? `<span class="res-code">${tx.reservationCode}</span>` : `<span style="font-size:11px;color:var(--muted);">-</span>`;
           return `<tr class="clickable-row" data-booking-id="${tx.id}" title="Click to view details">
             <td>${resCode}</td>
@@ -265,11 +318,24 @@
           `<span class="tx-pill status-${tx.status}" style="margin-right:4px;">${tx.status.replace(/_/g,' ')}</span>` +
           `<span class="tx-pill payment-${tx.paymentStatus}">${tx.paymentStatus}</span>`;
 
-        const canReschedule = ['pending','confirmed'].includes(tx.status);
+        const canReschedule = !tx.salon && ['pending','confirmed'].includes(tx.status);
         document.getElementById('bkModalRescheduleBtn').style.display = canReschedule ? '' : 'none';
 
         bkDetailModal.classList.add('show');
         document.body.style.overflow = 'hidden';
+
+        // Salon visits: everything is already here; there is no
+        // /bookings/{id} record to refresh from, and staff manage changes.
+        if (tx.salon) {
+          document.getElementById('bkModalId').textContent = tx.reference || '-';
+          document.getElementById('bkModalBookingType').textContent = 'Salon visit';
+          document.getElementById('bkModalAddressLabel').textContent = 'Branch';
+          document.getElementById('bkModalAddress').textContent = tx.branch ? [tx.branch.name, tx.branch.address].filter(Boolean).join(', ') : '-';
+          document.getElementById('bkModalService2').textContent = tx.fullNames || tx.serviceName;
+          const disc = tx._raw && tx._raw.discountAmount;
+          if (disc) document.getElementById('bkModalAmount').textContent = `${formatAmount(tx.amount)} (${formatAmount(disc)} discount applied)`;
+          return;
+        }
 
         // Refresh from API: GET /bookings/{id}
         APIHelper.request(`${API_CONFIG.ENDPOINTS.BOOKINGS}/${tx.id}`, { method: 'GET' })
