@@ -965,3 +965,16 @@
     .bk-reschedule-actions .button-outline, .bk-reschedule-actions .button-green { flex: 1; justify-content: center; border-radius: 999px; min-height: 36px; padding: 8px 12px; font-size: 13px; }
     /* Reservation code pill */
     .res-code { display: inline-block; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 12px; font-weight: 700; letter-spacing: .08em; background: #faf0e0; color: #7a5018; border: 1px solid #e8cc94; border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
+    /* "Verify your phone to see your salon visits" note on My Bookings */
+    .salon-visits-note {
+      margin: 0 0 16px;
+      padding: 12px 16px;
+      border: 1px solid #f1dfb3;
+      border-radius: 12px;
+      background: #fff8e9;
+      color: #7a5418;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .salon-visits-note a { color: inherit; font-weight: 600; text-decoration: underline; }
+    [data-theme="dark"] .salon-visits-note { background: rgba(241, 223, 179, .08); border-color: rgba(241, 223, 179, .25); color: #e8cf9c; }
