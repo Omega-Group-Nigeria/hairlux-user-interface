@@ -7,7 +7,8 @@
     /* ?download smart link (e.g. mobile-apps.html?download).
        Android: go straight to the Hairlux app on Google Play, keeping any
        utm_ tags from this link so Play Console still credits the source.
-       iPhone, iPad and desktop: stay on this page (no App Store app yet).
+       iPhone and iPad: go to the Hairlux app on the App Store.
+       Desktop: stay on this page.
        Without ?download the page behaves as normal. */
     (function () {
       'use strict';
@@ -16,6 +17,8 @@
       var ua = navigator.userAgent || '';
       var platform = (navigator.userAgentData && navigator.userAgentData.platform) || '';
       var isAndroid = /android/i.test(ua) || /android/i.test(platform);
+      var isIOS = /iP(hone|ad|od)/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isIOS) { window.location.replace('https://apps.apple.com/ng/app/hairlux/id6823368131'); return; }
       if (!isAndroid) return;
       var SAFE = /^[A-Za-z0-9_.\-]{1,60}$/;
       function pick(key, fallback) {
@@ -31,13 +34,13 @@
       window.location.replace('https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&referrer=' + encodeURIComponent(ref.toString()));
     })();
   </script>
-  <title>Get the Hairlux App | Now on Google Play</title>
+  <title>Get the Hairlux App | On the App Store and Google Play</title>
   <meta
-    content="The Hairlux app is live on Google Play. Book premium hair, beauty and wellness services from your phone. iPhone app coming soon to the App Store."
+    content="The Hairlux app is live on the App Store and Google Play. Book premium hair, beauty and wellness services from your phone."
     name="description" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.hairlux.com.ng/mobile-apps.html" />
-  <meta content="Hairlux App | Now on Google Play" property="og:title" />
+  <meta content="Hairlux App | On the App Store and Google Play" property="og:title" />
   <meta content="summary_large_image" name="twitter:card" />
   <meta content="width=device-width, initial-scale=1" name="viewport" />
   <!-- PWA: installable app (see sw.js / assets/js/pwa.js) -->
@@ -917,19 +920,18 @@
     <section class="wl-hero">
       <div class="wl-tag">
         <span class="wl-tag-dot"></span>
-        Now live on Google Play
+        Now on the App Store and Google Play
       </div>
       <h1 class="wl-heading">The Hairlux app is here.</h1>
-      <p class="wl-sub">Book premium beauty and wellness services from your phone: anytime, anywhere. Download it on Android today; the iPhone app is on its way.</p>
+      <p class="wl-sub">Book premium beauty and wellness services from your phone: anytime, anywhere. Download it today on iPhone or Android.</p>
       <div class="wl-store-row">
         <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dapp_page%26utm_campaign%3Dandroid_launch%26utm_content%3Dhero_button" class="wl-store-btn wl-store-btn--live js-play-link" data-utm-content="hero_button" target="_blank" rel="noopener" id="wlPlayBtn">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.52.85l14-8.5a1 1 0 0 0 0-1.7l-14-8.5A1 1 0 0 0 5 3.5z"/></svg>
           <span><small>Get it on</small><strong>Google Play</strong></span>
         </a>
-        <a href="#waitlist" class="wl-store-btn wl-store-btn--soon" id="wlIosBtn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-          <span><small>iPhone</small><strong>App Store</strong></span>
-          <span class="wl-store-chip">Soon</span>
+        <a href="https://apps.apple.com/ng/app/hairlux/id6823368131" class="wl-store-btn wl-store-btn--live" target="_blank" rel="noopener" id="wlIosBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.45-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-2.99-.79-1.54.02-2.96.9-3.75 2.27-1.6 2.78-.41 6.89 1.15 9.14.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.24-.02 2.02-1.12 2.77-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.39-.92-2.41-3.67zM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.02.61-2.67 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.28z"/></svg>
+          <span><small>Download on the</small><strong>App Store</strong></span>
         </a>
       </div>
       <div class="wl-qr">
@@ -939,7 +941,6 @@
           <p class="wl-qr-text">Point your Android phone's camera at the code to open Hairlux on Google Play.</p>
         </div>
       </div>
-      <p class="wl-store-note">On iPhone? Join the list below and we'll tell you the day it lands on the App Store.</p>
     </section>
 
     <!-- App screenshot -->
@@ -1003,65 +1004,8 @@
       </div>
     </section>
 
-    <!-- Waitlist form -->
-    <section class="wl-form-section" id="waitlist">
-      <div class="wl-form-inner">
-        <h2 class="wl-form-heading">On iPhone? Be the first to know.</h2>
-        <p class="wl-form-desc">The iOS app is in review with Apple. Drop your details and we'll email you the moment it's on the App Store. On Android? <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dapp_page%26utm_campaign%3Dandroid_launch%26utm_content%3Dform_link" class="js-play-link" data-utm-content="form_link" target="_blank" rel="noopener" style="color:#9d8248;font-weight:600;">Get it on Google Play</a>.</p>
-
-        <form class="wl-form" id="waitlistForm" novalidate>
-          <input
-            class="wl-input"
-            type="text"
-            id="wlName"
-            name="name"
-            placeholder="Your full name"
-            autocomplete="name"
-            required
-          />
-          <input
-            class="wl-input"
-            type="email"
-            id="wlEmail"
-            name="email"
-            placeholder="Your email address"
-            autocomplete="email"
-            required
-          />
-          <button class="wl-submit" type="submit" id="wlSubmitBtn">Notify me when it's on iPhone</button>
-          <p class="wl-error" id="wlError" role="alert" aria-live="polite"></p>
-          <p class="wl-privacy">No spam. We'll only reach out when it matters.</p>
-        </form>
-
-      </div>
-    </section>
-
   </div>
 
-  <!-- Thank-you modal -->
-  <div class="wl-modal-overlay" id="wlThankModal" role="dialog" aria-modal="true" aria-labelledby="wlModalTitle">
-    <div class="wl-modal-card">
-      <button class="wl-modal-x" id="wlModalClose" aria-label="Close dialog">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-      <div class="wl-modal-badge">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#415326" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <h2 class="wl-modal-title" id="wlModalTitle">You're on the list!</h2>
-      <p class="wl-modal-greeting">Hey <strong id="wlModalName"></strong>, you're all set.</p>
-      <p class="wl-modal-body">
-        We'll send a heads-up to<br>
-        <span class="wl-modal-email-chip" id="wlModalEmail"></span><br><br>
-        the moment the Hairlux app lands on the App Store.<br>
-        Can't wait? It's already live on Google Play for Android.
-      </p>
-      <div class="wl-modal-actions">
-        <button class="wl-modal-done" id="wlModalDone">Got it, thanks!</button>
-        <a href="index.html" class="wl-modal-home">Back to Home</a>
-      </div>
-      <p class="wl-modal-note">No spam: we'll only email you when it matters.</p>
-    </div>
-  </div>
 
 
 
@@ -1076,134 +1020,6 @@
   <script src="assets/js/nav-auth.js" defer></script>
   <script src="https://cdn.prod.website-files.com/675c8e48ca0e0fb5ab421239/js/zuno-template.43895104.17a27cf99b30c8e2.js"
     type="text/javascript" defer></script>
-  <script src="assets/js/waitlist-api.js"></script>
-
-  <script>
-    (function () {
-      'use strict';
-
-      var form       = document.getElementById('waitlistForm');
-      var btn        = document.getElementById('wlSubmitBtn');
-      var errEl      = document.getElementById('wlError');
-      var modal      = document.getElementById('wlThankModal');
-      var nameInput  = document.getElementById('wlName');
-      var emailInput = document.getElementById('wlEmail');
-
-      // RFC 5321-inspired: same regex used in waitlist-api.js
-      var EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
-
-      function markFieldError(input, msg) {
-        input.classList.add('wl-input--error');
-        input.setAttribute('aria-invalid', 'true');
-        showError(msg);
-        input.focus();
-      }
-
-      function clearFieldError(input) {
-        input.classList.remove('wl-input--error');
-        input.removeAttribute('aria-invalid');
-      }
-
-      // Clear the highlight as soon as the user starts correcting the field
-      nameInput.addEventListener('input', function () { clearFieldError(nameInput); clearError(); });
-      emailInput.addEventListener('input', function () { clearFieldError(emailInput); clearError(); });
-
-      function showError(msg) {
-        errEl.textContent = msg;
-        errEl.style.display = 'block';
-        errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-
-      function clearError() {
-        errEl.textContent = '';
-        errEl.style.display = 'none';
-      }
-
-      function openModal(name, email) {
-        // Use textContent, never innerHTML, so user-supplied strings are safe.
-        document.getElementById('wlModalName').textContent  = name;
-        document.getElementById('wlModalEmail').textContent = email;
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        // Move focus into the modal for accessibility.
-        setTimeout(function () {
-          var closeBtn = document.getElementById('wlModalClose');
-          if (closeBtn) closeBtn.focus();
-        }, 280);
-      }
-
-      function closeModal() {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-        btn.focus();
-      }
-
-      // Close on backdrop click.
-      modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-      });
-
-      // Close on Escape.
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
-      });
-
-      document.getElementById('wlModalClose').addEventListener('click', closeModal);
-      document.getElementById('wlModalDone').addEventListener('click', closeModal);
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        clearError();
-        clearFieldError(nameInput);
-        clearFieldError(emailInput);
-
-        // ─ Synchronous pre-flight validation (instant, no network) ─
-        var fullName = nameInput.value.trim();
-        var email    = emailInput.value.trim().toLowerCase();
-
-        if (!fullName) {
-          markFieldError(nameInput, 'Please enter your full name.');
-          return;
-        }
-
-        if (!email) {
-          markFieldError(emailInput, 'Please enter your email address.');
-          return;
-        }
-
-        if (!EMAIL_RE.test(email)) {
-          markFieldError(emailInput, "That doesn't look like a valid email address. Please double-check it.");
-          return;
-        }
-
-        if (typeof WaitlistAPI === 'undefined') {
-          showError('Service is temporarily unavailable. Please refresh and try again.');
-          return;
-        }
-
-        btn.disabled    = true;
-        btn.textContent = 'Joining\u2026';
-
-        WaitlistAPI.join(fullName, email).then(function (result) {
-          btn.disabled    = false;
-          btn.textContent = "Notify me when it's on iPhone";
-
-          if (result.success) {
-            var displayName  = (result.data && result.data.fullName)  || fullName;
-            var displayEmail = (result.data && result.data.email)     || email;
-            openModal(displayName, displayEmail);
-            form.reset();
-          } else if (result.code === 'DUPLICATE') {
-            showError("Great news: this email is already on our waitlist! We'll notify you when we launch.");
-          } else if (result.code === 'VALIDATION') {
-            showError(result.error || 'Please check your details and try again.');
-          } else {
-            showError(result.error || 'Something went wrong. Please try again.');
-          }
-        });
-      });
-    })();
-  </script>
 <script>
   /* Play Store link tracking.
      Each Google Play link carries a referrer so Play Console can attribute installs.
