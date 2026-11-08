@@ -15,7 +15,7 @@ function getRuntimeGoogleMapsKey() {
 const API_CONFIG = {
   // BASE_URL: 'https://api.hairlux.com.ng',
   // BASE_URL: 'https://dev-hairlux-api.up.railway.app',
-  BASE_URL: 'http://localhost:3000',
+  BASE_URL: 'https://dev-hairlux-api.up.railway.app',
 
   // Public Google OAuth Client ID (not the Client Secret: that's never exposed in client-side code)
   GOOGLE_CLIENT_ID: '696072592207-g6irgnk1v9jjgvrlcmhd1bfr3frqn7ip.apps.googleusercontent.com',
