@@ -31,6 +31,12 @@ var AddressAPI = (function () {
       isDefault:     Boolean(payload && payload.isDefault)
     };
 
+    // Map pin (required by the API when adding an address).
+    ['latitude', 'longitude'].forEach(function (key) {
+      var n = payload ? Number(payload[key]) : NaN;
+      if (payload && payload[key] != null && payload[key] !== '' && isFinite(n)) body[key] = Math.round(n * 1e7) / 1e7;
+    });
+
     if (payload && payload.addressComponents && typeof payload.addressComponents === 'object') {
       body.addressComponents = payload.addressComponents;
     }
@@ -100,6 +106,8 @@ var AddressAPI = (function () {
         raw.place_id,
         components.placeId
       ], ''),
+      latitude: raw.latitude != null ? Number(raw.latitude) : null,
+      longitude: raw.longitude != null ? Number(raw.longitude) : null,
       isDefault: Boolean(raw.isDefault),
       createdAt: raw.createdAt || new Date().toISOString(),
       updatedAt: raw.updatedAt || new Date().toISOString()

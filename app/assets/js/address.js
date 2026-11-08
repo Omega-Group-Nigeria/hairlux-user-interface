@@ -17,8 +17,19 @@
         streetAddress: '',
         city: '',
         state: '',
-        country: 'Nigeria'
+        country: 'Nigeria',
+        lat: null,
+        lng: null
       };
+
+      // The pin's position, rounded to the 7 decimal places the API accepts.
+      function setMapCoords(pos) {
+        var lat = pos ? Number(pos.lat) : NaN;
+        var lng = pos ? Number(pos.lng) : NaN;
+        var ok = isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+        mapMeta.lat = ok ? Math.round(lat * 1e7) / 1e7 : null;
+        mapMeta.lng = ok ? Math.round(lng * 1e7) / 1e7 : null;
+      }
 
       // ── DOM refs ────────────────────────────────────────────────
       var addrGrid       = document.getElementById('addrGrid');
@@ -273,6 +284,7 @@
       }
 
       function resetMapMeta() {
+        setMapCoords(null);
         mapMeta.placeId = '';
         mapMeta.streetAddress = '';
         mapMeta.city = '';
@@ -326,8 +338,9 @@
         return formatted.indexOf('nigeria') !== -1;
       }
 
-      function applyGeocodeResult(result, keepManualInput) {
+      function applyGeocodeResult(result, keepManualInput, pinPos) {
         if (!result) return;
+        setMapCoords(pinPos || toLatLngLiteral(result.geometry && result.geometry.location));
 
         var parsed = parseAddressComponents(result.address_components || []);
         var formattedAddress = String(result.formatted_address || '').trim();
@@ -343,7 +356,7 @@
         mapMeta.country = parsed.country || 'Nigeria';
         syncMapMetaToFields();
 
-        if (result.geometry && result.geometry.location && mapInstance && mapMarker) {
+        if (!pinPos && result.geometry && result.geometry.location && mapInstance && mapMarker) {
           var latLng = toLatLngLiteral(result.geometry.location);
           if (latLng) {
             mapMarker.setPosition(latLng);
@@ -487,8 +500,9 @@
             try {
               var pos = toLatLngLiteral(mapMarker.getPosition());
               if (!pos) return;
+              setMapCoords(pos);
               var result = await reverseGeocodePosition(pos);
-              applyGeocodeResult(result, false);
+              applyGeocodeResult(result, false, pos);
               setMapStatus('Map pin moved. Address has been updated.', 'success');
             } catch (err) {
               setMapStatus((err && err.message) || 'Could not update address from pin.', 'error');
@@ -500,9 +514,10 @@
             if (!pos || !mapMarker) return;
 
             mapMarker.setPosition(pos);
+            setMapCoords(pos);
             try {
               var result = await reverseGeocodePosition(pos);
-              applyGeocodeResult(result, false);
+              applyGeocodeResult(result, false, pos);
               setMapStatus('Map pin set from click. Address has been updated.', 'success');
             } catch (err) {
               setMapStatus((err && err.message) || 'Could not update address from map click.', 'error');
@@ -518,8 +533,7 @@
         var fullAddress = fieldAddressLine.value.trim();
         if (!fullAddress) return;
 
-        var hasMeta = Boolean(fieldPlaceId.value.trim() || fieldCity.value.trim() || fieldState.value.trim());
-        if (hasMeta) return;
+        if (mapMeta.lat != null && mapMeta.lng != null) return;
 
         try {
           await initMapTools();
@@ -537,6 +551,13 @@
         initMapTools()
           .then(function () {
             refreshMapViewport();
+            if (mapMeta.lat != null && mapMeta.lng != null && mapMarker) {
+              var saved = { lat: mapMeta.lat, lng: mapMeta.lng };
+              mapMarker.setPosition(saved);
+              mapInstance.panTo(saved);
+              mapInstance.setZoom(16);
+              return;
+            }
             if (fieldAddressLine.value.trim()) {
               return geocodeAddressText(fieldAddressLine.value.trim(), true).catch(function () {
                 setMapStatus('Address map preview is unavailable for this value yet.');
@@ -586,6 +607,7 @@
         mapMeta.city           = addr.city || '';
         mapMeta.state          = addr.state || '';
         mapMeta.country        = addr.country || 'Nigeria';
+        setMapCoords(addr.latitude != null && addr.longitude != null ? { lat: addr.latitude, lng: addr.longitude } : null);
         syncMapMetaToFields();
         fieldIsDefault.checked = Boolean(addr.isDefault);
       }
@@ -611,6 +633,8 @@
           state:         addressComponents.state || undefined,
           country:       addressComponents.country || 'Nigeria',
           placeId:       fieldPlaceId.value.trim() || undefined,
+          latitude:      mapMeta.lat == null ? undefined : mapMeta.lat,
+          longitude:     mapMeta.lng == null ? undefined : mapMeta.lng,
           addressComponents: Object.keys(addressComponents).length ? addressComponents : undefined,
           isDefault:     fieldIsDefault.checked
         };
@@ -618,6 +642,9 @@
 
       function validateForm(payload) {
         if (!payload.fullAddress) return 'Full address is required.';
+        if (payload.latitude == null || payload.longitude == null) {
+          return 'We could not find that address on the map. Pick it from the suggestions, or tap the map to place the pin.';
+        }
         return null;
       }
 
@@ -630,6 +657,7 @@
       });
 
       fieldAddressLine.addEventListener('input', function () {
+        setMapCoords(null);
         mapMeta.placeId = '';
         mapMeta.streetAddress = '';
         mapMeta.city = '';

@@ -343,6 +343,15 @@
   let mapsLoaderPromise = null;
   let bookingMapInstance = null;
   let bookingMapMarker = null;
+  let bookingPinCoords = null; // { lat, lng } of the new address, rounded to 7 decimal places
+
+  function setBookingPinCoords(pos) {
+    const lat = pos ? Number(pos.lat) : NaN;
+    const lng = pos ? Number(pos.lng) : NaN;
+    bookingPinCoords = isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
+      ? { lat: Math.round(lat * 1e7) / 1e7, lng: Math.round(lng * 1e7) / 1e7 }
+      : null;
+  }
   let bookingMapGeocoder = null;
   let bookingAutocompleteService = null;
   let bookingPlacesService = null;
@@ -843,6 +852,7 @@
       country: parsed.country || 'Nigeria'
     });
 
+    setBookingPinCoords(toLatLngLiteral(result.geometry && result.geometry.location));
     if (result.geometry && result.geometry.location && bookingMapInstance && bookingMapMarker) {
       const latLng = toLatLngLiteral(result.geometry.location);
       if (latLng) {
@@ -1014,6 +1024,7 @@
         if (!latLng) return;
         reverseGeocodeBookingLatLng(latLng)
           .then(function () {
+            setBookingPinCoords(latLng); // the pin is where the customer put it
             setBookingMapStatus('Pin moved. Address updated.', 'success');
             refreshSummary();
           })
@@ -1025,8 +1036,10 @@
       bookingMapInstance.addListener('click', function (event) {
         if (!event || !event.latLng || !bookingMapMarker) return;
         bookingMapMarker.setPosition(event.latLng);
+        const clicked = toLatLngLiteral(event.latLng);
         reverseGeocodeBookingLatLng(event.latLng)
           .then(function () {
+            setBookingPinCoords(clicked);
             setBookingMapStatus('Address updated from map click.', 'success');
             refreshSummary();
           })
@@ -1065,7 +1078,7 @@
 
   async function ensureOneTimeAddressMetadata() {
     if (!newFullAddress || !newFullAddress.value.trim()) return;
-    if (newPlaceId && newPlaceId.value.trim()) return;
+    if (bookingPinCoords) return;
 
     try {
       await ensureBookingMapReady();
@@ -1098,6 +1111,8 @@
       state: oneTime.state || undefined,
       country: oneTime.country || 'Nigeria',
       placeId: oneTime.placeId || undefined,
+      latitude: bookingPinCoords ? bookingPinCoords.lat : undefined,
+      longitude: bookingPinCoords ? bookingPinCoords.lng : undefined,
       addressComponents: Object.keys(components).length ? components : undefined,
       isDefault: false
     };
@@ -1142,6 +1157,9 @@
     const payload = buildOneTimeAddressPayload();
     if (!payload) {
       throw new Error('Please enter a valid address before saving.');
+    }
+    if (payload.latitude == null || payload.longitude == null) {
+      throw new Error('We could not find that address on the map. Pick it from the suggestions, or tap the map to place the pin.');
     }
 
     const created = await BookingAPI.createAddress(payload);
@@ -2228,6 +2246,7 @@
     });
 
     newFullAddress.addEventListener('input', function () {
+      setBookingPinCoords(null);
       syncOneTimeAddressFields({
         placeId: '',
         streetAddress: '',

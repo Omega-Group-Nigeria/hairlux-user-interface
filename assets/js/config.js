@@ -55,6 +55,7 @@ const API_CONFIG = {
     BRANCHES: '/branches',
     SERVICES_CATEGORIES: '/services/categories',
     BOOKINGS: '/bookings',
+    SALON_VISITS: '/salon-bookings/mine',
     BRANCHES: '/branches',
     BOOKING_PAYMENTS: {
       BASE: '/bookings/payments',
