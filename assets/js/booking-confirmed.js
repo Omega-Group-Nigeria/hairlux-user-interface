@@ -151,8 +151,21 @@
     show('bnNotPaid', false);
     show('bnDone', true);
     document.title = 'Booking confirmed | Hairlux';
-    // Simple confirmation (2026-10-28): the page only says the booking is confirmed.
-    // The reservation code, QR code and booking details are in the confirmation email.
+    // Simple confirmation (2026-10-28): the booking details are in the confirmation email.
+    // The QR code (reservation code under it) is shown here too, for the front desk.
+    if (r.reservationCode) {
+      if (window.HairluxBarcode) {
+        HairluxBarcode.render($('bnBarcode'), r.reservationCode, {
+          services: r.serviceName,
+          dateTime: longDate(r.date) + ', ' + time12(r.time),
+          location: r.branch ? r.branch.name + ', ' + r.branch.address : '',
+          amount: naira(r.totalAmount) + ' (paid ' + naira(r.amountPaid) + ', balance ' + naira(r.balanceDue) + ')',
+          paymentMethod: r.paymentOption === 'FULL' ? 'Paid online in full' : r.paymentOption === 'PAY_AT_BRANCH' ? 'Pay at the branch' : 'Deposit paid online',
+          status: 'Confirmed',
+          customerName: r.firstName,
+        });
+      }
+    }
     trackPurchase(r);
     trackTikTok(r);
     // The booking is made: the half-filled form on book-now is no longer needed.
