@@ -9,7 +9,9 @@
   var K = ShopKit, esc = K.esc;
   var $ = function (id) { return document.getElementById(id); };
   var IDEM_KEY = 'hairlux.shop.idem';
-  var st = { addresses: [], addressId: '', method: 'WALLET', quote: null, wallet: null, error: '', busy: false };
+  var PAY_REF_KEY = 'hairlux.shop.payref';
+  // payWith: when the wallet is short, the rest is paid by card/bank (Paystack or Monnify).
+  var st = { addresses: [], addressId: '', method: 'WALLET', payWith: 'paystack', quote: null, wallet: null, error: '', busy: false, confirming: null };
 
   function items() {
     return K.readCart().map(function (l) { return { productId: l.productId, quantity: l.quantity }; });
@@ -34,7 +36,20 @@
       '<div><div class="t">' + title + '</div><div class="d">' + desc + '</div></div></label>';
   }
 
+  function gatewayOption(key, title, desc) {
+    return '<label class="opt"><input type="radio" name="gw" value="' + key + '"' + (st.payWith === key ? ' checked' : '') + '>' +
+      '<div><div class="t">' + title + '</div><div class="d">' + desc + '</div></div></label>';
+  }
+
   function render() {
+    if (st.confirming) {
+      $('co').innerHTML = '<div class="panel" style="max-width:560px;margin:0 auto;text-align:center">' +
+        (st.confirming.done ? '' : '<div class="spin"></div>') +
+        '<h3 style="margin-top:12px">' + esc(st.confirming.title) + '</h3><p class="muted">' + esc(st.confirming.text) + '</p>' +
+        (st.confirming.done ? '<a class="btn-shop" href="' + esc(st.confirming.href || 'checkout.html') + '">' + esc(st.confirming.cta || 'Back to checkout') + '</a>' : '') +
+        '</div>';
+      return;
+    }
     var lines = K.readCart();
     if (!lines.length) {
       $('co').innerHTML = '<div class="panel empty-box"><h3>Your cart is empty</h3><p>Add something from the shop first.</p><a class="btn-shop" href="shop.html">Go to the shop</a></div>';
@@ -80,8 +95,15 @@
         '</div>' +
         (q.shipments > 1 ? '<div class="small muted" style="margin:8px 0">Your items may arrive in ' + q.shipments + ' separate deliveries.</div>' : '') +
         '<div class="small muted" style="margin:10px 0">Wallet balance: <strong>' + (st.wallet === null ? '-' : K.ngn(st.wallet)) + '</strong></div>' +
-        (short ? '<div class="note warn"><strong>Not enough in your wallet</strong>Fund your wallet with at least ' + K.ngn(payNow - st.wallet) + ' to place this order. <a href="index.html" style="color:inherit;text-decoration:underline">Fund wallet</a></div>' : '') +
-        '<button class="btn-shop block" id="place" type="button"' + (short || st.busy ? ' disabled' : '') + '>' + (st.busy ? 'Placing order...' : 'Place order') + '</button>' +
+        (short
+          ? '<div class="note warn"><strong>Pay the rest by card or bank</strong>' +
+            (st.wallet > 0 ? 'Your wallet covers ' + K.ngn(st.wallet) + '. ' : '') +
+            'Pay the remaining ' + K.ngn(remaining(payNow)) + ' with:</div>' +
+            gatewayOption('paystack', 'Paystack', 'Card, bank transfer or USSD.') +
+            gatewayOption('monnify', 'Monnify', 'Card, bank transfer or USSD.')
+          : '') +
+        '<button class="btn-shop block" id="place" type="button"' + (st.busy ? ' disabled' : '') + '>' +
+        (st.busy ? (short ? 'Opening payment...' : 'Placing order...') : short ? 'Pay ' + K.ngn(remaining(payNow)) + ' and place order' : 'Place order') + '</button>' +
         '<div class="small muted" style="margin-top:10px">You will get a 6-digit delivery code. Give it to the rider only when you receive your items.</div>';
     }
 
@@ -95,6 +117,9 @@
     });
     document.querySelectorAll('input[name=pay]').forEach(function (r) {
       r.addEventListener('change', function () { st.method = r.value; render(); });
+    });
+    document.querySelectorAll('input[name=gw]').forEach(function (r) {
+      r.addEventListener('change', function () { st.payWith = r.value; });
     });
     if ($('place')) $('place').addEventListener('click', place);
   }
@@ -110,17 +135,40 @@
     render();
   }
 
+  /** What the card/bank payment will charge: the shortfall, ₦100 at least (the gateways' minimum). */
+  function remaining(payNow) {
+    return Math.max(100, Math.ceil(payNow - (st.wallet || 0)));
+  }
+
+  function orderPlaced(order) {
+    try { sessionStorage.removeItem(IDEM_KEY); sessionStorage.removeItem(PAY_REF_KEY); } catch (_) { /* blocked */ }
+    K.clearCart();
+    location.href = 'shop-orders.html?id=' + encodeURIComponent(order.id) + '&placed=1';
+  }
+
   async function place() {
     if (st.busy) return;
+    var q = st.quote;
+    var pod = q && q.payment && q.payment.payOnDelivery;
+    var payNow = q ? (st.method === 'PAY_ON_DELIVERY' && pod && pod.available ? pod.payNow : q.payment.wallet.payNow) : 0;
+    var short = st.wallet !== null && payNow > st.wallet;
     st.busy = true; render();
     try {
       var res = await K.api('/shop/orders', {
         method: 'POST',
-        body: JSON.stringify({ addressId: st.addressId, channel: 'web', paymentMethod: st.method, items: items(), idempotencyKey: idemKey() }),
+        body: JSON.stringify({
+          addressId: st.addressId, channel: 'web', paymentMethod: st.method, items: items(), idempotencyKey: idemKey(),
+          payWith: short ? st.payWith : 'wallet',
+          redirectUrl: location.origin + location.pathname + '?paid=1',
+        }),
       });
-      try { sessionStorage.removeItem(IDEM_KEY); } catch (_) { /* blocked */ }
-      K.clearCart();
-      location.href = 'shop-orders.html?id=' + encodeURIComponent(res.order.id) + '&placed=1';
+      if (res && res.paymentRequired) {
+        // The order is placed once the payment is confirmed; the cart stays until then.
+        try { sessionStorage.setItem(PAY_REF_KEY, res.reference); } catch (_) { /* blocked */ }
+        location.href = res.checkoutUrl;
+        return;
+      }
+      orderPlaced(res.order);
     } catch (e) {
       st.busy = false;
       K.toast(K.errMsg(e), 'error');
@@ -133,8 +181,44 @@
     try { st.wallet = (await WalletAPI.getBalance()).balance; } catch (_) { st.wallet = null; }
   }
 
+  /** Back from Paystack/Monnify: wait for the payment to be confirmed and the order placed. */
+  async function confirmPayment(reference) {
+    st.confirming = { title: 'Confirming your payment', text: 'Please wait, this can take a minute for bank transfers.' };
+    render();
+    for (var i = 0; i < 20; i++) {
+      try {
+        var r = await K.api('/shop/orders/payment/' + encodeURIComponent(reference));
+        if (r.status === 'PLACED' && r.order) { orderPlaced(r.order); return true; }
+        if (r.status === 'FAILED') {
+          try { sessionStorage.removeItem(PAY_REF_KEY); } catch (_) { /* blocked */ }
+          st.confirming = { done: true, title: 'Payment received', text: r.message + ' You can place the order again with your wallet.', cta: 'Back to checkout' };
+          render();
+          return true;
+        }
+      } catch (e) {
+        if (e && e.status === 404) break;
+      }
+      await new Promise(function (res) { setTimeout(res, 3000); });
+    }
+    st.confirming = {
+      done: true, title: 'Still confirming your payment',
+      text: 'Your order will be placed automatically as soon as the payment is confirmed. Check My Orders in a few minutes. If the payment did not go through, nothing was charged.',
+      href: 'shop-orders.html', cta: 'Go to My Orders',
+    };
+    render();
+    return true;
+  }
+
   document.addEventListener('DOMContentLoaded', async function () {
     if (typeof APIHelper === 'undefined' || !APIHelper.isAuthenticated()) return;
+    var params = new URLSearchParams(location.search);
+    var payRef = null;
+    try { payRef = sessionStorage.getItem(PAY_REF_KEY); } catch (_) { /* blocked */ }
+    payRef = payRef || params.get('paymentReference') || params.get('reference');
+    if (params.get('paid') === '1' && payRef) {
+      history.replaceState(null, '', location.pathname);
+      if (await confirmPayment(payRef)) return;
+    }
     if (!K.readCart().length) { render(); return; }
     try { st.addresses = await AddressAPI.getAll(); } catch (_) { st.addresses = []; }
     var def = st.addresses.find(function (a) { return a.isDefault; }) || st.addresses[0];
