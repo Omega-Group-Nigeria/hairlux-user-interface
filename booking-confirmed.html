@@ -288,10 +288,12 @@
       <div id="bnDone" class="bn-done bn-hidden">
         <div class="bn-card">
           <div class="bn-done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
-          <!-- Simple confirmation (2026-10-28): the full details, code and QR code are in the email. -->
+          <!-- Simple confirmation (2026-10-28): the full details are in the email. The
+               QR code (with the reservation code under it) is shown here too (2026-11-12). -->
           <h1 id="doneTitle">Your Booking is Confirmed</h1>
           <p class="lead" id="doneLead">More details in your email.</p>
-          <div class="bn-actions" style="grid-template-columns:1fr">
+          <div id="bnBarcode" hidden></div>
+          <div class="bn-actions" style="grid-template-columns:1fr;margin-top:18px">
             <a class="bn-btn" href="index.html">Back to Hairlux</a>
           </div>
         </div>
