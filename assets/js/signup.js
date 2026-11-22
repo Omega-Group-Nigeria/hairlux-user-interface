@@ -212,6 +212,8 @@
         const registrationData = { email, password, firstName, lastName };
         if (phone) registrationData.phone = phone;
         if (referralCode) registrationData.referralCode = referralCode;
+        // The code came from a field agent's link or QR (sign-up.html?ref=CODE).
+        if (referralCode && referralCodeInput && referralCodeInput.dataset.source === 'LINK') registrationData.referralSource = 'LINK';
         const smsOptIn = document.getElementById('signup-smsOptIn');
         if (smsOptIn && smsOptIn.checked) registrationData.smsOptIn = true;
 
