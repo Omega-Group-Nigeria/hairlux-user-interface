@@ -1790,8 +1790,26 @@
     let address = getSelectedAddress();
     const bType = hasAnyMobileService() ? 'HOME_SERVICE' : 'WALK_IN';
     const bMethod = getPaymentMethod();
-    const gName = guestNameEl ? guestNameEl.value.trim() : '';
-    const gPhone = guestPhoneEl ? guestPhoneEl.value.trim() : '';
+    // Guest details only count when booking for someone else (a name typed
+    // before switching back to "Myself" is ignored).
+    const forGuest = !bookingForSelf;
+    const gName = forGuest && guestNameEl ? guestNameEl.value.trim() : '';
+    const gPhone = forGuest && guestPhoneEl ? guestPhoneEl.value.trim() : '';
+    const gEmail = forGuest && guestEmailEl ? guestEmailEl.value.trim() : '';
+    if (forGuest) {
+      if (!gName) {
+        if (guestNameEl) guestNameEl.focus();
+        throw new Error('Enter the name of the person you are booking for.');
+      }
+      if (!gEmail) {
+        if (guestEmailEl) guestEmailEl.focus();
+        throw new Error('Enter the email address of the person you are booking for. We send them the booking details there.');
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gEmail)) {
+        if (guestEmailEl) guestEmailEl.focus();
+        throw new Error('Enter a valid email address for the person you are booking for.');
+      }
+    }
 
     if (hasAnyMobileService()) {
       if (!address) {
@@ -1816,7 +1834,7 @@
       branchId: (visitBranchEl && visitBranchEl.value) || undefined,
       guestName: gName || undefined,
       guestPhone: gPhone || undefined,
-      guestEmail: guestEmailEl ? (guestEmailEl.value.trim() || undefined) : undefined,
+      guestEmail: gEmail || undefined,
       paymentMethod: bMethod,
       notes: notesEl.value.trim() || undefined,
       discountCode: discountInfo ? discountInfo.code : undefined,
