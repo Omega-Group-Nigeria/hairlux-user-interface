@@ -199,7 +199,8 @@ body {
 .btn-shop.block { width: 100%; }
 .btn-shop.sm { min-height: 36px; padding: 6px 14px; font-size: 13.5px; }
 
-.cart-fab { position: fixed; right: 20px; bottom: 24px; z-index: 40; display: inline-flex; align-items: center; gap: 10px; padding: 14px 20px; border-radius: 999px; background: #1f2328; color: #fff; border: 0; font: 600 15px inherit; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); cursor: pointer; }
+/* Sits above the Tawk chat bubble (bottom right, about 60px tall). */
+.cart-fab { position: fixed; right: 20px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: inline-flex; align-items: center; gap: 10px; padding: 14px 20px; border-radius: 999px; background: #1f2328; color: #fff; border: 0; font: 600 15px inherit; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); cursor: pointer; }
 .cart-fab .n { background: var(--gold); color: #fff; min-width: 24px; height: 24px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 12.5px; padding: 0 6px; }
 
 .overlay { position: fixed; inset: 0; background: rgba(15, 17, 20, .55); z-index: 9998; display: none; }
