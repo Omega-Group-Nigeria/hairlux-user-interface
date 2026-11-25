@@ -57,6 +57,7 @@
             loading="lazy" alt="" class="image-brand" /></a></div>
       <nav role="navigation" class="nav-menu w-nav-menu">
         <a href="../index.html" class="nav-link w-nav-link">Home</a>
+        <a href="shop.html" class="nav-link w-nav-link">Shop</a>
         <a href="../about.html" class="nav-link w-nav-link">About Us</a>
         <a href="../contact.html" class="nav-link w-nav-link">Contact Us</a>
         <a href="../mobile-apps.html" class="nav-link w-nav-link">Mobile Apps</a>
@@ -196,9 +197,9 @@
                           <input type="tel" id="guestPhone" placeholder="08031234567" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" pattern="\d{11}" title="Please enter exactly 11 digits" autocomplete="tel" />
                         </div>
                         <div class="field full">
-                          <label for="guestEmail">Guest Email <span style="font-weight:400;text-transform:none;color:var(--muted);">(optional)</span></label>
-                          <input type="email" id="guestEmail" placeholder="guest@example.com" autocomplete="email" />
-                          <div class="helper-text">We'll send the reservation code to this email.</div>
+                          <label for="guestEmail">Guest Email</label>
+                          <input type="email" id="guestEmail" placeholder="guest@example.com" autocomplete="email" aria-required="true" />
+                          <div class="helper-text">Required. We send them the booking details and reservation code.</div>
                         </div>
                       </div>
                     </div>

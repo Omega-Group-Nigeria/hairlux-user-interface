@@ -81,6 +81,7 @@
             loading="lazy" alt="" class="image-brand" /></a></div>
       <nav role="navigation" class="nav-menu w-nav-menu">
         <a href="index.html" class="nav-link w-nav-link">Home</a>
+        <a href="shop.html" class="nav-link w-nav-link">Shop</a>
         <a href="about.html" class="nav-link w-nav-link">About Us</a>
         <a href="careers.html" aria-current="page" class="nav-link w-nav-link w--current">Careers</a>
         <a href="contact.html" class="nav-link w-nav-link">Contact Us</a>
@@ -359,6 +360,16 @@
     .badge-FREELANCE {
       background: #f3e8ff;
       color: #6b3fa0;
+    }
+
+    .badge-REMOTE {
+      background: #e6f6ec;
+      color: #1e7a45;
+    }
+
+    .badge-HYBRID {
+      background: #fdeee4;
+      color: #a3501c;
     }
 
     .job-card-title {
@@ -1459,6 +1470,8 @@
             <button class="jobs-filter-btn" data-type="PART_TIME">Part-Time</button>
             <button class="jobs-filter-btn" data-type="CONTRACT">Contract</button>
             <button class="jobs-filter-btn" data-type="FREELANCE">Freelance</button>
+            <button class="jobs-filter-btn" data-type="REMOTE">Remote</button>
+            <button class="jobs-filter-btn" data-type="HYBRID">Hybrid</button>
           </div>
           <div class="jobs-search-wrap">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
@@ -1834,7 +1847,7 @@
       var BASE = API_CONFIG.BASE_URL;
       var JOBS_EP = API_CONFIG.ENDPOINTS.JOBS;
 
-      var typeLabels = { FULL_TIME: 'Full-Time', PART_TIME: 'Part-Time', CONTRACT: 'Contract', FREELANCE: 'Freelance' };
+      var typeLabels = { FULL_TIME: 'Full-Time', PART_TIME: 'Part-Time', CONTRACT: 'Contract', FREELANCE: 'Freelance', REMOTE: 'Remote', HYBRID: 'Hybrid' };
 
       var renderedJobs = [];   // jobs currently on screen (post search+filter): used for modal index lookup
       var masterJobs = [];   // full result set for the active type filter, before search is applied

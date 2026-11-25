@@ -309,6 +309,7 @@
             loading="lazy" alt="" class="image-brand" /></a></div>
       <nav role="navigation" class="nav-menu w-nav-menu">
         <a href="index.html" class="nav-link w-nav-link">Home</a>
+        <a href="shop.html" class="nav-link w-nav-link">Shop</a>
         <a href="about.html" class="nav-link w-nav-link">About Us</a>
         <a href="careers.html" class="nav-link w-nav-link">Careers</a>
         <a href="contact.html" class="nav-link w-nav-link">Contact Us</a>
@@ -504,11 +505,14 @@
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
-      var code = params.get('code');
+      // ?ref= comes from a field agent's link or QR code; ?code= from other referral links.
+      var agentRef = params.get('ref');
+      var code = agentRef || params.get('code');
       if (code) {
         var field = document.getElementById('signup-referralCode');
         if (field) {
           field.value = code.trim();
+          if (agentRef) field.dataset.source = 'LINK';
           field.readOnly = true;
           field.style.background = '#f4f9ec';
           field.style.color = '#9d8248';
