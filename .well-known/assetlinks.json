@@ -1,0 +1,18 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.omegapathway.hairlux",
+      "sha256_cert_fingerprints": ["70:5E:B5:DA:10:1F:DF:D9:BB:B3:B2:BB:09:93:DC:12:E2:5B:A8:87:3E:0C:F8:06:49:81:AC:2F:E7:CF:41:98"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.omegapathway.hairlux.dev",
+      "sha256_cert_fingerprints": ["70:5E:B5:DA:10:1F:DF:D9:BB:B3:B2:BB:09:93:DC:12:E2:5B:A8:87:3E:0C:F8:06:49:81:AC:2F:E7:CF:41:98"]
+    }
+  }
+]

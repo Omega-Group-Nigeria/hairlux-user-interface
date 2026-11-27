@@ -11,18 +11,18 @@
        Desktop: stay on this page.
        Without ?download the page behaves as normal.
 
-       Referral links (mobile-apps.html?download&refferal=CODE; "referral"
-       also works). When the app is installed the phone opens the link in
+       Referral links (mobile-apps.html?download&referral=CODE; the older
+       "refferal" spelling still works for links already shared). When the app is installed the phone opens the link in
        the app and this page never loads. Otherwise:
        Android: the code goes to Google Play in the install referrer
-       (refferal=CODE), and the app reads it on first launch.
+       (referral=CODE), and the app reads it on first launch.
        iPhone: the App Store has no install referrer, so the page stays and
        shows the code to copy (the App Store button copies it too).
        Desktop: the page shows the code. */
     (function () {
       'use strict';
       var page = new URLSearchParams(window.location.search);
-      var raw = (page.get('refferal') || page.get('referral') || '').trim();
+      var raw = (page.get('referral') || page.get('refferal') || '').trim();
       var code = /^[A-Za-z0-9][A-Za-z0-9_-]{2,39}$/.test(raw) ? raw : '';
       window.HX_REFERRAL_CODE = code;
       if (!page.has('download')) return;
@@ -42,7 +42,7 @@
         return v && SAFE.test(v) ? v : fallback;
       }
       var ref = new URLSearchParams();
-      if (code) ref.set('refferal', code); // first, as the app expects it
+      if (code) ref.set('referral', code); // first, as the app expects it
       ref.set('utm_source', pick('utm_source', 'hairlux_website'));
       ref.set('utm_medium', pick('utm_medium', 'app_page'));
       ref.set('utm_campaign', pick('utm_campaign', 'android_launch'));
@@ -1097,7 +1097,7 @@
 
     document.querySelectorAll('.js-play-link').forEach(function (link) {
       var ref = new URLSearchParams();
-      if (code) ref.set('refferal', code); // the app reads this from the Play install referrer
+      if (code) ref.set('referral', code); // the app reads this from the Play install referrer
       ref.set('utm_source', pick('utm_source'));
       ref.set('utm_medium', pick('utm_medium'));
       ref.set('utm_campaign', pick('utm_campaign'));
