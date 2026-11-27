@@ -9,16 +9,32 @@
        utm_ tags from this link so Play Console still credits the source.
        iPhone and iPad: go to the Hairlux app on the App Store.
        Desktop: stay on this page.
-       Without ?download the page behaves as normal. */
+       Without ?download the page behaves as normal.
+
+       Referral links (mobile-apps.html?download&refferal=CODE; "referral"
+       also works). When the app is installed the phone opens the link in
+       the app and this page never loads. Otherwise:
+       Android: the code goes to Google Play in the install referrer
+       (refferal=CODE), and the app reads it on first launch.
+       iPhone: the App Store has no install referrer, so the page stays and
+       shows the code to copy (the App Store button copies it too).
+       Desktop: the page shows the code. */
     (function () {
       'use strict';
       var page = new URLSearchParams(window.location.search);
+      var raw = (page.get('refferal') || page.get('referral') || '').trim();
+      var code = /^[A-Za-z0-9][A-Za-z0-9_-]{2,39}$/.test(raw) ? raw : '';
+      window.HX_REFERRAL_CODE = code;
       if (!page.has('download')) return;
       var ua = navigator.userAgent || '';
       var platform = (navigator.userAgentData && navigator.userAgentData.platform) || '';
       var isAndroid = /android/i.test(ua) || /android/i.test(platform);
       var isIOS = /iP(hone|ad|od)/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      if (isIOS) { window.location.replace('https://apps.apple.com/ng/app/hairlux/id6823368131'); return; }
+      if (isIOS) {
+        if (code) return; // stay: the page shows the code to copy before the App Store
+        window.location.replace('https://apps.apple.com/ng/app/hairlux/id6823368131');
+        return;
+      }
       if (!isAndroid) return;
       var SAFE = /^[A-Za-z0-9_.\-]{1,60}$/;
       function pick(key, fallback) {
@@ -26,6 +42,7 @@
         return v && SAFE.test(v) ? v : fallback;
       }
       var ref = new URLSearchParams();
+      if (code) ref.set('refferal', code); // first, as the app expects it
       ref.set('utm_source', pick('utm_source', 'hairlux_website'));
       ref.set('utm_medium', pick('utm_medium', 'app_page'));
       ref.set('utm_campaign', pick('utm_campaign', 'android_launch'));
@@ -341,6 +358,36 @@
     .wl-notify-btn:hover svg {
       transform: translateY(3px);
     }
+
+    /* ── Invite code (referral links) ── */
+    .wl-invite {
+      margin: 24px auto 0;
+      max-width: 420px;
+      padding: 16px 18px;
+      border: 1px dashed #9d8248;
+      border-radius: 14px;
+      background: rgba(157, 130, 72, .07);
+      text-align: center;
+    }
+    .wl-invite[hidden] { display: none; }
+    .wl-invite-label { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: #9d8248; }
+    .wl-invite-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .wl-invite-code {
+      font: 700 22px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .06em;
+      user-select: all;
+    }
+    .wl-invite-copy {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 16px;
+      background: #9d8248;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .wl-invite-copy:active { transform: scale(.97); }
+    .wl-invite-hint { margin: 10px 0 0; font-size: 13px; opacity: .8; }
 
     /* ── Store buttons ── */
     .wl-store-row {
@@ -925,6 +972,14 @@
       </div>
       <h1 class="wl-heading">The Hairlux app is here.</h1>
       <p class="wl-sub">Book premium beauty and wellness services from your phone: anytime, anywhere. Download it today on iPhone or Android.</p>
+      <div class="wl-invite" id="wlInvite" hidden>
+        <p class="wl-invite-label">You were invited to Hairlux</p>
+        <div class="wl-invite-row">
+          <span class="wl-invite-code" id="wlInviteCode"></span>
+          <button type="button" class="wl-invite-copy" id="wlInviteCopy">Copy code</button>
+        </div>
+        <p class="wl-invite-hint" id="wlInviteHint">Install the app, then enter this code in the Referral Code box when you sign up.</p>
+      </div>
       <div class="wl-store-row">
         <a href="https://play.google.com/store/apps/details?id=com.omegapathway.hairlux&amp;referrer=utm_source%3Dhairlux_website%26utm_medium%3Dapp_page%26utm_campaign%3Dandroid_launch%26utm_content%3Dhero_button" class="wl-store-btn wl-store-btn--live js-play-link" data-utm-content="hero_button" target="_blank" rel="noopener" id="wlPlayBtn">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.52.85l14-8.5a1 1 0 0 0 0-1.7l-14-8.5A1 1 0 0 0 5 3.5z"/></svg>
@@ -1038,14 +1093,52 @@
       return v && SAFE.test(v) ? v : DEFAULTS[key];
     }
 
+    var code = window.HX_REFERRAL_CODE || '';
+
     document.querySelectorAll('.js-play-link').forEach(function (link) {
       var ref = new URLSearchParams();
+      if (code) ref.set('refferal', code); // the app reads this from the Play install referrer
       ref.set('utm_source', pick('utm_source'));
       ref.set('utm_medium', pick('utm_medium'));
       ref.set('utm_campaign', pick('utm_campaign'));
       ref.set('utm_content', link.getAttribute('data-utm-content') || 'link');
       link.href = PLAY + '&referrer=' + encodeURIComponent(ref.toString());
     });
+
+    if (!code) return;
+    var panel = document.getElementById('wlInvite');
+    var btn = document.getElementById('wlInviteCopy');
+    var ua = navigator.userAgent || '';
+    var isIOS = /iP(hone|ad|od)/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    document.getElementById('wlInviteCode').textContent = code;
+    if (isIOS) {
+      document.getElementById('wlInviteHint').textContent =
+        'Copy the code, install Hairlux from the App Store, then paste it in the Referral Code box when you sign up.';
+    }
+    panel.hidden = false;
+
+    function copy() {
+      var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy code'; }, 2500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(code).then(done).catch(fallback);
+      }
+      fallback();
+      function fallback() {
+        var t = document.createElement('textarea');
+        t.value = code;
+        t.setAttribute('readonly', '');
+        t.style.position = 'fixed';
+        t.style.opacity = '0';
+        document.body.appendChild(t);
+        t.select();
+        try { document.execCommand('copy'); done(); } catch (e) { /* the code stays on screen to copy by hand */ }
+        t.remove();
+      }
+    }
+    btn.addEventListener('click', copy);
+    // The App Store cannot pass the code to the app, so copy it on the way there.
+    var ios = document.getElementById('wlIosBtn');
+    if (ios) ios.addEventListener('click', function () { copy(); });
   })();
 </script>
 
