@@ -11,7 +11,35 @@
   var IDEM_KEY = 'hairlux.shop.idem';
   var PAY_REF_KEY = 'hairlux.shop.payref';
   // payWith: when the wallet is short, the rest is paid by card/bank (Paystack or Monnify).
-  var st = { addresses: [], addressId: '', method: 'WALLET', payWith: 'paystack', quote: null, wallet: null, error: '', busy: false, confirming: null };
+  var st = { addresses: [], addressId: '', method: 'WALLET', payWith: 'paystack', quote: null, wallet: null, error: '', busy: false, confirming: null,
+    code: '', codeError: '', codeBusy: false, coupons: [] };
+
+  /** The discount code box, with the customer's own shop coupons (e.g. a birthday coupon) to tap. */
+  function couponBox(q) {
+    if (q && q.discount) {
+      return '<div class="note ok" style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+        '<span><strong>' + esc(q.discount.code) + '</strong> applied' + (q.discount.percentage ? ' (' + esc(String(q.discount.percentage)) + '% off items)' : '') + '</span>' +
+        '<button type="button" class="btn-shop ghost sm" id="coupon-remove">Remove</button></div>';
+    }
+    var mine = st.coupons.filter(function (c) { return (c.scopes || []).indexOf('SHOP') >= 0; });
+    return '<div style="margin:14px 0 6px">' +
+      '<label class="small" for="coupon-code" style="display:block;margin-bottom:6px;font-weight:600">Discount code</label>' +
+      '<div style="display:flex;gap:8px"><input id="coupon-code" type="text" maxlength="60" autocomplete="off" placeholder="Enter code"' +
+      ' style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit;text-transform:uppercase">' +
+      '<button type="button" class="btn-shop ghost sm" id="coupon-apply"' + (st.codeBusy ? ' disabled' : '') + '>' + (st.codeBusy ? 'Checking...' : 'Apply') + '</button></div>' +
+      (st.codeError ? '<div class="small" style="color:#d63939;margin-top:6px">' + esc(st.codeError) + '</div>' : '') +
+      (mine.length ? '<div class="small muted" style="margin-top:8px">Your coupons: ' + mine.map(function (c) {
+        return '<button type="button" class="btn-shop ghost sm coupon-mine" data-code="' + esc(c.code) + '" style="margin:4px 4px 0 0">' + esc(c.code) + ' (' + esc(String(c.percentage)) + '% off)</button>';
+      }).join('') + '</div>' : '') +
+      '</div>';
+  }
+
+  function applyCode(code) {
+    code = String(code || '').trim().toUpperCase();
+    if (!code) { st.codeError = 'Enter a discount code.'; render(); return; }
+    st.code = code; st.codeError = ''; st.codeBusy = true;
+    quote();
+  }
 
   function items() {
     return K.readCart().map(function (l) { return { productId: l.productId, quantity: l.quantity }; });
@@ -86,9 +114,11 @@
           pod.available
             ? 'Pay ' + K.ngn(pod.payNow) + ' now (' + pod.downpaymentPercent + '% of items plus delivery). Pay the balance of ' + K.ngn(pod.balanceDue) + ' before your order is handed over.'
             : esc(pod.reason || 'Not available for this order.'), !!pod.available) +
+        couponBox(q) +
         '<div style="margin-top:14px">' +
         '<div class="sum-row"><span>Items</span><span>' + K.ngn(q.subtotal) + '</span></div>' +
         '<div class="sum-row"><span>Delivery' + (q.shipments > 1 ? ' (' + q.shipments + ' deliveries)' : '') + '</span><span>' + K.ngn(q.deliveryFee) + '</span></div>' +
+        (q.discount ? '<div class="sum-row" style="color:#2fb344"><span>Discount (' + esc(q.discount.code) + ')</span><span>-' + K.ngn(q.discount.amount) + '</span></div>' : '') +
         '<div class="sum-row total"><span>Total</span><span>' + K.ngn(q.totalAmount) + '</span></div>' +
         '<div class="sum-row" style="font-weight:600"><span>Pay now</span><span>' + K.ngn(payNow) + '</span></div>' +
         (st.method === 'PAY_ON_DELIVERY' && pod.available ? '<div class="sum-row"><span>Pay before delivery</span><span>' + K.ngn(pod.balanceDue) + '</span></div>' : '') +
@@ -122,16 +152,30 @@
       r.addEventListener('change', function () { st.payWith = r.value; });
     });
     if ($('place')) $('place').addEventListener('click', place);
+    if ($('coupon-apply')) $('coupon-apply').addEventListener('click', function () { applyCode($('coupon-code').value); });
+    if ($('coupon-code')) $('coupon-code').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); applyCode(this.value); } });
+    if ($('coupon-remove')) $('coupon-remove').addEventListener('click', function () { st.code = ''; st.codeError = ''; quote(); });
+    document.querySelectorAll('.coupon-mine').forEach(function (b) { b.addEventListener('click', function () { applyCode(b.getAttribute('data-code')); }); });
   }
 
   async function quote() {
     st.quote = null; st.error = '';
     render();
+    var body = { addressId: st.addressId, channel: 'web', items: items() };
+    if (st.code) body.discountCode = st.code;
     try {
-      st.quote = await K.api('/shop/orders/quote', { method: 'POST', body: JSON.stringify({ addressId: st.addressId, channel: 'web', items: items() }) });
+      st.quote = await K.api('/shop/orders/quote', { method: 'POST', body: JSON.stringify(body) });
     } catch (e) {
+      if (st.code) {
+        // The code is the problem: say why, and price the order without it.
+        st.codeError = K.errMsg(e);
+        st.code = '';
+        st.codeBusy = false;
+        return quote();
+      }
       st.error = K.errMsg(e);
     }
+    st.codeBusy = false;
     render();
   }
 
@@ -158,6 +202,7 @@
         method: 'POST',
         body: JSON.stringify({
           addressId: st.addressId, channel: 'web', paymentMethod: st.method, items: items(), idempotencyKey: idemKey(),
+          discountCode: st.code || undefined,
           payWith: short ? st.payWith : 'wallet',
           redirectUrl: location.origin + location.pathname + '?paid=1',
         }),
@@ -211,6 +256,7 @@
 
   document.addEventListener('DOMContentLoaded', async function () {
     if (typeof APIHelper === 'undefined' || !APIHelper.isAuthenticated()) return;
+    K.api('/discounts/mine').then(function (list) { st.coupons = Array.isArray(list) ? list : []; render(); }).catch(function () { /* none */ });
     var params = new URLSearchParams(location.search);
     var payRef = null;
     try { payRef = sessionStorage.getItem(PAY_REF_KEY); } catch (_) { /* blocked */ }
