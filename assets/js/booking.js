@@ -1801,11 +1801,8 @@
         if (guestNameEl) guestNameEl.focus();
         throw new Error('Enter the name of the person you are booking for.');
       }
-      if (!gEmail) {
-        if (guestEmailEl) guestEmailEl.focus();
-        throw new Error('Enter the email address of the person you are booking for. We send them the booking details there.');
-      }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gEmail)) {
+      // The guest's email is optional; when given it must be a real address.
+      if (gEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gEmail)) {
         if (guestEmailEl) guestEmailEl.focus();
         throw new Error('Enter a valid email address for the person you are booking for.');
       }

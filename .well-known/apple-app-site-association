@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["PPGZK9Z92R.com.omegapathway.hairlux", "PPGZK9Z92R.com.omegapathway.hairlux.dev"],
+        "components": [{ "/": "/mobile-apps.html" }]
+      }
+    ]
+  }
+}
